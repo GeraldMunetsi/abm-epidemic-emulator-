@@ -1,0 +1,3 @@
+replicate_id,seed,best_epoch,best_val_r2,best_val_mae,best_val_mae_i,best_val_mae_s,best_val_mae_r,training_time_minutes,model_filename,output_dir
+1,42,47,0.9781022071838379,3722.300537109375,1453.2877197265625,4918.8359375,4808.5390625,0.16398027340571086,best_balanced_mlp_model_1.pt,experiments\lhs-sampling\out\trained-models
+2,123,50,0.9757344126701355,3982.35107421875,1429.1597900390625,5319.68115234375,5198.21240234375,0.16907045841217042,best_balanced_mlp_model_2.pt,experiments\lhs-sampling\out\trained-models

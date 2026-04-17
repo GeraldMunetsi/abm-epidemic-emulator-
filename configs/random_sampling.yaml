@@ -1,0 +1,62 @@
+# ============================================================
+# Config: Random Sampling (Baseline)
+# Strategy: Uniform random draws from parameter box
+# Script:   src/Random_sampling_data_generation.py
+# ============================================================
+
+# --- ABM / Network ---
+network:
+  type: barabasi_albert
+  N: 100000            # number of nodes
+  m: 10                # BA attachment parameter
+  seed: 42
+
+# --- Simulation ---
+simulation:
+  tmax: 80.0
+  n_timepoints: 80
+  n_replicates: 2      # stochastic replicates per parameter set
+
+# --- Sampling ---
+sampling:
+  strategy: random
+  n_samples: 2000
+  seed: 42
+
+# --- Parameter space ---
+parameters:
+  tau:
+    min: 0.0005
+    max: 0.024
+  gamma:
+    min: 0.01
+    max: 0.50
+  rho:
+    min: 0.001
+    max: 0.010
+
+# --- Output ---
+output:
+  data_dir: experiments/random-sampling/out/results
+  plots_dir: experiments/random-sampling/out/plots
+
+# --- MLP Training ---
+training:
+  n_replicates: 5
+  seeds: [42, 123, 456, 789, 1011]
+  epochs: 200
+  batch_size: 32
+  learning_rate: 0.001
+  patience: 15           # early stopping patience (monitors R²)
+  min_delta: 0.0001
+  weight_mode: modest
+  models_dir: experiments/random-sampling/out/trained-models
+
+# --- Architecture ---
+model:
+  n_fourier: 64          # StandardRFF output dim = 2 × n_fourier = 128
+  sigma_rff: 1.0
+  latent_dim: 128
+  n_knots: 5             # B-spline control points
+  n_timepoints: 80
+  N: 100000

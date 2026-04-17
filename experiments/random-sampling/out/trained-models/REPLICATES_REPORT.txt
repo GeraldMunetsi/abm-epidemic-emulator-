@@ -1,0 +1,51 @@
+======================================================================
+REPLICATES TRAINING SUMMARY  ·  3-Parameter SIR (τ, γ, ρ)
+======================================================================
+
+  Replicates   : 2
+  Weight mode  : modest
+  Seeds        : [42, 123]
+  Output dir   : experiments\random-sampling\out\trained-models
+
+  Model files:
+    · best_balanced_mlp_model_1.pt  (seed=42)
+    · best_balanced_mlp_model_2.pt  (seed=123)
+
+======================================================================
+VALIDATION PERFORMANCE
+======================================================================
+
+MAE_I (Infected Compartment):
+  Mean : 1213.06
+  Std  : 38.68
+  95% CI: [865.56, 1560.56]
+
+R²:
+  Mean : 0.9802
+  Std  : 0.0010
+  95% CI: [0.9716, 0.9889]
+
+Per-Compartment MAE:
+  MAE_S: 4590.40 ± 137.61  (95% CI: [3354.01, 5826.79])
+  MAE_I: 1213.06 ± 38.68  (95% CI: [865.56, 1560.56])
+  MAE_R: 4422.69 ± 137.19  (95% CI: [3190.09, 5655.29])
+
+======================================================================
+INDIVIDUAL REPLICATE RESULTS
+======================================================================
+ ID   Seed  Epoch       R²    MAE_I    MAE_S    MAE_R Model File                         
+----------------------------------------------------------------------------------------------------
+  1     42     48   0.9809  1240.41  4493.10  4325.69 best_balanced_mlp_model_1.pt       
+  2    123     50   0.9795  1185.71  4687.71  4519.70 best_balanced_mlp_model_2.pt       
+
+======================================================================
+NEXT STEPS
+======================================================================
+
+  VALIDATE:
+    python step4_validate_SIR3param.py --models_dir experiments\random-sampling\out\trained-models
+
+  TEST (final dissertation results):
+    python step5_test_SIR3param.py --models_dir experiments\random-sampling\out\trained-models
+
+======================================================================

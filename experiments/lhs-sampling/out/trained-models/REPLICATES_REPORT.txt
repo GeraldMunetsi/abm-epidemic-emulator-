@@ -1,0 +1,51 @@
+======================================================================
+REPLICATES TRAINING SUMMARY  ·  3-Parameter SIR (τ, γ, ρ)
+======================================================================
+
+  Replicates   : 2
+  Weight mode  : modest
+  Seeds        : [42, 123]
+  Output dir   : experiments\lhs-sampling\out\trained-models
+
+  Model files:
+    · best_balanced_mlp_model_1.pt  (seed=42)
+    · best_balanced_mlp_model_2.pt  (seed=123)
+
+======================================================================
+VALIDATION PERFORMANCE
+======================================================================
+
+MAE_I (Infected Compartment):
+  Mean : 1441.22
+  Std  : 17.06
+  95% CI: [1287.94, 1594.51]
+
+R²:
+  Mean : 0.9769
+  Std  : 0.0017
+  95% CI: [0.9619, 0.9920]
+
+Per-Compartment MAE:
+  MAE_S: 5119.26 ± 283.44  (95% CI: [2572.65, 7665.87])
+  MAE_I: 1441.22 ± 17.06  (95% CI: [1287.94, 1594.51])
+  MAE_R: 5003.38 ± 275.54  (95% CI: [2527.74, 7479.01])
+
+======================================================================
+INDIVIDUAL REPLICATE RESULTS
+======================================================================
+ ID   Seed  Epoch       R²    MAE_I    MAE_S    MAE_R Model File                         
+----------------------------------------------------------------------------------------------------
+  1     42     47   0.9781  1453.29  4918.84  4808.54 best_balanced_mlp_model_1.pt       
+  2    123     50   0.9757  1429.16  5319.68  5198.21 best_balanced_mlp_model_2.pt       
+
+======================================================================
+NEXT STEPS
+======================================================================
+
+  VALIDATE:
+    python step4_validate_SIR3param.py --models_dir experiments\lhs-sampling\out\trained-models
+
+  TEST (final dissertation results):
+    python step5_test_SIR3param.py --models_dir experiments\lhs-sampling\out\trained-models
+
+======================================================================

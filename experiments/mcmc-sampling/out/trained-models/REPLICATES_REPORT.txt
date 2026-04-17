@@ -1,0 +1,51 @@
+======================================================================
+REPLICATES TRAINING SUMMARY  ·  3-Parameter SIR (τ, γ, ρ)
+======================================================================
+
+  Replicates   : 2
+  Weight mode  : modest
+  Seeds        : [42, 123]
+  Output dir   : experiments\mcmc-sampling\out\trained-models
+
+  Model files:
+    · best_balanced_mlp_model_1.pt  (seed=42)
+    · best_balanced_mlp_model_2.pt  (seed=123)
+
+======================================================================
+VALIDATION PERFORMANCE
+======================================================================
+
+MAE_I (Infected Compartment):
+  Mean : 453.41
+  Std  : 0.89
+  95% CI: [445.46, 461.37]
+
+R²:
+  Mean : -12641.4028
+  Std  : 198.8855
+  95% CI: [-14428.3183, -10854.4873]
+
+Per-Compartment MAE:
+  MAE_S: 15423.65 ±  5.19  (95% CI: [15377.03, 15470.27])
+  MAE_I:  453.41 ±  0.89  (95% CI: [445.46, 461.37])
+  MAE_R: 84378.63 ±  4.09  (95% CI: [84341.90, 84415.36])
+
+======================================================================
+INDIVIDUAL REPLICATE RESULTS
+======================================================================
+ ID   Seed  Epoch       R²    MAE_I    MAE_S    MAE_R Model File                         
+----------------------------------------------------------------------------------------------------
+  1     42      1 -12500.7695   452.79 15427.32 84375.74 best_balanced_mlp_model_1.pt       
+  2    123      1 -12782.0361   454.04 15419.98 84381.52 best_balanced_mlp_model_2.pt       
+
+======================================================================
+NEXT STEPS
+======================================================================
+
+  VALIDATE:
+    python step4_validate_SIR3param.py --models_dir experiments\mcmc-sampling\out\trained-models
+
+  TEST (final dissertation results):
+    python step5_test_SIR3param.py --models_dir experiments\mcmc-sampling\out\trained-models
+
+======================================================================

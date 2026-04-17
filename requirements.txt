@@ -1,0 +1,47 @@
+# ============================================================
+# ABM Epidemic Emulator — Requirements
+# Python 3.10.10
+# MPhil Population Health Science, University of Cambridge
+# ============================================================
+
+# ── Core scientific computing ────────────────────────────────
+numpy==2.2.6
+pandas==2.3.3
+scipy==1.15.3
+
+# ── Deep learning (PyTorch) ──────────────────────────────────
+torch==2.10.0
+torchvision==0.25.0
+
+# ── Machine learning utilities ───────────────────────────────
+scikit-learn==1.7.2
+
+# ── Epidemic network modelling ───────────────────────────────
+EoN==1.2
+networkx==3.4.2
+
+# ── Bayesian / probabilistic programming ────────────────────
+pymc==5.25.1
+pytensor==2.31.7
+arviz==0.23.4
+xarray==2025.6.1
+xarray-einstats==0.8.0
+
+# Data storage 
+h5py==3.16.0
+tables==3.10.1
+deepdish==0.3.7
+blosc2==4.1.2
+
+# ── Visualisation ────────────────────────────────────────────
+matplotlib==3.10.8
+
+# ── Utilities ────────────────────────────────────────────────
+tqdm==4.67.3
+latexify-py==0.4.4
+
+# ── Jupyter / notebook support ───────────────────────────────
+jupyter
+ipykernel==7.2.0
+jupyter-client==8.8.0
+jupyter-core==5.9.1

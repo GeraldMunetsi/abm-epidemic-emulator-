@@ -1,0 +1,82 @@
+# ============================================================
+# Config: MCMC Adaptive Importance Sampling (near R₀ = 1)
+# Strategy: Sequential IS targeting epidemic threshold
+# Script:   src/data_generation_IS.py
+# ============================================================
+
+# --- ABM / Network ---
+network:
+  type: barabasi_albert
+  N: 10000             # number of nodes
+  m: 5                 # BA attachment parameter
+  seed: 42
+  # Pre-computed degree ratio <k2>/<k> = 27.26 (cached after first run)
+
+# --- Simulation ---
+simulation:
+  tmax: 200.0
+  n_timepoints: 200
+  n_replicates: 5      # stochastic replicates per parameter set
+
+# --- MCMC Adaptive IS ---
+sampling:
+  strategy: mcmc_adaptive_IS
+
+  # Phase 1 — Sobol initialisation
+  initial_samples: 40       # size of proposal distribution (Sobol)
+  sobol_scramble: true
+
+  # Phase 2 — Adaptive rounds
+  n_rounds: 50              # number of IS iterations
+  batch_size: 32            # new simulations added per round
+
+  # Target distribution: π(θ) ∝ exp[-sharpness × (R₀ - 1)²]
+  # Concentrates budget near epidemic threshold R₀ ≈ 1
+  target:
+    type: gaussian_R0
+    sharpness: 5.0          # higher = narrower peak around R₀=1
+
+  # Kernel jitter (prevents sample impoverishment after resampling)
+  kernel_bandwidth: 0.05    # fraction of parameter range
+
+  # ESS monitoring (Effective Sample Size = 1 / Σwᵢ²)
+  # ESS collapse warns of weight degeneracy
+  ess_warning_threshold: 0.1   # warn if ESS/N < 10%
+
+# --- Parameter space ---
+parameters:
+  tau:
+    min: 0.0024
+    max: 0.05
+  gamma:
+    min: 0.07
+    max: 0.50
+  rho:
+    min: 0.001
+    max: 0.010
+
+# --- Output ---
+output:
+  data_dir: experiments/mcmc-adaptive-IS/out/results
+  plots_dir: experiments/mcmc-adaptive-IS/out/plots
+
+# --- MLP Training ---
+training:
+  n_replicates: 5
+  seeds: [42, 123, 456, 789, 1011]
+  epochs: 200
+  batch_size: 32
+  learning_rate: 0.001
+  patience: 15
+  min_delta: 0.0001
+  weight_mode: modest
+  models_dir: experiments/mcmc-adaptive-IS/out/trained-models
+
+# --- Architecture ---
+model:
+  n_fourier: 64
+  sigma_rff: 1.0
+  latent_dim: 128
+  n_knots: 5
+  n_timepoints: 200
+  N: 10000

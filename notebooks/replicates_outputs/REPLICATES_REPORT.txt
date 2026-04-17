@@ -1,0 +1,53 @@
+======================================================================
+REPLICATES TRAINING SUMMARY  ·  3-Parameter SIR (τ, γ, ρ)
+======================================================================
+
+  Replicates   : 3
+  Weight mode  : modest
+  Seeds        : [42, 123, 456]
+  Output dir   : replicates_outputs
+
+  Model files:
+    · best_balanced_mlp_model_1.pt  (seed=42)
+    · best_balanced_mlp_model_2.pt  (seed=123)
+    · best_balanced_mlp_model_3.pt  (seed=456)
+
+======================================================================
+VALIDATION PERFORMANCE
+======================================================================
+
+MAE_I (Infected Compartment):
+  Mean : 442.99
+  Std  : 4.58
+  95% CI: [431.62, 454.37]
+
+R²:
+  Mean : 0.9955
+  Std  : 0.0002
+  95% CI: [0.9951, 0.9959]
+
+Per-Compartment MAE:
+  MAE_S: 2000.32 ± 40.89  (95% CI: [1898.75, 2101.89])
+  MAE_I:  442.99 ±  4.58  (95% CI: [431.62, 454.37])
+  MAE_R: 1881.62 ± 33.48  (95% CI: [1798.45, 1964.80])
+
+======================================================================
+INDIVIDUAL REPLICATE RESULTS
+======================================================================
+ ID   Seed  Epoch       R²    MAE_I    MAE_S    MAE_R Model File                         
+----------------------------------------------------------------------------------------------------
+  1     42     31   0.9955   437.77  2044.41  1911.99 best_balanced_mlp_model_1.pt       
+  2    123     25   0.9957   444.88  1963.65  1845.72 best_balanced_mlp_model_2.pt       
+  3    456     32   0.9953   446.33  1992.91  1887.16 best_balanced_mlp_model_3.pt       
+
+======================================================================
+NEXT STEPS
+======================================================================
+
+  VALIDATE:
+    python step4_validate_SIR3param.py --models_dir replicates_outputs
+
+  TEST (final dissertation results):
+    python step5_test_SIR3param.py --models_dir replicates_outputs
+
+======================================================================

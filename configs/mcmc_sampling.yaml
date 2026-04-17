@@ -1,0 +1,81 @@
+# ============================================================
+# Config: MCMC Sampling — NUTS near R₀ = 1
+# Strategy: Uniform priors + Gaussian potential centred at R₀=1
+# Script:   src/step1_MCMC_sampling.py
+# Sampler:  PyMC NUTS (Hamiltonian Monte Carlo)
+# ============================================================
+
+# --- ABM / Network ---
+network:
+  type: barabasi_albert
+  N: 100000            # number of nodes
+  m: 10                # BA attachment parameter
+  seed: 42
+  degree_ratio: 34.0   # pre-computed <k²>/<k> for N=100000, m=10
+  # R₀ = (tau / gamma) * degree_ratio
+
+# --- Simulation ---
+simulation:
+  tmax: 80.0
+  n_timepoints: 80
+  n_replicates: 2      # stochastic replicates per posterior sample
+
+# --- MCMC Sampler (PyMC NUTS) ---
+sampling:
+  strategy: mcmc_nuts
+
+  # Priors: Uniform over the full parameter box
+  # τ ~ Uniform(tau_min, tau_max)
+  # γ ~ Uniform(gamma_min, gamma_max)
+  # ρ ~ Uniform(rho_min, rho_max)
+
+  # Target potential: concentrates samples near R₀ = 1
+  # log π(θ) = -0.5 * ((R₀ - 1) / sigma)²
+  # This is added via pm.Potential — NOT a data likelihood
+  sigma: 0.30          # width of Gaussian around R₀=1 (tune to control concentration)
+
+  # NUTS settings
+  draws: 500           # posterior draws per chain
+  tune: 2000           # warm-up (tuning) steps
+  chains: 2            # total posterior samples = draws × chains = 1000
+  cores: 1
+  target_accept: 0.95  # high acceptance rate near the sharp R₀ potential
+  random_seed: 42
+
+# --- Parameter space ---
+parameters:
+  tau:
+    min: 0.0005
+    max: 0.024
+  gamma:
+    min: 0.01
+    max: 0.50
+  rho:
+    min: 0.001
+    max: 0.010
+
+# --- Output ---
+output:
+  data_dir: experiments/mcmc-sampling/out/results
+  plots_dir: experiments/mcmc-sampling/out/plots
+
+# --- MLP Training ---
+training:
+  n_replicates: 5
+  seeds: [42, 123, 456, 789, 1011]
+  epochs: 200
+  batch_size: 32
+  learning_rate: 0.001
+  patience: 15
+  min_delta: 0.0001
+  weight_mode: modest
+  models_dir: experiments/mcmc-sampling/out/trained-models
+
+# --- Architecture ---
+model:
+  n_fourier: 64          # StandardRFF output dim = 2 × n_fourier = 128
+  sigma_rff: 1.0
+  latent_dim: 128
+  n_knots: 5
+  n_timepoints: 80
+  N: 100000

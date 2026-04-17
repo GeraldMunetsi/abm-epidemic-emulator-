@@ -1,0 +1,65 @@
+# ============================================================
+# Config: Latin Hypercube Sampling (LHS)
+# Strategy: Space-filling stratified design
+# Script:   src/LHS_sampling.py + src/step1_data_generation.py
+# ============================================================
+
+# --- ABM / Network ---
+network:
+  type: barabasi_albert
+  N: 10000             # number of nodes
+  m: 5                 # BA attachment parameter
+  seed: 42
+
+# --- Simulation ---
+simulation:
+  tmax: 200.0
+  n_timepoints: 400
+  n_replicates: 5      # stochastic replicates per parameter set
+
+# --- Sampling ---
+sampling:
+  strategy: lhs
+  n_samples: 500
+  seed: 42
+  scramble: true       # scrambled LHS for better uniformity
+  # Discrepancy metric is logged to verify coverage quality
+
+# --- Parameter space ---
+# R0 range: tau/gamma * <k2>/<k> ≈ [0.12, 4.98]
+parameters:
+  tau:
+    min: 0.0024
+    max: 0.017
+  gamma:
+    min: 0.07
+    max: 0.50
+  rho:
+    min: 0.001
+    max: 0.010
+
+# --- Output ---
+output:
+  data_dir: experiments/lhs-sampling/out/results
+  plots_dir: experiments/lhs-sampling/out/plots
+
+# --- MLP Training ---
+training:
+  n_replicates: 5
+  seeds: [42, 123, 456, 789, 1011]
+  epochs: 200
+  batch_size: 32
+  learning_rate: 0.001
+  patience: 15
+  min_delta: 0.0001
+  weight_mode: modest
+  models_dir: experiments/lhs-sampling/out/trained-models
+
+# --- Architecture ---
+model:
+  n_fourier: 64
+  sigma_rff: 1.0
+  latent_dim: 128
+  n_knots: 5
+  n_timepoints: 400
+  N: 10000

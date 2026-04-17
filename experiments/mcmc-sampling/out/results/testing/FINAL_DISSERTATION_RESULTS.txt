@@ -1,0 +1,53 @@
+======================================================================
+FINAL TEST RESULTS — 3-Parameter SIR Emulator (τ, γ, ρ)
+ THESE ARE YOUR DISSERTATION NUMBERS
+======================================================================
+
+  Replicates   : 2
+  Test samples : 151
+
+======================================================================
+OVERALL PERFORMANCE:
+======================================================================
+  MAE   : 33005.00 ± 1.44
+          95% CI: [32992.03, 33017.97]
+
+  R²    : -12513.8438 ± 140.6426
+          95% CI: [-13777.4672, -11250.2203]
+
+  RMSE  : 50887.03 ± 285.95
+
+======================================================================
+PER-COMPARTMENT MAE:
+======================================================================
+  Susceptible (S) : 23883.29 ± 1400.36
+  Infected (I)    : 1023.76 ± 82.78  ← KEY METRIC
+                    95% CI: [280.04, 1767.49]
+                    CV = 8.1%
+  Recovered (R)   : 74107.95 ± 1487.47
+
+======================================================================
+PERFORMANCE ASSESSMENT:
+======================================================================
+  Level       : NEEDS IMPROVEMENT
+  Consistency : GOOD (CV < 10%)
+
+======================================================================
+SUGGESTED DISSERTATION TEXT:
+----------------------------------------------------------------------
+"The 3-parameter SIR emulator (τ, γ, ρ) achieved a test set MAE_I
+of 1023.76 (280.04–1767.49, 95% CI,
+n=2 replicates), with overall R² = -12513.8438 ±
+140.6426. Replicate consistency was good (cv < 10%),
+with coefficient of variation 8.1%, indicating robust performance
+across random initialisations."
+
+======================================================================
+STATISTICAL NOTES:
+======================================================================
+  · All metrics: mean ± standard deviation across replicates
+  · 95% CI computed using t-distribution (appropriate for small n)
+  · CV (coefficient of variation) = std / mean × 100
+  · CV < 10% indicates good replicate consistency
+
+======================================================================
