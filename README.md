@@ -134,7 +134,7 @@ Results below are from the **MCMC Sampling** strategy (NUTS near R₀ = 1), 5 re
 | MAE — Infected I(t) | 3,157 ± 1,172 | [1,702, 4,613] |
 | MAE — Susceptible S(t) | 11,608 ± 4,553 | — |
 | MAE — Recovered R(t) | 9,210 ± 3,016 | — |
-| Replicate CV (MAE_I) | 37.1% ⚠ | — |
+| Replicate CV (MAE_I) | 37.1%  | — |
 
 **Interpretation:** R² = 0.82 indicates reasonable emulation quality overall, with the infected compartment I(t) — the key public health metric — best predicted. High CV (37.1%) across replicates indicates sensitivity to random initialisation; this is a known issue when training near the epidemic threshold where dynamics are most complex.
 
