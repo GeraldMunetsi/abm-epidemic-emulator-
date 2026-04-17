@@ -354,41 +354,6 @@ R: `deSolve` required for `src/demo-mcmc-sampler.R`
 
 ---
 
-## Recommended Improvements (Open Issues)
-
-The following improvements would strengthen this project for both reproducibility and scientific rigour:
-
-### 1. Config files per strategy *(reproducibility)*
-Key hyperparameters — network size N, sample budget, NUTS draws, σ for R₀ target, MLP architecture — are currently hardcoded in scripts. Extracting them to `configs/*.yaml` makes every experiment fully reproducible from a single command:
-```bash
-python src/step3_train.py --config configs/lhs_sampling.yaml
-```
-
-### 2. Unified comparison script *(scientific contribution)*
-A script `src/compare_strategies.py` that loads results from all three `experiments/` folders and produces a publication-quality comparison table and figure (e.g. MAE_I vs. training set size for each strategy). This is the punchline of the dissertation and should be a first-class script.
-
-### 3. Sensitivity analysis on MCMC σ parameter *(scientific depth)*
-The MCMC strategy uses σ = 0.30 to control how tightly samples concentrate near R₀ = 1. This choice is not justified in the current code. A sensitivity analysis varying σ (e.g. 0.10, 0.30, 0.50, 1.0) and measuring its effect on emulator accuracy and R₀ coverage would be a strong addition to the dissertation.
-
-### 4. Git LFS for binary model files *(collaboration)*
-`.pt`, `.pkl`, and `.npy` files are currently gitignored. Add Git LFS tracking so trained models and datasets can be shared via the repository without hitting GitHub's file size limit:
-```
-*.pt filter=lfs diff=lfs merge=lfs -text
-*.pkl filter=lfs diff=lfs merge=lfs -text
-*.npy filter=lfs diff=lfs merge=lfs -text
-```
-
-### 5. `environment.yml` for conda users *(accessibility)*
-Add a conda environment file alongside `requirements.txt`. Examiners, reviewers, and collaborators using conda (common in academic settings) can then set up the environment with one command:
-```bash
-conda env create -f environment.yml
-conda activate abm-emulator
-```
-
-### 6. Unit tests for `utils_SIR.py` *(robustness)*
-The `normalise_params()`, `compute_metrics()`, and `EarlyStopping` functions in `utils_SIR.py` are critical to correctness — a wrong normalisation silently produces bad models. A small `tests/` folder with pytest tests for these would catch regressions immediately.
-
----
 
 ## Citation
 
