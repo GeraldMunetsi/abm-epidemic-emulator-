@@ -1,4 +1,4 @@
-# ABM Epidemic Emulator — MLP Surrogate for SIR on Barabási-Albert Networks
+# ABM Epidemic Emulator — MLP Surrogate for SIR on [Barabási-Albert Networks](https://en.wikipedia.org/wiki/Barab%C3%A1si%E2%80%93Albert_model)
 
 > **MPhil Population Health Science (Health Data Science) · University of Cambridge**
 > Dissertation: *Data-efficient emulation strategies for individual-based epidemic models*
@@ -10,7 +10,7 @@
 
 Agent-Based Models (ABMs) capture realistic epidemic dynamics — household structure, heterogeneous contact networks, stochastic transmission — but they are computationally expensive. Running enough simulations to train a surrogate model or explore intervention scenarios is often infeasible, especially in real-time public health decision support.
 
-This project builds a **physics-constrained MLP emulator** for a stochastic SIR model on a **Barabási-Albert (BA) scale-free network**, and answers the question:
+This project builds a **physics-constrained MLP emulator** for a stochastic SIR model on a **[Barabási-Albert (BA) scale-free network](https://en.wikipedia.org/wiki/Barab%C3%A1si%E2%80%93Albert_model)**, and answers the question:
 
 The study aims to answer the following questions.
 1.	Can neural networks emulate epidemic agent-based models?  
@@ -24,7 +24,7 @@ Three sampling strategies are compared head-to-head. The emulator architecture i
 
 ## The Epidemic Model
 
-The underlying ABM is a stochastic SIR process simulated via `EoN.fast_SIR()` on a Barabási-Albert network. Each simulation is defined by three parameters:
+The underlying ABM is a stochastic SIR process simulated via [`EoN.fast_SIR()`](https://epidemicsonnetworks.readthedocs.io/en/latest/functions/EoN.fast_SIR.html) on a [Barabási-Albert network](https://networkx.org/documentation/stable/reference/generated/networkx.generators.random_graphs.barabasi_albert_graph.html) built with [NetworkX](https://networkx.org/). Each simulation is defined by three parameters:
 
 | Parameter | Symbol | Range | Description |
 |-----------|--------|-------|-------------|
@@ -38,9 +38,9 @@ The epidemic threshold on a BA network is:
 R₀ = (τ / γ) × (⟨k²⟩ / ⟨k⟩)
 ```
 
-where `⟨k²⟩/⟨k⟩` is the degree-heterogeneity correction factor — hub nodes in a BA graph dramatically lower the epidemic threshold compared to a homogeneous (Erdős-Rényi) network. The network has N = 10,000 nodes and BA attachment parameter m = 5.
+where `⟨k²⟩/⟨k⟩` is the degree-heterogeneity. The network has N = 100,000 nodes and BA attachment parameter m = 10.
 
-Each ABM run produces time series `S(t)`, `I(t)`, `R(t)` across 200 timepoints.
+Each ABM run produces time series `S(t)`, `I(t)`, `R(t)` across 80 timepoints.
 
 ---
 
