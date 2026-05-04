@@ -18,12 +18,9 @@ class StandardRFF(nn.Module):
     def forward(self, x):
         z   = x @ self.W.T
         phi = self.scale * torch.cat([torch.cos(z), torch.sin(z)], dim=1)
-        return phi    
-
-   
-
+        return phi  
+      
 # 2. B-SPLINE LAYER 
-
 class BSplineLayer(nn.Module):
     """
     Differentiable B-spline evaluation layer
@@ -171,74 +168,7 @@ class TemporalDecoder(nn.Module):
         return S_pred, I_pred, R_pred
     
 
-    # def forward(self, z: torch.Tensor, rho_raw: torch.Tensor) -> tuple:
-    #     """
-    #     Args:
-    #         z       : (batch, latent_dim)
-    #         rho_raw : (batch,) seed fraction
-
-    #     Returns:
-    #         S_pred, I_pred, R_pred  each (batch, n_timepoints)
-    #     """
-
-    #     batch_size = z.size(0)
-    #     device     = z.device
-
-    #     # S₀ = N(1-ρ)
-    #     S_0 = ((1.0 - rho_raw) * self.N).unsqueeze(1)
-
-    #     # -----------------------------
-    #     # S(t) monotone spline
-    #     # -----------------------------
-
-    #     retention_raw   = self.predict_S_retention(z)
-    #     retention_rates = torch.sigmoid(retention_raw)
-
-    #     ones      = torch.ones(batch_size, 1, device=device)
-    #     all_rates = torch.cat([ones, retention_rates], dim=1)
-
-    #     cum_product = torch.cumprod(all_rates, dim=1)
-
-    #     S_coeffs = S_0 * cum_product
-    #     S_pred   = self.spline_S(S_coeffs)
-
-    #     # -----------------------------
-    #     # g(t) spline
-    #     # -----------------------------
-
-    #     g_coeffs = self.predict_g_coeffs(z)        # (batch, n_knots)
-
-    #     h_t = self.spline_g(g_coeffs)              # (batch, T)
-
-    #     # neural output → probability
-    #     g_tilde = torch.sigmoid(h_t)
-
-    #     # time grid (must exist in your model)
-    #     t = self.t_grid.to(device)                 # (T,)
-
-    #     # weight function ensuring g(0)=1
-    #     w = 1 - torch.exp(-t)
-
-    #     w = w.unsqueeze(0)                         # (1, T)
-
-    #     # enforce g(0)=1 exactly
-    #     g = 1 - (1 - g_tilde) * w
-
-    #     # -----------------------------
-    #     # Compute I(t), R(t)
-    #     # -----------------------------
-
-    #     ever_infected = self.N - S_pred
-
-    #     I_pred = ever_infected * g
-    #     R_pred = ever_infected * (1.0 - g)
-
-    #     return S_pred, I_pred, R_pred
-    
-
 # 4. FULL MODEL
-
-
 class HybridSIREmulator(nn.Module):
     """
     Full SIR emulator.
@@ -268,16 +198,15 @@ class HybridSIREmulator(nn.Module):
     def __init__(self, config: dict):
         super().__init__()
 
-        n_params         = config.get('n_params',          3)
-        n_fourier        = config.get('n_fourier',        64)
-        sigma            = config.get('sigma',           1.0)
-        fusion_hidden    = config.get('fusion_hidden',   128)
-        latent_dim       = config.get('latent_dim',       64)
-        n_knots          = config.get('n_knots',          knots)
-       # n_timepoints     = config.get('n_timepoints',     timepoints)
+        n_params         = config.get('n_params',3)
+        n_fourier        = config.get('n_fourier',64)
+        sigma            = config.get('sigma',1.0)
+        fusion_hidden    = config.get('fusion_hidden',128)
+        latent_dim       = config.get('latent_dim',64)
+        n_knots          = config.get('n_knots',knots)
         total_population = config.get('total_population', N)
-        decoder_hidden   = config.get('decoder_hidden',   64)
-        dropout          = config.get('dropout',         0.1)
+        decoder_hidden   = config.get('decoder_hidden',64)
+        dropout          = config.get('dropout',0.1)
 
         rff_out = 2 * n_fourier   # 128
 
@@ -352,11 +281,7 @@ class HybridSIREmulator(nn.Module):
             'total'           : count(self),
         }
 
-
-# 
 # 5. FACTORY FUNCTION
-# 
-
 def create_hybrid_mlp_model(config: dict) -> HybridSIREmulator:
     """
     Build and return the SIR emulator from a config dict.
@@ -380,8 +305,6 @@ def create_hybrid_mlp_model(config: dict) -> HybridSIREmulator:
 
 
 # 6. SMOKE TEST
-
-
 if __name__ == '__main__':
     import types
 
@@ -408,7 +331,7 @@ if __name__ == '__main__':
     # Fake batch of size 4
     batch_size = 4
     batch = types.SimpleNamespace(
-        params_norm = torch.rand(batch_size, 3),               # τ,γ,ρ in [0,1]
+        params_norm = torch.rand(batch_size, 3),     
         rho_raw     = torch.FloatTensor(batch_size).uniform_(0.001, 0.010),
     )
 
@@ -416,7 +339,7 @@ if __name__ == '__main__':
         out = model(batch)
 
     print(f"\n  Input  params_norm : {batch.params_norm.shape}")
-    print(f"  Input  rho_raw     : {batch.rho_raw.shape}")
+    print(f"  Input  rho_raw : {batch.rho_raw.shape}")
     print(f"  Output predictions : {out.shape}  (batch, T, 3)")
     print()
 
@@ -431,14 +354,14 @@ if __name__ == '__main__':
     print(f"    max deviation from N: {(total - 10000).abs().max().item():.6f}")
 
     # Non-negativity
-    print(f"\n  Non-negativity:")
-    print(f"    I min = {I.min().item():.4f}  (should be ≥ 0)")
-    print(f"    R min = {R.min().item():.4f}  (should be ≥ 0)")
+    print(f"\n Non-negativity:")
+    print(f"I min = {I.min().item():.4f}  (should be ≥ 0)")
+    print(f"R min = {R.min().item():.4f}  (should be ≥ 0)")
 
     # Initial conditions
     print(f"\n  Initial conditions (t=0):")
     for i in range(batch_size):
-        rho    = batch.rho_raw[i].item()
+        rho = batch.rho_raw[i].item()
         I0_exp = rho * 10000
         I0_got = I[i, 0].item()
         R0_got = R[i, 0].item()

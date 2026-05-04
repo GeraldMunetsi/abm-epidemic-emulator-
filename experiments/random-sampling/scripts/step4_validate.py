@@ -184,10 +184,9 @@ def evaluate_all_replicates(models_dir, val_loader, device, n_timesteps):
     """
     model_paths = find_replicate_models(models_dir)
 
-    print(f"\n{'='*70}")
+    print(f"\n{'-'*70}")
     print(f"EVALUATING {len(model_paths)} REPLICATE(S) — 3-PARAMETER SIR MODEL")
-    print(f"Parameters: tau (τ), gamma (γ), rho (ρ)")
-    print(f"{'='*70}\n")
+    print(f"Parameters")
 
     print(f"Models directory : {models_dir}")
     for mp in model_paths:
@@ -267,8 +266,6 @@ def compute_aggregate_statistics(results_list):
 
 
 # VISUALISATION
-
-
 def load_training_histories(models_dir):
     """Load training_history_*.npy files (one per replicate)."""
     models_dir   = Path(models_dir)
@@ -305,14 +302,14 @@ def plot_training_curves(results_list, models_dir, output_dir):
     fig = plt.figure(figsize=(20, 12))
     gs  = GridSpec(3, 3, figure=fig, hspace=0.3, wspace=0.3)
     fig.suptitle(
-        'Training Curves — All Replicates  |  3-Parameter SIR (τ, γ, ρ)',
+        'Training Curves (All Replicates)',
         fontsize=16, fontweight='bold'
     )
 
     n_replicates = len(results_list)
     colors       = plt.cm.tab10(np.linspace(0, 1, n_replicates))
 
-    # ── 1. Validation R² ────────────────────────────────────────────────────
+    # 1. Validation R² 
     ax1 = fig.add_subplot(gs[0, 0])
     for i, (result, history) in enumerate(zip(results_list, histories)):
         if history is not None and 'val_r2' in history:
@@ -326,7 +323,7 @@ def plot_training_curves(results_list, models_dir, output_dir):
     ax1.grid(True, alpha=0.3)
     ax1.axhline(y=0, color='r', linestyle='--', linewidth=1)
 
-    # ── 2. Validation MAE_I ──────────────────────────────────────────────────
+    #  2. Validation MAE_I 
     ax2 = fig.add_subplot(gs[0, 1])
     for i, (result, history) in enumerate(zip(results_list, histories)):
         if history is not None and 'val_mae_i' in history:
@@ -337,7 +334,7 @@ def plot_training_curves(results_list, models_dir, output_dir):
     ax2.set_title('MAE_I Evolution')
     ax2.grid(True, alpha=0.3)
 
-    # ── 3. Train vs Val Loss ─────────────────────────────────────────────────
+    #  3. Train vs Val Loss 
     ax3 = fig.add_subplot(gs[0, 2])
     for i, (result, history) in enumerate(zip(results_list, histories)):
         if history is not None and 'train_loss' in history and 'val_loss' in history:
@@ -352,7 +349,7 @@ def plot_training_curves(results_list, models_dir, output_dir):
     ax3.grid(True, alpha=0.3)
     ax3.set_yscale('log')
 
-    # ── 4. MAE_S ─────────────────────────────────────────────────────────────
+    #  4. MAE_S 
     ax4 = fig.add_subplot(gs[1, 0])
     for i, (result, history) in enumerate(zip(results_list, histories)):
         if history is not None and 'val_mae_s' in history:
@@ -363,7 +360,7 @@ def plot_training_curves(results_list, models_dir, output_dir):
     ax4.set_title('Susceptible (S) Error Evolution')
     ax4.grid(True, alpha=0.3)
 
-    # ── 5. MAE_R ─────────────────────────────────────────────────────────────
+    # 5. MAE_R 
     ax5 = fig.add_subplot(gs[1, 1])
     for i, (result, history) in enumerate(zip(results_list, histories)):
         if history is not None and 'val_mae_r' in history:
@@ -374,7 +371,7 @@ def plot_training_curves(results_list, models_dir, output_dir):
     ax5.set_title('Recovered (R) Error Evolution')
     ax5.grid(True, alpha=0.3)
 
-    # ── 6. Convergence — last 10 epochs ──────────────────────────────────────
+    # 6. Convergence — last 10 epochs 
     ax6 = fig.add_subplot(gs[1, 2])
     for i, (result, history) in enumerate(zip(results_list, histories)):
         if history is not None and 'val_r2' in history:
@@ -387,7 +384,7 @@ def plot_training_curves(results_list, models_dir, output_dir):
     ax6.set_title('Convergence (Last 10 Epochs)')
     ax6.grid(True, alpha=0.3)
 
-    # ── 7. Final metrics bar chart ────────────────────────────────────────────
+    # 7. Final metrics bar chart 
     ax7 = fig.add_subplot(gs[2, :])
     metrics_to_plot = ['R2', 'MAE_S', 'MAE_I', 'MAE_R']
     x     = np.arange(len(results_list))
@@ -501,7 +498,7 @@ def plot_validation_summary(results_list, stats_dict, output_dir):
         fontsize=16, fontweight='bold'
     )
 
-    # ── R² histogram ──────────────────────────────────────────────────────────
+    # R² histogram 
     ax = axes[0, 0]
     r2_values = stats_dict['R2']['values']
     ax.hist(r2_values, bins=min(10, len(r2_values)),
@@ -514,7 +511,7 @@ def plot_validation_summary(results_list, stats_dict, output_dir):
     ax.legend()
     ax.grid(True, alpha=0.3, axis='y')
 
-    # ── MAE_I histogram ───────────────────────────────────────────────────────
+    #  MAE_I histogram 
     ax = axes[0, 1]
     mae_i_values = stats_dict['MAE_I']['values']
     ax.hist(mae_i_values, bins=min(10, len(mae_i_values)),
@@ -527,7 +524,7 @@ def plot_validation_summary(results_list, stats_dict, output_dir):
     ax.legend()
     ax.grid(True, alpha=0.3, axis='y')
 
-    # ── Box-plot: all metrics ─────────────────────────────────────────────────
+    # Box-plot: all metrics 
     ax = axes[0, 2]
     metrics_data = {
         'R²'   : stats_dict['R2']['values'],
@@ -545,7 +542,7 @@ def plot_validation_summary(results_list, stats_dict, output_dir):
     ax.set_title('Metrics Distribution')
     ax.grid(True, alpha=0.3, axis='y')
 
-    # ── Per-compartment MAE bar chart ─────────────────────────────────────────
+    #  Per-compartment MAE bar chart 
     ax = axes[1, 0]
     comp_labels = ['S', 'I', 'R']
     means = [stats_dict[f'MAE_{c}']['mean'] for c in comp_labels]
@@ -559,7 +556,7 @@ def plot_validation_summary(results_list, stats_dict, output_dir):
     ax.set_title('Per-Compartment MAE (Mean ± Std)')
     ax.grid(True, alpha=0.3, axis='y')
 
-    # ── R² vs MAE_I scatter ───────────────────────────────────────────────────
+    # R² vs MAE_I scatter 
     ax = axes[1, 1]
     ax.scatter(stats_dict['R2']['values'], stats_dict['MAE_I']['values'],
                s=100, alpha=0.6, edgecolors='black')
@@ -568,7 +565,7 @@ def plot_validation_summary(results_list, stats_dict, output_dir):
     ax.set_title('R² vs MAE_I Trade-off')
     ax.grid(True, alpha=0.3)
 
-    # ── Summary text box ──────────────────────────────────────────────────────
+    # Summary text box 
     ax = axes[1, 2]
     ax.axis('off')
 
@@ -602,13 +599,11 @@ def plot_validation_summary(results_list, stats_dict, output_dir):
     out_path = output_dir / 'validation_summary.png'
     plt.savefig(out_path, dpi=200, bbox_inches='tight')
     plt.close()
-    print(f"✓ Saved: {out_path}")
+    print(f"Saved: {out_path}")
 
 
-# ============================================================================
+
 # REPORTING
-# ============================================================================
-
 def convert_to_python_types(obj):
     """Recursively convert numpy scalars → Python native types for JSON."""
     if isinstance(obj, np.integer):
@@ -631,7 +626,7 @@ def save_results(results_list, stats_dict, output_dir):
     output_dir = Path(output_dir)
     output_dir.mkdir(exist_ok=True, parents=True)
 
-    # ── JSON ─────────────────────────────────────────────────────────────────
+    #  JSON 
     results_data = {
         'model_description'   : '3-Parameter SIR Emulator (tau, gamma, rho)',
         'individual_results'  : [
@@ -649,9 +644,9 @@ def save_results(results_list, stats_dict, output_dir):
     json_path = output_dir / 'validation_results.json'
     with open(json_path, 'w') as f:
         json.dump(results_data, f, indent=2)
-    print(f"✓ Saved: {json_path}")
+    print(f"Saved: {json_path}")
 
-    # ── CSV ──────────────────────────────────────────────────────────────────
+    #  CSV 
     rows = [
         {'replicate_id': r['replicate_id'],
          'seed'        : r['seed'],
@@ -661,13 +656,13 @@ def save_results(results_list, stats_dict, output_dir):
     ]
     csv_path = output_dir / 'validation_results.csv'
     pd.DataFrame(rows).to_csv(csv_path, index=False)
-    print(f"✓ Saved: {csv_path}")
+    print(f"Saved: {csv_path}")
 
-    # ── Plain-text report ────────────────────────────────────────────────────
+    # Plain-text report 
     lines = [
         "=" * 70,
-        "VALIDATION REPORT — 3-PARAMETER SIR EMULATOR",
-        "Parameters: tau (τ)  |  gamma (γ)  |  rho (ρ)",
+        "VALIDATION REPORT ",
+        "Parameters: tau |  gamma  |  rho",
         "=" * 70,
         "",
         f"Number of replicates : {len(results_list)}",
@@ -678,7 +673,7 @@ def save_results(results_list, stats_dict, output_dir):
         "=" * 70,
         "",
         "PRIMARY METRICS:",
-        "-" * 70,
+       
     ]
 
     for metric_name in ['R2', 'MAE_I']:
@@ -757,8 +752,6 @@ def save_results(results_list, stats_dict, output_dir):
 
 
 # ENTRY POINT
-
-
 if __name__ == "__main__":
 
     # Default filename 
@@ -888,37 +881,6 @@ def load_model(model_path, device):
         checkpoint : raw checkpoint dict
     """
     checkpoint = torch.load(model_path, map_location=device, weights_only=False)
-
-    # # Config 
-    # if 'config' in checkpoint:
-    #     config = checkpoint['config']
-    # else:
-    #     # Minimal default config for 3-parameter SIR model
-    #     config = {
-    #         'n_params'       : N_PARAMS,     # tau, gamma, rho
-    #         'n_fourier'      : 64,
-    #         'fourier_hidden' : 32,
-    #         'param_hidden'   : 16,
-    #         'mlp_hidden'     : 32,
-    #         'mlp_layers'     : 2,
-    #         'temporal_hidden': 64,
-    #         'dropout'        : 0.3,
-    #         'n_knots'        : knots,
-    #         'n_timepoints'   : n_timepoints,
-    #         'total_population': N,
-    #     }
-    # # ── Inject t_grid if checkpoint predates its addition 
-    # state_dict = checkpoint['model_state_dict']
-    # if 'temporal_decoder.t_grid' not in state_dict:
-    #     state_dict['temporal_decoder.t_grid'] = torch.linspace(0.0, 1.0, n_timepoints)
-    
-    # model = create_hybrid_mlp_model(config)
-    # #model.load_state_dict(checkpoint['model_state_dict'])
-    # model.load_state_dict(state_dict, strict=True)
-    # model = model.to(device)
-    # model.eval()
-
-    # return model, checkpoint
 
     def load_model(model_path, device):
         checkpoint = torch.load(model_path, map_location=device, weights_only=False)
@@ -1140,8 +1102,6 @@ def compute_aggregate_statistics(results_list):
 
 
 # VISUALISATION
-
-
 def load_training_histories(models_dir):
     """Load training_history_*.npy files (one per replicate)."""
     models_dir   = Path(models_dir)
@@ -1185,7 +1145,7 @@ def plot_training_curves(results_list, models_dir, output_dir):
     n_replicates = len(results_list)
     colors       = plt.cm.tab10(np.linspace(0, 1, n_replicates))
 
-    # ── 1. Validation R² ────────────────────────────────────────────────────
+    # 1. Validation R² 
     ax1 = fig.add_subplot(gs[0, 0])
     for i, (result, history) in enumerate(zip(results_list, histories)):
         if history is not None and 'val_r2' in history:
@@ -1199,7 +1159,7 @@ def plot_training_curves(results_list, models_dir, output_dir):
     ax1.grid(True, alpha=0.3)
     ax1.axhline(y=0, color='r', linestyle='--', linewidth=1)
 
-    # ── 2. Validation MAE_I ──────────────────────────────────────────────────
+    # 2. Validation MAE_I 
     ax2 = fig.add_subplot(gs[0, 1])
     for i, (result, history) in enumerate(zip(results_list, histories)):
         if history is not None and 'val_mae_i' in history:
@@ -1210,7 +1170,7 @@ def plot_training_curves(results_list, models_dir, output_dir):
     ax2.set_title('MAE_I Evolution')
     ax2.grid(True, alpha=0.3)
 
-    # ── 3. Train vs Val Loss ─────────────────────────────────────────────────
+    #  3. Train vs Val Loss 
     ax3 = fig.add_subplot(gs[0, 2])
     for i, (result, history) in enumerate(zip(results_list, histories)):
         if history is not None and 'train_loss' in history and 'val_loss' in history:
@@ -1225,7 +1185,7 @@ def plot_training_curves(results_list, models_dir, output_dir):
     ax3.grid(True, alpha=0.3)
     ax3.set_yscale('log')
 
-    # ── 4. MAE_S ─────────────────────────────────────────────────────────────
+    #  4. MAE_S 
     ax4 = fig.add_subplot(gs[1, 0])
     for i, (result, history) in enumerate(zip(results_list, histories)):
         if history is not None and 'val_mae_s' in history:
@@ -1236,7 +1196,7 @@ def plot_training_curves(results_list, models_dir, output_dir):
     ax4.set_title('Susceptible (S) Error Evolution')
     ax4.grid(True, alpha=0.3)
 
-    # ── 5. MAE_R ─────────────────────────────────────────────────────────────
+    # 5. MAE_R 
     ax5 = fig.add_subplot(gs[1, 1])
     for i, (result, history) in enumerate(zip(results_list, histories)):
         if history is not None and 'val_mae_r' in history:
@@ -1247,7 +1207,7 @@ def plot_training_curves(results_list, models_dir, output_dir):
     ax5.set_title('Recovered (R) Error Evolution')
     ax5.grid(True, alpha=0.3)
 
-    # ── 6. Convergence — last 10 epochs ──────────────────────────────────────
+    # 6. Convergence — last 10 epochs 
     ax6 = fig.add_subplot(gs[1, 2])
     for i, (result, history) in enumerate(zip(results_list, histories)):
         if history is not None and 'val_r2' in history:
@@ -1260,7 +1220,7 @@ def plot_training_curves(results_list, models_dir, output_dir):
     ax6.set_title('Convergence (Last 10 Epochs)')
     ax6.grid(True, alpha=0.3)
 
-    # ── 7. Final metrics bar chart ────────────────────────────────────────────
+    # 7. Final metrics bar chart 
     ax7 = fig.add_subplot(gs[2, :])
     metrics_to_plot = ['R2', 'MAE_S', 'MAE_I', 'MAE_R']
     x     = np.arange(len(results_list))
@@ -1374,7 +1334,7 @@ def plot_validation_summary(results_list, stats_dict, output_dir):
         fontsize=16, fontweight='bold'
     )
 
-    # ── R² histogram ──────────────────────────────────────────────────────────
+    # R² histogram 
     ax = axes[0, 0]
     r2_values = stats_dict['R2']['values']
     ax.hist(r2_values, bins=min(10, len(r2_values)),
@@ -1387,7 +1347,7 @@ def plot_validation_summary(results_list, stats_dict, output_dir):
     ax.legend()
     ax.grid(True, alpha=0.3, axis='y')
 
-    # ── MAE_I histogram ───────────────────────────────────────────────────────
+    # MAE_I histogram 
     ax = axes[0, 1]
     mae_i_values = stats_dict['MAE_I']['values']
     ax.hist(mae_i_values, bins=min(10, len(mae_i_values)),
@@ -1400,7 +1360,8 @@ def plot_validation_summary(results_list, stats_dict, output_dir):
     ax.legend()
     ax.grid(True, alpha=0.3, axis='y')
 
-    # ── Box-plot: all metrics ─────────────────────────────────────────────────
+    # Box-plot: all metrics 
+
     ax = axes[0, 2]
     metrics_data = {
         'R²'   : stats_dict['R2']['values'],
@@ -1418,7 +1379,7 @@ def plot_validation_summary(results_list, stats_dict, output_dir):
     ax.set_title('Metrics Distribution')
     ax.grid(True, alpha=0.3, axis='y')
 
-    # ── Per-compartment MAE bar chart ─────────────────────────────────────────
+    # Per-compartment MAE bar chart 
     ax = axes[1, 0]
     comp_labels = ['S', 'I', 'R']
     means = [stats_dict[f'MAE_{c}']['mean'] for c in comp_labels]
@@ -1432,7 +1393,7 @@ def plot_validation_summary(results_list, stats_dict, output_dir):
     ax.set_title('Per-Compartment MAE (Mean ± Std)')
     ax.grid(True, alpha=0.3, axis='y')
 
-    # ── R² vs MAE_I scatter ───────────────────────────────────────────────────
+    # R² vs MAE_I scatter 
     ax = axes[1, 1]
     ax.scatter(stats_dict['R2']['values'], stats_dict['MAE_I']['values'],
                s=100, alpha=0.6, edgecolors='black')
@@ -1441,7 +1402,7 @@ def plot_validation_summary(results_list, stats_dict, output_dir):
     ax.set_title('R² vs MAE_I Trade-off')
     ax.grid(True, alpha=0.3)
 
-    # ── Summary text box ──────────────────────────────────────────────────────
+    # Summary text box 
     ax = axes[1, 2]
     ax.axis('off')
 
@@ -1475,12 +1436,12 @@ def plot_validation_summary(results_list, stats_dict, output_dir):
     out_path = output_dir / 'validation_summary.png'
     plt.savefig(out_path, dpi=200, bbox_inches='tight')
     plt.close()
-    print(f"✓ Saved: {out_path}")
+    print(f"Saved: {out_path}")
 
 
-# ============================================================================
+
 # REPORTING
-# ============================================================================
+
 
 def convert_to_python_types(obj):
     """Recursively convert numpy scalars → Python native types for JSON."""
@@ -1504,9 +1465,9 @@ def save_results(results_list, stats_dict, output_dir):
     output_dir = Path(output_dir)
     output_dir.mkdir(exist_ok=True, parents=True)
 
-    # ── JSON ─────────────────────────────────────────────────────────────────
+    # JSON 
     results_data = {
-        'model_description'   : '3-Parameter SIR Emulator (tau, gamma, rho)',
+        'model_description'   : 'SIR-NNE',
         'individual_results'  : [
             {
                 'replicate_id'  : int(r['replicate_id']) if r['replicate_id'] is not None else None,
@@ -1522,9 +1483,9 @@ def save_results(results_list, stats_dict, output_dir):
     json_path = output_dir / 'validation_results.json'
     with open(json_path, 'w') as f:
         json.dump(results_data, f, indent=2)
-    print(f"✓ Saved: {json_path}")
+    print(f"Saved: {json_path}")
 
-    # ── CSV ──────────────────────────────────────────────────────────────────
+    #CSV 
     rows = [
         {'replicate_id': r['replicate_id'],
          'seed'        : r['seed'],
@@ -1534,13 +1495,13 @@ def save_results(results_list, stats_dict, output_dir):
     ]
     csv_path = output_dir / 'validation_results.csv'
     pd.DataFrame(rows).to_csv(csv_path, index=False)
-    print(f"✓ Saved: {csv_path}")
+    print(f" Saved: {csv_path}")
 
-    # ── Plain-text report ────────────────────────────────────────────────────
+    #  Plain-text report 
     lines = [
         "=" * 70,
-        "VALIDATION REPORT — 3-PARAMETER SIR EMULATOR",
-        "Parameters: tau (τ)  |  gamma (γ)  |  rho (ρ)",
+        "VALIDATION REPORT ",
+        "Parameters: ",
         "=" * 70,
         "",
         f"Number of replicates : {len(results_list)}",
@@ -1562,7 +1523,7 @@ def save_results(results_list, stats_dict, output_dir):
             f"  Mean    : {s['mean']:{fmt}}",
             f"  Std     : {s['std']:{fmt}}",
             f"  95% CI  : [{s['ci_lower']:{fmt}},  {s['ci_upper']:{fmt}}]",
-            f"  CV      : {s['cv']:.2f}%" if s['cv'] else "  CV      : N/A",
+            f"  CV      : {s['cv']:.2f}%" if s['cv'] else "  CV : N/A",
             f"  Range   : [{s['min']:{fmt}},  {s['max']:{fmt}}]",
         ]
 
@@ -1597,10 +1558,10 @@ def save_results(results_list, stats_dict, output_dir):
     # Interpretation
     cv = stats_dict['MAE_I']['cv']
     consistency = (
-        "EXCELLENT ⭐⭐⭐⭐⭐" if cv and cv < 5  else
-        "GOOD      ⭐⭐⭐⭐"   if cv and cv < 10 else
-        "ACCEPTABLE ⭐⭐⭐"   if cv and cv < 15 else
-        "HIGH VARIABILITY ⚠"
+        "EXCELLENT " if cv and cv < 5  else
+        "GOOD"   if cv and cv < 10 else
+        "ACCEPTABLE"   if cv and cv < 15 else
+        "HIGH VARIABILITY"
     )
     performance = (
         "EXCEPTIONAL" if stats_dict['MAE_I']['mean'] < 150 else
@@ -1634,7 +1595,7 @@ def save_results(results_list, stats_dict, output_dir):
 
 if __name__ == "__main__":
 
-    # ── Experiment path resolver ──────────────────────────────────────────────
+    # Experiment path resolver 
     EXPERIMENT_DIRS = {
         'random' : 'experiments/random-sampling',
         'lhs'    : 'experiments/lhs-sampling',
@@ -1668,7 +1629,7 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
 
-    # ── Resolve paths from --experiment if provided ───────────────────────────
+    #  Resolve paths from --experiment if provided 
     if args.experiment:
         models_dir, plots_dir, results_dir = resolve_paths(args.experiment)
         args.models_dir = str(models_dir)
@@ -1682,60 +1643,51 @@ if __name__ == "__main__":
         plots_dir.mkdir(parents=True, exist_ok=True)
         results_dir.mkdir(parents=True, exist_ok=True)
 
-    print("\n" + "=" * 70)
-    print("STEP 4: VALIDATION — 3-PARAMETER SIR MODEL (τ, γ, ρ)")
-    print("=" * 70)
-    print(f"\n  Experiment   : {args.experiment or 'custom'}")
-    print(f"  Models dir   : {models_dir}")
-    print(f"  Plots dir    : {plots_dir}")
-    print(f"  Results dir  : {results_dir}")
-    print(f"  Pattern      : best_balanced_mlp_model_*.pt")
+    print("\n" + "-" * 70)
+    print("STEP 4: VALIDATION ")
+    print(f"\n Experiment: {args.experiment or 'custom'}")
+    print(f"Models dir: {models_dir}")
+    print(f"Plots dir: {plots_dir}")
+    print(f"Results dir: {results_dir}")
+    print(f"Pattern: best_balanced_mlp_model_*.pt")
 
     device = get_device()
 
-    # ── Load validation data ──────────────────────────────────────────────────
+    # Load validation data
     print(f"\nLoading data: {args.data}")
     dataloaders = create_dataloaders(args.data, batch_size=40)
     val_loader  = dataloaders['val']
     n_timesteps = dataloaders['metadata']['n_timepoints']
     print(f"  Validation samples : {len(val_loader.dataset)}")
 
-    # ── Evaluate all replicates ───────────────────────────────────────────────
+    #Evaluate all replicates 
     results_list, targets, params = evaluate_all_replicates(
         models_dir, val_loader, device, n_timesteps
     )
 
-    # ── Aggregate statistics ──────────────────────────────────────────────────
-    print("\n" + "=" * 70)
+    # Aggregate statistics 
+    print("\n" + "-" * 70)
     print("AGGREGATE STATISTICS")
-    print("=" * 70)
     stats_dict = compute_aggregate_statistics(results_list)
     print(f"\n  Statistics over {len(results_list)} replicate(s)")
-    print(f"  Mean R²    : {stats_dict['R2']['mean']:.4f} ± {stats_dict['R2']['std']:.4f}")
-    print(f"  Mean MAE_I : {stats_dict['MAE_I']['mean']:.2f} ± {stats_dict['MAE_I']['std']:.2f}")
-    print(f"  CV (MAE_I) : {stats_dict['MAE_I']['cv']:.2f}%")
+    print(f"Mean R²: {stats_dict['R2']['mean']:.4f} ± {stats_dict['R2']['std']:.4f}")
+    print(f" Mean MAE_I : {stats_dict['MAE_I']['mean']:.2f} ± {stats_dict['MAE_I']['std']:.2f}")
+    print(f"CV (MAE_I) : {stats_dict['MAE_I']['cv']:.2f}%")
 
-    # ── Plots → experiments/*/out/plots/ ─────────────────────────────────────
-    print("\n" + "=" * 70)
+    # Plots 
+    print("\n" + "-" * 70)
     print("GENERATING VISUALISATIONS")
-    print("=" * 70)
-    print("\n1. Training curves (if histories available)...")
     plot_training_curves(results_list, models_dir, plots_dir)
-
-    print("\n2. Prediction samples (all replicates)...")
     plot_prediction_samples(results_list, targets, params, plots_dir, n_samples=6)
-
-    print("\n3. Validation summary statistics...")
     plot_validation_summary(results_list, stats_dict, plots_dir)
 
-    # ── Results → experiments/*/out/results/ ─────────────────────────────────
-    print("\n" + "=" * 70)
+    # Results
+    print("\n" + "-" * 70)
     print("SAVING RESULTS")
-    print("=" * 70)
     save_results(results_list, stats_dict, results_dir)
 
-    print(f"\n  Plots   → {plots_dir}")
-    print(f"  Results → {results_dir}")
+    print(f"\n  Plots  {plots_dir}")
+    print(f"  Results {results_dir}")
 
    
   
@@ -1765,37 +1717,6 @@ def load_model(model_path, device):
         checkpoint : raw checkpoint dict
     """
     checkpoint = torch.load(model_path, map_location=device, weights_only=False)
-
-    # # Config 
-    # if 'config' in checkpoint:
-    #     config = checkpoint['config']
-    # else:
-    #     # Minimal default config for 3-parameter SIR model
-    #     config = {
-    #         'n_params'       : N_PARAMS,     # tau, gamma, rho
-    #         'n_fourier'      : 64,
-    #         'fourier_hidden' : 32,
-    #         'param_hidden'   : 16,
-    #         'mlp_hidden'     : 32,
-    #         'mlp_layers'     : 2,
-    #         'temporal_hidden': 64,
-    #         'dropout'        : 0.3,
-    #         'n_knots'        : knots,
-    #         'n_timepoints'   : n_timepoints,
-    #         'total_population': N,
-    #     }
-    # # ── Inject t_grid if checkpoint predates its addition 
-    # state_dict = checkpoint['model_state_dict']
-    # if 'temporal_decoder.t_grid' not in state_dict:
-    #     state_dict['temporal_decoder.t_grid'] = torch.linspace(0.0, 1.0, n_timepoints)
-    
-    # model = create_hybrid_mlp_model(config)
-    # #model.load_state_dict(checkpoint['model_state_dict'])
-    # model.load_state_dict(state_dict, strict=True)
-    # model = model.to(device)
-    # model.eval()
-
-    # return model, checkpoint
 
     def load_model(model_path, device):
         checkpoint = torch.load(model_path, map_location=device, weights_only=False)

@@ -20,23 +20,24 @@ warnings.filterwarnings("ignore")
 
 DATA_DIR = Path("experiments/mcmc-sampling/data/raw")
 PLOTS_DIR = Path("experiments/mcmc-sampling/out/plots/mcmc_sampling_plots")
-OUTPUT_PKL = DATA_DIR / "epidemic_data_age_adaptive_sobol.pkl"
-OUTPUT_CSV = DATA_DIR / "epidemic_data_age_adaptive_sobol.csv"
+MCMC_DIR = Path("experiments/mcmc-sampling/data/raw/mcmc_posterior_results")
+OUTPUT_PKL = DATA_DIR /"epidemic_data_age_adaptive_sobol.pkl"
+OUTPUT_CSV = DATA_DIR /"epidemic_data_age_adaptive_sobol.csv"
 
 # PARAMETERS
-N = 100000                 # network size
+N = 100000              # network size
 m = 10                      # Barabasi–Albert attachment parameter
 
 tmax=80
 n_timepoints=80
-initial_samples=500   # initial Sobol samples #500
-sigma = 0.30            # width of R0 target distribution
-n_replicates=2  # replicates of parameter sets 
+initial_samples=10000   # initial Sobol samples #500
+sigma = 0.6            # width of R0 target distribution
+n_replicates=1  # replicates of parameter sets 
 
 PARAM_RANGES = {
-    'tau'  : (0.0005,0.024),  
-    'gamma': (0.01,0.5),
-    'rho'  : (0.001,0.010),
+    'tau':(0.0005,0.024),
+    'gamma':(0.007,0.5),
+    'rho':(0.001,0.01)
 }
 
 PARAM_NAMES = ['tau', 'gamma', 'rho']
@@ -72,8 +73,6 @@ def compute_R0(samples,ratio):
 
 # Using MCMC to sample from the target distribution  with Uniform distribution
 
-#thinning    = int(mcmc_steps / initial_samples) 
-
 with pm.Model() as model:
     
     # Priors: Uniform over plausible ranges
@@ -92,22 +91,27 @@ with pm.Model() as model:
    
     trace = pm.sample(  
         draws=initial_samples,
-        tune=2000, # thinning,
-        chains=2,  # thus Total_sample=samples*chains
+        tune=3000, 
+        chains=6,  # thus Total_sample=samples*chains
         cores=1,
+        thin=10,
         target_accept=0.95,
         random_seed=42
     )
+#Thin after sampling.
+trace_thinned = trace.sel(draw=slice(None, None, 10))
 
 # Convert trace to (n_samples, 3) array: tau, gamma, rho
-posterior_samples = np.vstack([
-    trace.posterior['tau'].values.flatten(),
-    trace.posterior['gamma'].values.flatten(),
-    trace.posterior['rho'].values.flatten()
+posterior_samples=np.vstack([
+    trace_thinned.posterior['tau'].values.flatten(),
+    trace_thinned.posterior['gamma'].values.flatten(),
+    trace_thinned.posterior['rho'].values.flatten()
 ]).T
 
 
-az.summary(trace, var_names=["tau", "gamma", "rho"])
+print(az.summary(trace_thinned, var_names=["tau", "gamma", "rho"]))
+summary_df = az.summary(trace_thinned, var_names=["tau", "gamma", "rho"])
+summary_df.to_csv(MCMC_DIR/ "mcmc_summary.csv")
 
 az.plot_trace(
     trace,
@@ -217,8 +221,6 @@ def summarise_for_plot(dataset):
 
 
 # Plot epidemic uncertainty
-
-
 def plot_sir_uncertainty(full_results,N, output_dir=PLOTS_DIR):
 
     t = full_results['t']
@@ -279,14 +281,12 @@ def plot_sir_uncertainty(full_results,N, output_dir=PLOTS_DIR):
 
 
 # Save dataset (pickle)
-
-
 def save_dataset(dataset, filepath):
 
     with open(filepath, 'wb') as f:
         pickle.dump(dataset, f, protocol=pickle.HIGHEST_PROTOCOL)
 
-    print(f"Dataset saved → {filepath} ({len(dataset['simulations'])} sims)")
+    print(f"Dataset saved {filepath} ({len(dataset['simulations'])} sims)")
 
 
 
@@ -349,9 +349,7 @@ def save_csv(dataset, filepath):
 
     print(f"CSV saved to {filepath} ({len(sims)} rows)")
 
-
 # Entry point
-# ── Entry point ───────────────────────────────────────────────
 G = nx.barabasi_albert_graph(N, m)
 
 all_sims = run_batch(
@@ -373,15 +371,15 @@ dataset = build_dataset(
 
 full_results = summarise_for_plot(dataset)
 
-# ── Plots → PLOTS_DIR ─────────────────────────────────────────
+# Plots → PLOTS_DIR 
 plot_sir_uncertainty(full_results, N=G.number_of_nodes(), output_dir=PLOTS_DIR)
 
-# ── Data → DATA_DIR ───────────────────────────────────────────
-save_dataset(dataset, OUTPUT_PKL)   # ← constant, not bare string
-save_csv(dataset, OUTPUT_CSV)       # ← constant, not bare string
+# Data → DATA_DIR 
+save_dataset(dataset, OUTPUT_PKL)   
+save_csv(dataset, OUTPUT_CSV)       
 
-# ── Exploration ───────────────────────────────────────────────
-data = pd.read_csv(OUTPUT_CSV)      # ← reads from DATA_DIR
+# Exploration 
+data = pd.read_csv(OUTPUT_CSV)      
 
 print(data.columns)
 print(data.head(20))
@@ -403,11 +401,8 @@ print(f"\nData  → {DATA_DIR}")
 print(f"Plots → {PLOTS_DIR}")
 
 
-
-
+#Saves to PLOTS_DIR
 slope = 1/ratio
-
-# NEW — saves to PLOTS_DIR
 plt.figure(figsize=(10, 10))
 plt.scatter(data['gamma'], data['tau'], alpha=0.2)
 

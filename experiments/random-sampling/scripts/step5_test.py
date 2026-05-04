@@ -19,7 +19,7 @@ n_timepoints=80
 knots=8
 DATA_DIR=Path("experiments/random-sampling/out/trained-models")
 SPLIT_DATA_DIR=Path("experiments/random-sampling/data/split")
-MODEL_DIR=Path("experiments/random-sampling/out/results/testing")
+MODEL_DIR=Path("experiments/random-sampling/out/results/testing/random_test_data_results")
 PLOTS_DIR=Path("experiments/random-sampling/out/plots/testing_plots")
 
 def load_replicate_model(model_path, device):
@@ -95,15 +95,15 @@ def evaluate_model(model, test_loader, device, n_timesteps):
             all_targets.append(batch.y.cpu())
             # Denormalise params_norm [0,1] → raw (tau, gamma, rho) for plots/reports
             params_norm_cpu = batch.params_norm.cpu()
-            param_mins_t    = torch.tensor(PARAM_MINS)
-            param_maxs_t    = torch.tensor(PARAM_MAXS)
-            params_raw      = params_norm_cpu * (param_maxs_t - param_mins_t) + param_mins_t
+            param_mins_t= torch.tensor(PARAM_MINS)
+            param_maxs_t= torch.tensor(PARAM_MAXS)
+            params_raw= params_norm_cpu * (param_maxs_t - param_mins_t) + param_mins_t
             all_params.append(params_raw)
 
-    predictions = torch.cat(all_predictions, dim=0)
-    targets     = torch.cat(all_targets,     dim=0)
-    params      = torch.cat(all_params,      dim=0)
-    metrics     = compute_metrics(predictions, targets)
+    predictions = torch.cat(all_predictions,dim=0)
+    targets= torch.cat(all_targets,dim=0)
+    params= torch.cat(all_params,dim=0)
+    metrics= compute_metrics(predictions, targets)
 
     return predictions, targets, params, metrics
 
@@ -163,7 +163,7 @@ def evaluate_all_replicates(models_dir, test_loader, device, n_timesteps):
             },
         })
 
-        print(f"  MAE_I : {metrics['MAE_I']:.2f}  ← key metric")
+        print(f"  MAE_I : {metrics['MAE_I']:.2f}: key metric")
         print(f"  R²    : {metrics['R2']:.4f}")
         print()
 
@@ -177,7 +177,7 @@ def compute_aggregate_statistics(results_list):
     """Compute mean, std, CV, 95% CI across replicates."""
     n = len(results_list)
 
-    metric_keys = ['MAE', 'MAE_S', 'MAE_I', 'MAE_R', 'R2', 'RMSE', 'MSE']
+    metric_keys = ['MAE', 'MAE_S', 'MAE_I', 'MAE_R', 'R2', 'RMSE', 'MSE','R2_S','R2_I','R2_R']
     stats_dict  = {'n_replicates': n}
 
     for key in metric_keys:
@@ -203,7 +203,7 @@ def compute_aggregate_statistics(results_list):
 def plot_test_predictions_full(results_list, targets, output_dir, n_samples=8):
     """
     Plot SIR predictions vs ground truth for a sample of test cases.
-    Shows τ, γ, ρ values per panel.
+    Shows parameter values per panel.
     """
     output_dir = Path(output_dir)
     targets_np = targets.numpy()
@@ -219,7 +219,7 @@ def plot_test_predictions_full(results_list, targets, output_dir, n_samples=8):
     fig = plt.figure(figsize=(18, 3 * n_samples))
     gs  = GridSpec(n_samples, 3, figure=fig, hspace=0.35, wspace=0.3)
     fig.suptitle(
-        'Test Set Predictions — All Replicates  |  3-Parameter SIR (τ, γ, ρ)',
+        'Test Set Predictions (All Replicates)',
         fontsize=16, fontweight='bold'
     )
 
@@ -330,7 +330,7 @@ def plot_metrics_distribution(stats_dict, output_dir):
 
     fig, axes = plt.subplots(2, 3, figsize=(18, 10))
     fig.suptitle(
-        'Test Metrics Distribution  ·  3-Parameter SIR (τ, γ, ρ)',
+        'Test Metrics Distribution',
         fontsize=16, fontweight='bold'
     )
 
@@ -370,18 +370,18 @@ def plot_metrics_distribution(stats_dict, output_dir):
     ax.axis('off')
     summary = (
         f"TEST RESULTS SUMMARY\n"
-        f"{'='*30}\n\n"
-        f"3-Parameter SIR (τ, γ, ρ)\n"
+        f"{'-'*30}\n\n"
+        f"SIR-NNE \n"
         f"n replicates: {stats_dict['n_replicates']}\n\n"
         f"R²\n"
         f"  Mean : {stats_dict['R2']['mean']:.4f}\n"
         f"  95% CI: [{stats_dict['R2']['ci_95'][0]:.4f}, "
         f"{stats_dict['R2']['ci_95'][1]:.4f}]\n\n"
-        f"MAE_I  ← KEY METRIC\n"
-        f"  Mean : {stats_dict['MAE_I']['mean']:.2f}\n"
-        f"  95% CI: [{stats_dict['MAE_I']['ci_95'][0]:.2f}, "
+        f"MAE_I : KEY METRIC\n"
+        f"Mean : {stats_dict['MAE_I']['mean']:.2f}\n"
+        f" 95% CI: [{stats_dict['MAE_I']['ci_95'][0]:.2f}, "
         f"{stats_dict['MAE_I']['ci_95'][1]:.2f}]\n"
-        f"  CV   : {stats_dict['MAE_I']['cv']:.1f}%"
+        f" CV : {stats_dict['MAE_I']['cv']:.1f}%"
     )
     ax.text(0.05, 0.5, summary, fontsize=10, family='monospace',
             verticalalignment='center',
@@ -396,8 +396,6 @@ def plot_metrics_distribution(stats_dict, output_dir):
 # SAVE RESULTS & DISSERTATION REPORT
 def save_results(results_list, stats_dict, output_dir):
     """Save CSV, JSON, and plain-text dissertation report."""
-    output_dir = Path(output_dir)
-    output_dir.mkdir(exist_ok=True, parents=True)
 
     # CSV
     rows = [
@@ -438,58 +436,43 @@ def save_results(results_list, stats_dict, output_dir):
 
     summary_lines = [
         "=" * 70,
-        "FINAL TEST RESULTS — 3-Parameter SIR Emulator (τ, γ, ρ)",
-        " THESE ARE YOUR DISSERTATION NUMBERS",
-        "=" * 70,
+        "FINAL TEST RESULTS ",
         "",
         f"  Replicates   : {stats_dict['n_replicates']}",
         f"  Test samples : {len(results_list[0]['predictions'])}",
         "",
-        "=" * 70,
-        "OVERALL PERFORMANCE:",
-        "=" * 70,
-        f"  MAE   : {stats_dict['MAE']['mean']:.2f} ± {stats_dict['MAE']['std']:.2f}",
-        f"          95% CI: [{stats_dict['MAE']['ci_95'][0]:.2f}, {stats_dict['MAE']['ci_95'][1]:.2f}]",
-        "",
-        f"  R²    : {r2_mean:.4f} ± {stats_dict['R2']['std']:.4f}",
-        f"          95% CI: [{r2_ci[0]:.4f}, {r2_ci[1]:.4f}]",
-        "",
-        f"  RMSE  : {stats_dict['RMSE']['mean']:.2f} ± {stats_dict['RMSE']['std']:.2f}",
-        "",
-        "=" * 70,
-        "PER-COMPARTMENT MAE:",
-        "=" * 70,
-        f"  Susceptible (S) : {stats_dict['MAE_S']['mean']:.2f} ± {stats_dict['MAE_S']['std']:.2f}",
-        f"  Infected (I)    : {mae_i_mean:.2f} ± {stats_dict['MAE_I']['std']:.2f}  ← KEY METRIC",
-        f"                    95% CI: [{mae_i_ci[0]:.2f}, {mae_i_ci[1]:.2f}]",
-        f"                    CV = {cv:.1f}%",
-        f"  Recovered (R)   : {stats_dict['MAE_R']['mean']:.2f} ± {stats_dict['MAE_R']['std']:.2f}",
-        "",
-        "=" * 70,
-        "PERFORMANCE ASSESSMENT:",
-        "=" * 70,
-        f"  Level       : {performance}",
-        f"  Consistency : {consistency}",
-        "",
-        "=" * 70,
-        "SUGGESTED DISSERTATION TEXT:",
         "-" * 70,
-        f"\"The 3-parameter SIR emulator (τ, γ, ρ) achieved a test set MAE_I",
-        f"of {mae_i_mean:.2f} ({mae_i_ci[0]:.2f}–{mae_i_ci[1]:.2f}, 95% CI,",
+        "OVERALL PERFORMANCE:",
+        f"  MAE   : {stats_dict['MAE']['mean']:.2f} ± {stats_dict['MAE']['std']:.2f}",
+        f" 95% CI: [{stats_dict['MAE']['ci_95'][0]:.2f}, {stats_dict['MAE']['ci_95'][1]:.2f}]",
+        "",
+        f"  R²: {r2_mean:.4f} ± {stats_dict['R2']['std']:.4f}",
+        f" 95% CI: [{r2_ci[0]:.4f}, {r2_ci[1]:.4f}]",
+        "",
+        f" RMSE :{stats_dict['RMSE']['mean']:.2f} ± {stats_dict['RMSE']['std']:.2f}",
+        "",
+        "-" * 70,
+        "PER-COMPARTMENT MAE:",
+        f"Susceptible (S): {stats_dict['MAE_S']['mean']:.2f} ± {stats_dict['MAE_S']['std']:.2f}",
+        f"Infected (I): {mae_i_mean:.2f} ± {stats_dict['MAE_I']['std']:.2f}  ← KEY METRIC",
+        f"95% CI: [{mae_i_ci[0]:.2f}, {mae_i_ci[1]:.2f}]",
+        f"CV = {cv:.1f}%",
+        f"Recovered (R): {stats_dict['MAE_R']['mean']:.2f} ± {stats_dict['MAE_R']['std']:.2f}",
+        "",
+        "-" * 70,
+        "PERFORMANCE ASSESSMENT:",
+        f"Level: {performance}",
+        f"Consistency: {consistency}",
+        "",
+        "-" * 70,
+        "REPORT:",
+        f"\"The NNE SIR NNE achieved a test set MAE_I",
+        f"of {mae_i_mean:.2f} ({mae_i_ci[0]:.2f}-{mae_i_ci[1]:.2f}, 95% CI,",
         f"n={stats_dict['n_replicates']} replicates), with overall R² = {r2_mean:.4f} ±",
         f"{stats_dict['R2']['std']:.4f}. Replicate consistency was {consistency.lower()},",
         f"with coefficient of variation {cv:.1f}%, indicating robust performance",
         "across random initialisations.\"",
         "",
-        "=" * 70,
-        "STATISTICAL NOTES:",
-        "=" * 70,
-        "  · All metrics: mean ± standard deviation across replicates",
-        "  · 95% CI computed using t-distribution (appropriate for small n)",
-        "  · CV (coefficient of variation) = std / mean × 100",
-        "  · CV < 10% indicates good replicate consistency",
-        "",
-        "=" * 70,
     ]
 
     summary_text = "\n".join(summary_lines)
@@ -508,12 +491,10 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(
         description="Final test evaluation — 3-Parameter SIR emulator (τ, γ, ρ)"
     )
-
     parser.add_argument('--models_dir',
                         type=str,
                         default=str(DATA_DIR),       
                         help='Directory of trained replicate .pt checkpoints')
-
     parser.add_argument('--data',
                         type=str,
                         default=str(SPLIT_DATA_DIR /  
@@ -524,17 +505,14 @@ if __name__ == "__main__":
                         type=str,
                         default=str(MODEL_DIR),      
                         help='Output directory for results (CSV, JSON, report)')
-
     parser.add_argument('--plots_dir',
                         type=str,
                         default=str(PLOTS_DIR),   
                         help='Output directory for figures')
-
     parser.add_argument('--n_samples',
                         type=int,
                         default=8,
                         help='Number of test samples to plot')
-
     args = parser.parse_args()
 
     #  Resolve all paths from args 
@@ -542,14 +520,8 @@ if __name__ == "__main__":
     results_dir = Path(args.output_dir)
     plots_dir   = Path(args.plots_dir)
 
-    # Guarantee directories exist (even if CLI overrides were used)
-    for _dir in [results_dir, plots_dir]:
-        _dir.mkdir(parents=True, exist_ok=True)
-
     print("\n" + "=" * 70)
-    print("STEP 5: FINAL TEST — 3-PARAMETER SIR MODEL (τ, γ, ρ)")
-    print("These are your DISSERTATION RESULTS")
-    print("=" * 70)
+    print("STEP 5: FINAL TEST ")
     print(f"\n  Models dir  : {models_dir.resolve()}")
     print(f"  Data file   : {args.data}")
     print(f"  Results dir : {results_dir.resolve()}")
@@ -558,7 +530,6 @@ if __name__ == "__main__":
     device = get_device()
 
     # Load test data from SPLIT_DATA_DIR 
-    print(f"\nLoading test data...")
     dataloaders = create_dataloaders(args.data, batch_size=35)
     test_loader = dataloaders['test']
     n_timesteps = dataloaders['metadata']['n_timepoints']
@@ -573,9 +544,8 @@ if __name__ == "__main__":
     stats_dict = compute_aggregate_statistics(results_list)
 
     
-    print("\n" + "=" * 70)
+    print("\n" + "-" * 70)
     print("GENERATING FIGURES")
-   
 
     plot_test_predictions_full(             # all 3 compartments
         results_list, targets, plots_dir, args.n_samples
@@ -586,9 +556,6 @@ if __name__ == "__main__":
     plot_metrics_distribution(stats_dict, plots_dir)
 
     
-    print("\n" + "=" * 70)
+    print("\n" + "-" * 70)
     print("SAVING RESULTS")
     save_results(results_list, stats_dict, results_dir)
-
-    print(f"\n  Plots   → {plots_dir.resolve()}")
-    print(f"  Results → {results_dir.resolve()}")

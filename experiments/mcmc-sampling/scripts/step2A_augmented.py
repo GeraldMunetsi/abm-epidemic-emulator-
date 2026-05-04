@@ -15,9 +15,21 @@ INPUT_PKL=DATA_DIR/"epidemic_data_age_adaptive_sobol_split.pkl"
 AUGMENTED_PKL=AUGMENTED_DATA_DIR/"epidemic_data_age_adaptive_sobol_split_augmented.pkl"
 AUGMENTED_CSV=AUGMENTED_DATA_DIR/"epidemic_data_age_adaptive_sobol_split_augmented.csv"
 
+ratio = 34.0 
+PARAM_BOUNDS ={
+    'tau':(0.0005,0.024),
+    'gamma':(0.007,0.5),
+    'rho':(0.001,0.01)
+}
+
+param_noise=0.05
+comp_noise=0.001
+n_param_aug=2
+n_comp_aug=1
+
 class SIRAugmenter:
-    def __init__(self, param_noise=0.01, comp_noise=0.01,  #0.001
-                 n_param_aug=10, n_comp_aug=1): #was 10, 1
+    def __init__(self, param_noise=param_noise, comp_noise=comp_noise,  #0.001
+                 n_param_aug=n_param_aug, n_comp_aug=n_comp_aug): #was 10, 1
         self.param_noise = param_noise
         self.comp_noise  = comp_noise
         self.n_param_aug = n_param_aug
@@ -32,26 +44,38 @@ class SIRAugmenter:
             sims.append(self.augment_compartments(sim))
         return sims
 
+        
+
     def augment_params(self, sim):
         sim_new = deepcopy(sim)
-        params = sim_new['params']
         for k in ['tau', 'gamma', 'rho']:
-            params[k] *= 1 + np.random.normal(0, self.param_noise)
+            lo, hi = PARAM_BOUNDS[k]
+            val = sim_new['params'][k] * (1 + np.random.normal(0, self.param_noise))
+            sim_new['params'][k] = float(np.clip(val, lo, hi))
         return sim_new
 
     def augment_compartments(self, sim):
         sim_new = deepcopy(sim)
         out = sim_new['output']
-        S, I, R = np.array(out['S']), np.array(out['I']), np.array(out['R'])
-        S2 = np.maximum(S * (1 + np.random.normal(0, self.comp_noise, S.shape)), 0)
-        I2 = np.maximum(I * (1 + np.random.normal(0, self.comp_noise, I.shape)), 0)
-        R2 = np.maximum(R * (1 + np.random.normal(0, self.comp_noise, R.shape)), 0)
+        S = np.array(out['S'])
+        I = np.array(out['I'])
+        R = np.array(out['R'])
         N = S[0] + I[0] + R[0]
-        factor = N / (S2 + I2 + R2 + 1e-8)
-        sim_new['output'] = {'t': out['t'],
-                             'S': (S2 * factor).tolist(),
-                             'I': (I2 * factor).tolist(),
-                             'R': (R2 * factor).tolist()}
+
+        # Add noise only to S and I
+        S2 = np.clip(S * (1 + np.random.normal(0, self.comp_noise, S.shape)), 0, N)
+        I2 = np.clip(I * (1 + np.random.normal(0, self.comp_noise, I.shape)), 0, N - S2)
+
+        # R is derived — conservation exact by construction
+        R2 = N - S2 - I2
+        R2 = np.maximum(R2, 0)   # numerical safety
+
+        sim_new['output'] = {
+            't': out['t'],
+            'S': S2.tolist(),
+            'I': I2.tolist(),
+            'R': R2.tolist(),
+        }
         return sim_new
 
 
@@ -72,7 +96,7 @@ def augment_train_split(split_data, augmenter):
     return augmented
 
 # Export CSV of parameters + R0 for training set
-def export_params_with_R0(split_data, csv_path, split_name="train", ratio=34.0):
+def export_params_with_R0(split_data, csv_path, split_name="train", ratio=ratio):
     sims = split_data[split_name]['simulations']
     rows = []
     for sim in sims:
@@ -90,7 +114,6 @@ def export_params_with_R0(split_data, csv_path, split_name="train", ratio=34.0):
 # Run augmentation
 
 if __name__ == "__main__":
-
     #  Step 1: Load split data from DATA_DIR 
     print("=" * 60)
     print("SIR DATA AUGMENTATION")
@@ -107,11 +130,11 @@ if __name__ == "__main__":
           f"{len(data['train']['simulations'])}")
 
     #  Step 2: Augment 
-    augmenter = SIRAugmenter(
-        param_noise  = 0.001,
-        comp_noise   = 0.01,
-        n_param_aug  = 10,
-        n_comp_aug   = 1,
+    augmenter=SIRAugmenter(
+        param_noise=param_noise,
+        comp_noise=comp_noise,
+        n_param_aug=n_param_aug,
+        n_comp_aug=n_comp_aug,
     )
 
     augmented = augment_train_split(data, augmenter)
@@ -122,14 +145,14 @@ if __name__ == "__main__":
     # Step 3: Save augmented pickle 
     with open(AUGMENTED_PKL, "wb") as f:   
         pickle.dump(augmented, f)
-    print(f"\nSaved pickle → {AUGMENTED_PKL}")
+    print(f"\nSaved pickle  {AUGMENTED_PKL}")
 
     #  Step 4: Export CSV 
     df = export_params_with_R0(
         augmented,
         csv_path   = AUGMENTED_CSV,        
         split_name = "train",
-        ratio      = 34.0,
+        ratio = ratio,
     )
 
     #  Step 5: Explore 
@@ -146,12 +169,21 @@ if __name__ == "__main__":
                                (augmented_data['R0'] <= 1.2)]
     less_than = augmented_data[augmented_data['R0'] < 0.8]
 
-    print(f"\nR₀ > 1.2       : {len(greater):5d}  ({len(greater)/total*100:.1f}%)")
+    print(f"\nR₀ > 1.2 : {len(greater):5d}  ({len(greater)/total*100:.1f}%)")
     print(f"0.7 ≤ R₀ ≤ 1.2 : {len(between):5d}  ({len(between)/total*100:.1f}%)")
-    print(f"R₀ < 0.8       : {len(less_than):5d}  ({len(less_than)/total*100:.1f}%)")
+    print(f"R₀ < 0.8 : {len(less_than):5d}  ({len(less_than)/total*100:.1f}%)")
+
+
+    taus = [s['params']['tau'] for s in augmented['train']['simulations']]
+    gammas = [s['params']['gamma'] for s in augmented['train']['simulations']]
+    print(f"Unique tau values (3dp): {len(set(round(t,4) for t in taus))}")
+    print(f"Total simulations: {len(taus)}")
+    print(f"Unique gamma values (3dp): {len(set(round(g,4) for g in gammas))}")
+    print(f"Total simulations: {len(gammas)}")
+
 
     # Step 6: Scatter plot 
-    slope = 1 / 34.0
+    slope = 1 / ratio
 
     plt.figure(figsize=(10, 10))
     plt.scatter(augmented_data['gamma'], augmented_data['tau'],

@@ -12,17 +12,16 @@ from scipy import stats
 from step0_model import create_hybrid_mlp_model
 from utils import create_dataloaders, compute_metrics, get_device, PARAM_MINS, PARAM_MAXS
 
-
-# MODEL LOADING
-
+# CONSTANTS
 N=100000
 n_timepoints=80
 knots=8
+# PATHS
 DATA_DIR=Path("experiments/mcmc-sampling/out/trained-models")
 SPLIT_DATA_DIR=Path("experiments/mcmc-sampling/data/augmented")
-MODEL_DIR=Path("experiments/mcmc-sampling/out/results/testing")
-PLOTS_DIR=Path("experiments/mcmc-sampling/out/plots")
-
+MODEL_DIR=Path("experiments/mcmc-sampling/out/results/testing/mcmc_test_data_results")
+PLOTS_DIR=Path("experiments/mcmc-sampling/out/plots/testing_plots/mcmc_test_data")
+#MODEL LOADING
 def load_replicate_model(model_path, device):
     checkpoint = torch.load(model_path, map_location=device, weights_only=False)
 
@@ -44,13 +43,8 @@ def load_replicate_model(model_path, device):
         }
 
     state_dict = checkpoint['model_state_dict']
-
-    # Checkpoint was saved with weight-function forward (had t_grid buffer).
-    # Current model uses sort-based forward — no t_grid needed. Drop it.
     state_dict.pop('temporal_decoder.t_grid', None)
 
-    # Checkpoint was saved with old g_coeff pinning (n_knots-1 output).
-    # Current model outputs n_knots. Pad with a zero row if needed.
     g_w_key = 'temporal_decoder.predict_g_coeffs.2.weight'
     g_b_key = 'temporal_decoder.predict_g_coeffs.2.bias'
     expected_n_knots = config.get('n_knots', knots)
@@ -72,8 +66,6 @@ def load_replicate_model(model_path, device):
     return model, checkpoint
 
 # EVALUATION
-
-
 def evaluate_model(model, test_loader, device, n_timesteps):
     """
     Run inference on the full test set.
@@ -83,60 +75,41 @@ def evaluate_model(model, test_loader, device, n_timesteps):
     model.eval()
 
     all_predictions, all_targets, all_params = [], [], []
+    print("Running inference on test set")
 
-    print("    Running inference on test set...")
+  
     with torch.no_grad():
-        for batch in test_loader:
-            batch = batch.to(device)
-
-            # ── Clean forward pass (no dummy tensors) ─────────────────────────
-            predictions = model(batch, n_timesteps=n_timesteps)
-
-            all_predictions.append(predictions.cpu())
+        for batch in test_loader: #Loop through test batches (B,T,3)
+            batch = batch.to(device) 
+            predictions = model(batch, n_timesteps=n_timesteps) #Forward pass
+            all_predictions.append(predictions.cpu())   
             all_targets.append(batch.y.cpu())
-            # Denormalise params_norm [0,1] → raw (tau, gamma, rho) for plots/reports
-            params_norm_cpu = batch.params_norm.cpu()
-            param_mins_t    = torch.tensor(PARAM_MINS)
-            param_maxs_t    = torch.tensor(PARAM_MAXS)
-            params_raw      = params_norm_cpu * (param_maxs_t - param_mins_t) + param_mins_t
+            params_norm_cpu = batch.params_norm.cpu() # Denormalise params_norm [0,1] to get raw (tau, gamma, rho) for plots/reports
+            param_mins_t= torch.tensor(PARAM_MINS)
+            param_maxs_t= torch.tensor(PARAM_MAXS)
+            params_raw= params_norm_cpu*(param_maxs_t - param_mins_t) + param_mins_t
             all_params.append(params_raw)
 
-    predictions = torch.cat(all_predictions, dim=0)
-    targets     = torch.cat(all_targets,     dim=0)
-    params      = torch.cat(all_params,      dim=0)
-    metrics     = compute_metrics(predictions, targets)
-
+    predictions = torch.cat(all_predictions,dim=0)
+    targets= torch.cat(all_targets,dim=0)
+    params= torch.cat(all_params,dim=0)
+    metrics= compute_metrics(predictions, targets)
     return predictions, targets, params, metrics
-
 
 def evaluate_all_replicates(models_dir, test_loader, device, n_timesteps):
     """
     Evaluate every replicate model on the test set.
-
     Looks for: best_balanced_mlp_model_*.pt
     """
     models_dir  = Path(models_dir)
-
-    if not models_dir.exists():
-        raise ValueError(f"Directory not found: {models_dir}")
-
     model_paths = sorted(
         list(models_dir.glob("best_balanced_mlp_model_*.pt")),
         key=lambda x: int(x.stem.split('_')[-1])
     )
-
-    if not model_paths:
-        raise ValueError(
-            f"No models found in {models_dir} "
-            "matching 'best_balanced_mlp_model_*.pt'"
-        )
-
     results_list = []
     targets = params = None
-
-   
-    print(f"FINAL TEST EVALUATION  ·  {len(model_paths)} REPLICATE(S)")
-    print(f"{'='*70}\n")
+    print(f"FINAL TEST EVALUATION · {len(model_paths)} REPLICATE(S)")
+    print(f"{'-'*70}\n")
 
     for idx, model_path in enumerate(model_paths, 1):
         print(f"Replicate {idx}/{len(model_paths)} : {model_path.name}")
@@ -164,63 +137,57 @@ def evaluate_all_replicates(models_dir, test_loader, device, n_timesteps):
             },
         })
 
-        print(f"  MAE_I : {metrics['MAE_I']:.2f}  ← key metric")
-        print(f"  R²    : {metrics['R2']:.4f}")
-        print()
+        print(f" MAE_I: {metrics['MAE_I']:.2f} :Key metric")
+        print(f" R²: {metrics['R2']:.4f}")
+       
 
     print(f"Evaluated {len(results_list)} replicates\n")
     return results_list, targets, params
-
-
 
 # AGGREGATE STATISTICS
 def compute_aggregate_statistics(results_list):
     """Compute mean, std, CV, 95% CI across replicates."""
     n = len(results_list)
 
-    metric_keys = ['MAE', 'MAE_S', 'MAE_I', 'MAE_R', 'R2', 'RMSE', 'MSE']
+    metric_keys = ['MAE', 'MAE_S', 'MAE_I', 'MAE_R','R2','RMSE', 'MSE','R2_S','R2_I','R2_R']
     stats_dict  = {'n_replicates': n}
 
     for key in metric_keys:
         arr = np.array([r['metrics'][key] for r in results_list])
         sem = arr.std() / np.sqrt(n)
-        ci  = stats.t.interval(0.95, n - 1, loc=arr.mean(), scale=sem) if n > 1 else (arr.mean(), arr.mean())
+        ci  = stats.t.interval(0.95, n - 1, loc=arr.mean(), scale=sem) if n > 1 else (arr.mean(), arr.mean())# Uses Student's t distribution because n may be small. If i run the model many times, 95% of such intervals contain true mean metric.
 
         stats_dict[key] = {
-            'mean'  : float(arr.mean()),
-            'std'   : float(arr.std()),
-            'sem'   : float(sem),
-            'min'   : float(arr.min()),
-            'max'   : float(arr.max()),
+            'mean': float(arr.mean()), # Average model performance across repeated runs.
+            'std': float(arr.std()),
+            'sem': float(sem), #standard error mean - Uncertainty in the estimated mean performance.
+            'min': float(arr.min()),
+            'max': float(arr.max()),
             'median': float(np.median(arr)),
-            'ci_95' : [float(ci[0]), float(ci[1])],
-            'cv'    : float(arr.std() / arr.mean() * 100) if arr.mean() != 0 else 0.0,
+            'ci_95': [float(ci[0]), float(ci[1])],
+            'cv': float(arr.std() / arr.mean() * 100) if arr.mean() != 0 else 0.0, 
         }
 
     return stats_dict
-
 
 # VISUALISATION
 def plot_test_predictions_full(results_list, targets, output_dir, n_samples=8):
     """
     Plot SIR predictions vs ground truth for a sample of test cases.
-    Shows τ, γ, ρ values per panel.
+    Shows parameter values per panel.
     """
     output_dir = Path(output_dir)
     targets_np = targets.numpy()
-
     n_total  = len(targets_np)
     indices  = np.linspace(0, n_total - 1, n_samples, dtype=int)
-
     compartments = ['Susceptible (S)', 'Infected (I)', 'Recovered (R)']
-    gt_colors    = ['lightblue', 'lightcoral', 'lightgreen']
-    n_reps       = len(results_list)
+    gt_colors= ['lightblue', 'lightcoral', 'lightgreen']
+    n_reps = len(results_list)
     pred_colors  = plt.cm.tab10(np.linspace(0, 1, n_reps))
-
     fig = plt.figure(figsize=(18, 3 * n_samples))
     gs  = GridSpec(n_samples, 3, figure=fig, hspace=0.35, wspace=0.3)
     fig.suptitle(
-        'Test Set Predictions — All Replicates  |  3-Parameter SIR (τ, γ, ρ)',
+        'Test Set Predictions',
         fontsize=16, fontweight='bold'
     )
 
@@ -244,44 +211,32 @@ def plot_test_predictions_full(results_list, targets, output_dir, n_samples=8):
 
             if row == 0:
                 ax.set_title(compartments[col], fontsize=12, fontweight='bold')
-
             ax.set_xlabel('Time step', fontsize=9)
             ax.set_ylabel('Count',     fontsize=9)
-
             if col == 1:
                 ax.legend(loc='best', fontsize=7, ncol=2)
-
             ax.grid(True, alpha=0.3, linestyle='--')
 
     plt.savefig(output_dir / 'test_comparison_plots.png', dpi=200, bbox_inches='tight')
     plt.close()
     print(f"Saved: {output_dir / 'test_comparison_plots.png'}")
 
-
-
 def plot_test_predictions_infected(results_list, targets, output_dir, n_samples=5):
-
     output_dir = Path(output_dir)
     targets_np = targets.detach().cpu().numpy()
-
     n_total = len(targets_np)
     indices = np.linspace(0, n_total -1, n_samples, dtype=int)
-
     infected_idx = 1   # S=0, I=1, R=2
-
     n_reps = len(results_list)
     pred_colors = plt.cm.tab10(np.linspace(0, 1, n_reps))
-
     fig = plt.figure(figsize=(10, 3 * n_samples))
     gs = GridSpec(n_samples, 1, figure=fig, hspace=0.35)
-
     fig.suptitle(
         'Test Set Predictions – Infected Compartment (I)',
         fontsize=16, fontweight='bold'
     )
 
     for row, idx in enumerate(indices):
-
         ax = fig.add_subplot(gs[row, 0])
         target = targets_np[idx]
 
@@ -298,9 +253,7 @@ def plot_test_predictions_infected(results_list, targets, output_dir, n_samples=
 
         # Replicate predictions
         for rep_i, result in enumerate(results_list):
-
             pred = result['predictions'][idx].detach().cpu().numpy()
-
             ax.plot(
                 pred[:, infected_idx],
                 '-',
@@ -309,7 +262,6 @@ def plot_test_predictions_infected(results_list, targets, output_dir, n_samples=
                 alpha=0.6,
                 label=f"M{result['replicate_id']}"
             )
-
         ax.set_xlabel('Time step')
         ax.set_ylabel('Infected count')
 
@@ -320,18 +272,15 @@ def plot_test_predictions_infected(results_list, targets, output_dir, n_samples=
 
     plt.savefig(output_dir / 'test_infected_predictions.png',dpi=200,bbox_inches='tight'
     )
-
     plt.close()
-
     print(f"Saved: {output_dir / 'test_infected_predictions.png'}")
-
 
 def plot_metrics_distribution(stats_dict, output_dir):
     output_dir = Path(output_dir)
 
     fig, axes = plt.subplots(2, 3, figsize=(18, 10))
     fig.suptitle(
-        'Test Metrics Distribution  ·  3-Parameter SIR (τ, γ, ρ)',
+        'Test Metrics Distribution',
         fontsize=16, fontweight='bold'
     )
 
@@ -372,22 +321,21 @@ def plot_metrics_distribution(stats_dict, output_dir):
     summary = (
         f"TEST RESULTS SUMMARY\n"
         f"{'='*30}\n\n"
-        f"3-Parameter SIR (τ, γ, ρ)\n"
+        f"3-Parameter\n"
         f"n replicates: {stats_dict['n_replicates']}\n\n"
         f"R²\n"
         f"  Mean : {stats_dict['R2']['mean']:.4f}\n"
         f"  95% CI: [{stats_dict['R2']['ci_95'][0]:.4f}, "
         f"{stats_dict['R2']['ci_95'][1]:.4f}]\n\n"
-        f"MAE_I  ← KEY METRIC\n"
-        f"  Mean : {stats_dict['MAE_I']['mean']:.2f}\n"
-        f"  95% CI: [{stats_dict['MAE_I']['ci_95'][0]:.2f}, "
+        f"MAE_I :KEY METRIC\n"
+        f"Mean : {stats_dict['MAE_I']['mean']:.2f}\n"
+        f"95% CI: [{stats_dict['MAE_I']['ci_95'][0]:.2f}, "
         f"{stats_dict['MAE_I']['ci_95'][1]:.2f}]\n"
         f"  CV   : {stats_dict['MAE_I']['cv']:.1f}%"
     )
     ax.text(0.05, 0.5, summary, fontsize=10, family='monospace',
             verticalalignment='center',
             bbox=dict(boxstyle='round', facecolor='wheat', alpha=0.3))
-
     plt.tight_layout()
     plt.savefig(output_dir / 'test_metrics_distribution.png', dpi=200, bbox_inches='tight')
     plt.close()
@@ -396,9 +344,8 @@ def plot_metrics_distribution(stats_dict, output_dir):
 
 # SAVE RESULTS & DISSERTATION REPORT
 def save_results(results_list, stats_dict, output_dir):
-    """Save CSV, JSON, and plain-text dissertation report."""
+    """Save CSV, JSON, and plain-text report."""
     output_dir = Path(output_dir)
-    output_dir.mkdir(exist_ok=True, parents=True)
 
     # CSV
     rows = [
@@ -417,17 +364,25 @@ def save_results(results_list, stats_dict, output_dir):
         json.dump(stats_dict, f, indent=2)
     print(f" Saved: {output_dir / 'test_final_statistics.json'}")
 
-    # Dissertation-ready report 
-    mae_i_mean = stats_dict['MAE_I']['mean']
-    mae_i_ci   = stats_dict['MAE_I']['ci_95']
-    r2_mean    = stats_dict['R2']['mean']
-    r2_ci      = stats_dict['R2']['ci_95']
-    cv         = stats_dict['MAE_I']['cv']
+    # Report 
+    mae_i_mean= stats_dict['MAE_I']['mean']# Average MAE for the replicates. What is the expected performance of this modelling pipeline if we rerun it
+    mae_i_ci= stats_dict['MAE_I']['ci_95']
+    r2_mean= stats_dict['R2']['mean']
+    r2_ci= stats_dict['R2']['ci_95']
+    cv= stats_dict['MAE_I']['cv']
+    r2_s_mean = stats_dict['R2_S']['mean']
+    r2_s_ci = stats_dict['R2_S']['ci_95']
+    r2_i_mean = stats_dict['R2_I']['mean']
+    r2_i_ci   = stats_dict['R2_I']['ci_95']
+
+    r2_r_mean = stats_dict['R2_R']['mean']
+    r2_r_ci   = stats_dict['R2_R']['ci_95']
+
 
     performance = (
         "EXCEPTIONAL" if mae_i_mean < 150 else
-        "EXCELLENT "   if mae_i_mean < 200 else
-        "GOOD"    if mae_i_mean < 250 else
+        "EXCELLENT " if mae_i_mean < 200 else
+        "GOOD" if mae_i_mean < 250 else
         "NEEDS IMPROVEMENT"
     )
     consistency = (
@@ -438,104 +393,89 @@ def save_results(results_list, stats_dict, output_dir):
     )
 
     summary_lines = [
-        "=" * 70,
-        "FINAL TEST RESULTS — 3-Parameter SIR Emulator (τ, γ, ρ)",
-        " THESE ARE YOUR DISSERTATION NUMBERS",
-        "=" * 70,
+        "-" * 70,
+        "FINAL TEST RESULTS",
+        "-" * 70,
         "",
-        f"  Replicates   : {stats_dict['n_replicates']}",
-        f"  Test samples : {len(results_list[0]['predictions'])}",
+        f"Replicates: {stats_dict['n_replicates']}",
+        f"Test samples : {len(results_list[0]['predictions'])}",
         "",
-        "=" * 70,
+        "-" * 70,
         "OVERALL PERFORMANCE:",
-        "=" * 70,
         f"  MAE   : {stats_dict['MAE']['mean']:.2f} ± {stats_dict['MAE']['std']:.2f}",
-        f"          95% CI: [{stats_dict['MAE']['ci_95'][0]:.2f}, {stats_dict['MAE']['ci_95'][1]:.2f}]",
+        f" 95% CI: [{stats_dict['MAE']['ci_95'][0]:.2f}, {stats_dict['MAE']['ci_95'][1]:.2f}]",
         "",
-        f"  R²    : {r2_mean:.4f} ± {stats_dict['R2']['std']:.4f}",
-        f"          95% CI: [{r2_ci[0]:.4f}, {r2_ci[1]:.4f}]",
+        f"  R²: {r2_mean:.4f} ± {stats_dict['R2']['std']:.4f}",
+        f" 95% CI: [{r2_ci[0]:.4f}, {r2_ci[1]:.4f}]",
         "",
-        f"  RMSE  : {stats_dict['RMSE']['mean']:.2f} ± {stats_dict['RMSE']['std']:.2f}",
+        f" RMSE: {stats_dict['RMSE']['mean']:.2f} ± {stats_dict['RMSE']['std']:.2f}",
         "",
-        "=" * 70,
+        "-" * 70,
         "PER-COMPARTMENT MAE:",
-        "=" * 70,
-        f"  Susceptible (S) : {stats_dict['MAE_S']['mean']:.2f} ± {stats_dict['MAE_S']['std']:.2f}",
-        f"  Infected (I)    : {mae_i_mean:.2f} ± {stats_dict['MAE_I']['std']:.2f}  ← KEY METRIC",
-        f"                    95% CI: [{mae_i_ci[0]:.2f}, {mae_i_ci[1]:.2f}]",
-        f"                    CV = {cv:.1f}%",
-        f"  Recovered (R)   : {stats_dict['MAE_R']['mean']:.2f} ± {stats_dict['MAE_R']['std']:.2f}",
+        f" S : {stats_dict['MAE_S']['mean']:.2f} ± {stats_dict['MAE_S']['std']:.2f}",
+        f" I    : {mae_i_mean:.2f} ± {stats_dict['MAE_I']['std']:.2f}  ← KEY METRIC",
+        f"95% CI: [{mae_i_ci[0]:.2f}, {mae_i_ci[1]:.2f}]",
+        f"CV = {cv:.1f}%",
+        f" R: {stats_dict['MAE_R']['mean']:.2f} ± {stats_dict['MAE_R']['std']:.2f}",
         "",
-        "=" * 70,
+        "-" * 70,
         "PERFORMANCE ASSESSMENT:",
-        "=" * 70,
-        f"  Level       : {performance}",
+        f"  Level: {performance}",
         f"  Consistency : {consistency}",
         "",
-        "=" * 70,
-        "SUGGESTED DISSERTATION TEXT:",
         "-" * 70,
-        f"\"The 3-parameter SIR emulator (τ, γ, ρ) achieved a test set MAE_I",
-        f"of {mae_i_mean:.2f} ({mae_i_ci[0]:.2f}–{mae_i_ci[1]:.2f}, 95% CI,",
-        f"n={stats_dict['n_replicates']} replicates), with overall R² = {r2_mean:.4f} ±",
-        f"{stats_dict['R2']['std']:.4f}. Replicate consistency was {consistency.lower()},",
+        "REPORT TEXT:",
+        f"\"The SIR NNE achieved a test set MAE_I of {mae_i_mean:.2f} ({mae_i_ci[0]:.2f}-{mae_i_ci[1]:.2f}, 95% CI,",
+        f"n={stats_dict['n_replicates']} replicates), with overall R² = {r2_mean:.4f} ± {stats_dict['R2']['std']:.4f}",
+        f"The R² of the Susceptibles, Infectious and Recovered is {np.round(r2_s_mean,3)}, {np.round(r2_i_mean,3)}, {np.round(r2_r_mean,3)} respectively",
+        f"There confidence intervals are {np.round(r2_s_ci,3)},{np.round(r2_i_ci,3)} and {np.round(r2_r_ci,3)} respectively",
+        f"Replicate consistency was {consistency.lower()},",
         f"with coefficient of variation {cv:.1f}%, indicating robust performance",
-        "across random initialisations.\"",
+        "across random initialisations/stochastic training- excellent reproducibility.\"",
         "",
-        "=" * 70,
         "STATISTICAL NOTES:",
-        "=" * 70,
+        "-" * 70,
         "  · All metrics: mean ± standard deviation across replicates",
         "  · 95% CI computed using t-distribution (appropriate for small n)",
         "  · CV (coefficient of variation) = std / mean × 100",
         "  · CV < 10% indicates good replicate consistency",
         "",
-        "=" * 70,
+        
     ]
 
     summary_text = "\n".join(summary_lines)
-
-    with open(output_dir / 'FINAL_DISSERTATION_RESULTS.txt', 'w', encoding="utf-8") as f:
+    with open(output_dir / 'Dissertation_Results.txt', 'w', encoding="utf-8") as f:
         f.write(summary_text)
-
-    print(f" Saved: {output_dir / 'FINAL_DISSERTATION_RESULTS.txt'}")
+    print(f" Saved: {output_dir / 'Dissertation_Results.txt'}")
     print("\n" + summary_text)
 
 
 # ENTRY POINT
-
 if __name__ == "__main__":
-
     parser = argparse.ArgumentParser(
-        description="Final test evaluation — 3-Parameter SIR emulator (τ, γ, ρ)"
+        description="Final test evaluation"
     )
-
     parser.add_argument('--models_dir',
                         type=str,
                         default=str(DATA_DIR),       
                         help='Directory of trained replicate .pt checkpoints')
-
     parser.add_argument('--data',
                         type=str,
                         default=str(SPLIT_DATA_DIR /  
                                     'epidemic_data_age_adaptive_sobol_split_augmented.pkl'),
                         help='Path to split dataset .pkl file')
-
     parser.add_argument('--output_dir',
                         type=str,
                         default=str(MODEL_DIR),      
                         help='Output directory for results (CSV, JSON, report)')
-
     parser.add_argument('--plots_dir',
                         type=str,
                         default=str(PLOTS_DIR),   
                         help='Output directory for figures')
-
     parser.add_argument('--n_samples',
                         type=int,
                         default=8,
                         help='Number of test samples to plot')
-
     args = parser.parse_args()
 
     #  Resolve all paths from args 
@@ -543,14 +483,9 @@ if __name__ == "__main__":
     results_dir = Path(args.output_dir)
     plots_dir   = Path(args.plots_dir)
 
-    # Guarantee directories exist (even if CLI overrides were used)
-    for _dir in [results_dir, plots_dir]:
-        _dir.mkdir(parents=True, exist_ok=True)
-
     print("\n" + "=" * 70)
-    print("STEP 5: FINAL TEST — 3-PARAMETER SIR MODEL (τ, γ, ρ)")
-    print("These are your DISSERTATION RESULTS")
-    print("=" * 70)
+    print("STEP 5: FINAL TEST ")
+    print("-" * 70)
     print(f"\n  Models dir  : {models_dir.resolve()}")
     print(f"  Data file   : {args.data}")
     print(f"  Results dir : {results_dir.resolve()}")
@@ -559,7 +494,6 @@ if __name__ == "__main__":
     device = get_device()
 
     # Load test data from SPLIT_DATA_DIR 
-    print(f"\nLoading test data...")
     dataloaders = create_dataloaders(args.data, batch_size=35)
     test_loader = dataloaders['test']
     n_timesteps = dataloaders['metadata']['n_timepoints']
@@ -572,12 +506,8 @@ if __name__ == "__main__":
 
     # Aggregate statistics 
     stats_dict = compute_aggregate_statistics(results_list)
-
-    
-    print("\n" + "=" * 70)
+    print("\n" + "-" * 70)
     print("GENERATING FIGURES")
-   
-
     plot_test_predictions_full(             # all 3 compartments
         results_list, targets, plots_dir, args.n_samples
     )
@@ -585,11 +515,8 @@ if __name__ == "__main__":
         results_list, targets, plots_dir, n_samples=5
     )
     plot_metrics_distribution(stats_dict, plots_dir)
-
-    
-    print("\n" + "=" * 70)
+    print("\n" + "-" * 70)
     print("SAVING RESULTS")
     save_results(results_list, stats_dict, results_dir)
 
-    print(f"\n  Plots   → {plots_dir.resolve()}")
-    print(f"  Results → {results_dir.resolve()}")
+   

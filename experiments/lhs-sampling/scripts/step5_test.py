@@ -21,7 +21,7 @@ knots=8
 
 DATA_DIR=Path("experiments/lhs-sampling/out/trained-models")
 SPLIT_DATA_DIR=Path("experiments/lhs-sampling/data/split")
-MODEL_DIR=Path("experiments/lhs-sampling/out/results/testing")
+MODEL_DIR=Path("experiments/lhs-sampling/out/results/testing/lhs_test_data_results")
 PLOTS_DIR=Path("experiments/lhs-sampling/out/plots/testing_plots")
 
 def load_replicate_model(model_path, device):

@@ -1,51 +1,41 @@
-======================================================================
-REPLICATES TRAINING SUMMARY  ·  3-Parameter SIR (τ, γ, ρ)
-======================================================================
+----------------------------------------------------------------------
+REPLICATES TRAINING SUMMARY 
 
-  Replicates   : 2
-  Weight mode  : modest
-  Seeds        : [42, 123]
-  Output dir   : experiments\lhs-sampling\out\trained-models
+Replicates: 5
+Weight mode: modest
+Seeds: [42, 123, 456, 789, 1011]
+Output dir: experiments\lhs-sampling\out\trained-models
 
   Model files:
-    · best_balanced_mlp_model_1.pt  (seed=42)
-    · best_balanced_mlp_model_2.pt  (seed=123)
+· best_balanced_mlp_model_1.pt(seed=42)
+· best_balanced_mlp_model_2.pt(seed=123)
+· best_balanced_mlp_model_3.pt(seed=456)
+· best_balanced_mlp_model_4.pt(seed=789)
+· best_balanced_mlp_model_5.pt(seed=1011)
 
-======================================================================
+----------------------------------------------------------------------
 VALIDATION PERFORMANCE
-======================================================================
 
 MAE_I (Infected Compartment):
-  Mean : 1441.22
-  Std  : 17.06
-  95% CI: [1287.94, 1594.51]
+  Mean : 1744.80
+  Std  : 79.66
+  95% CI: [1645.89, 1843.71]
 
 R²:
-  Mean : 0.9769
-  Std  : 0.0017
-  95% CI: [0.9619, 0.9920]
+Mean:0.9168
+Std:0.0056
+95% CI:[0.9098, 0.9238]
 
 Per-Compartment MAE:
-  MAE_S: 5119.26 ± 283.44  (95% CI: [2572.65, 7665.87])
-  MAE_I: 1441.22 ± 17.06  (95% CI: [1287.94, 1594.51])
-  MAE_R: 5003.38 ± 275.54  (95% CI: [2527.74, 7479.01])
+MAE_S: 6858.96 ± 950.91  (95% CI: [5678.25, 8039.67])
+MAE_I: 1744.80 ± 79.66  (95% CI: [1645.89, 1843.71])
+MAE_R: 6761.72 ± 907.57  (95% CI: [5634.82, 7888.62])
 
-======================================================================
+----------------------------------------------------------------------
 INDIVIDUAL REPLICATE RESULTS
-======================================================================
- ID   Seed  Epoch       R²    MAE_I    MAE_S    MAE_R Model File                         
-----------------------------------------------------------------------------------------------------
-  1     42     47   0.9781  1453.29  4918.84  4808.54 best_balanced_mlp_model_1.pt       
-  2    123     50   0.9757  1429.16  5319.68  5198.21 best_balanced_mlp_model_2.pt       
-
-======================================================================
-NEXT STEPS
-======================================================================
-
-  VALIDATE:
-    python step4_validate_SIR3param.py --models_dir experiments\lhs-sampling\out\trained-models
-
-  TEST (final dissertation results):
-    python step5_test_SIR3param.py --models_dir experiments\lhs-sampling\out\trained-models
-
-======================================================================
+ ID   Seed  Epoch     R²_I    MAE_I    MAE_S    MAE_R Model File                         
+  1     42     50   0.9139  1767.15  5697.87  5667.35 best_balanced_mlp_model_1.pt       
+  2    123     50   0.9203  1677.70  6279.31  6267.95 best_balanced_mlp_model_2.pt       
+  3    456     50   0.9125  1741.40  6928.56  6804.99 best_balanced_mlp_model_3.pt       
+  4    789     50   0.9250  1670.86  8210.08  8107.80 best_balanced_mlp_model_4.pt       
+  5   1011     50   0.9122  1866.88  7178.96  6960.51 best_balanced_mlp_model_5.pt       

@@ -137,17 +137,15 @@ def collate_sir(batch_list: list) -> BatchWrapper:
     return BatchWrapper(params_norm, rho_raw, y)
 
 
-# ============================================================================
-# DATA LOADERS
-# ============================================================================
 
+# DATA LOADERS
 def create_dataloaders(dataset_path: str, batch_size: int = 32,
                        num_workers: int = 0) -> dict:
     """
     Load the SIR dataset pickle and return train/val/test DataLoaders.
 
     Expected pickle structure
-    ─────────────────────────
+    
     {
       'train'   : {'simulations': [...]},
       'val'     : {'simulations': [...]},
@@ -172,12 +170,12 @@ def create_dataloaders(dataset_path: str, batch_size: int = 32,
     with open(dataset_path, 'rb') as f:
         data = pickle.load(f)
 
-    # ── Infer number of time points from first simulation ────────────────────
+    # Infer number of time points from first simulation 
     first_sim    = data['train']['simulations'][0]
     n_timepoints = len(first_sim['output']['t'])
     print(f"  n_timepoints  : {n_timepoints}")
 
-    # ── Build datasets ────────────────────────────────────────────────────────
+    #  Build datasets 
     train_dataset = EpidemicDatasetSIR(data['train']['simulations'], n_timepoints)
     val_dataset   = EpidemicDatasetSIR(data['val']['simulations'],   n_timepoints)
     test_dataset  = EpidemicDatasetSIR(data['test']['simulations'],  n_timepoints)
@@ -221,10 +219,8 @@ def create_dataloaders(dataset_path: str, batch_size: int = 32,
     }
 
 
-# ============================================================================
-# METRICS
-# ============================================================================
 
+# METRICS
 def compute_metrics(predictions, targets, prefix: str = '') -> dict:
     """
     Compute regression metrics for SIR trajectory predictions.
@@ -232,10 +228,8 @@ def compute_metrics(predictions, targets, prefix: str = '') -> dict:
     Args:
         predictions : (N, T, 3) tensor or array  — predicted [S, I, R]
         targets     : (N, T, 3) tensor or array  — ground truth [S, I, R]
-        prefix      : optional string prefix for all keys (e.g. 'val_')
-
     Returns:
-        dict of floats with both lowercase and UPPERCASE keys
+        dict of floats 
     """
     if torch.is_tensor(predictions):
         predictions = predictions.detach().cpu().numpy()
@@ -246,27 +240,27 @@ def compute_metrics(predictions, targets, prefix: str = '') -> dict:
         ss_r = np.sum((true - pred) ** 2)
         ss_t = np.sum((true - true.mean()) ** 2)
         return float(1.0 - ss_r / (ss_t + 1e-8))
-
+    
+    #Global MAE -MeasureS total emulator quality over full trajectory tensor.
     mae  = float(np.abs(predictions - targets).mean())
+    #Global MSE
     mse  = float(((predictions - targets) ** 2).mean())
+    #Global RMSE-
     rmse = float(np.sqrt(mse))
+    #Global R2-measures how much of the total variation in all true outputs is explained by the emulator predictions across every sample, every time point, and every compartment combined.
     r2   = _r2(predictions, targets)
 
     mae_s = float(np.abs(predictions[:, :, 0] - targets[:, :, 0]).mean())
     mae_i = float(np.abs(predictions[:, :, 1] - targets[:, :, 1]).mean())
     mae_r = float(np.abs(predictions[:, :, 2] - targets[:, :, 2]).mean())
 
-    r2_s = _r2(predictions[:, :, 0], targets[:, :, 0])
-    r2_i = _r2(predictions[:, :, 1], targets[:, :, 1])
-    r2_r = _r2(predictions[:, :, 2], targets[:, :, 2])
+    #Compartmebtal R2-
+    r2_s = _r2(predictions[:, :, 0], targets[:, :, 0]) # Does model capture susceptible depletion?
+    r2_i = _r2(predictions[:, :, 1], targets[:, :, 1]) #Does model capture infected peaks? (usually hardest)
+    r2_r = _r2(predictions[:, :, 2], targets[:, :, 2]) #Does model capture recovery accumulation?
 
     p = prefix
     return {
-        f'{p}mae'  : mae,   f'{p}mse'  : mse,   f'{p}rmse' : rmse,
-        f'{p}r2'   : r2,
-        f'{p}mae_s': mae_s, f'{p}mae_i': mae_i,  f'{p}mae_r': mae_r,
-        f'{p}r2_s' : r2_s,  f'{p}r2_i' : r2_i,   f'{p}r2_r' : r2_r,
-        # UPPERCASE aliases for backward compatibility
         f'{p}MAE'  : mae,   f'{p}MSE'  : mse,   f'{p}RMSE' : rmse,
         f'{p}R2'   : r2,
         f'{p}MAE_S': mae_s, f'{p}MAE_I': mae_i,  f'{p}MAE_R': mae_r,
@@ -274,24 +268,23 @@ def compute_metrics(predictions, targets, prefix: str = '') -> dict:
     }
 
 
-# ============================================================================
+
 # DEVICE HELPER
-# ============================================================================
 
 def get_device() -> torch.device:
     """Return CUDA GPU if available, otherwise CPU."""
     if torch.cuda.is_available():
         device = torch.device('cuda')
-        print(f"\n✓ Using GPU : {torch.cuda.get_device_name(0)}")
+        print(f"\nUsing GPU : {torch.cuda.get_device_name(0)}")
     else:
         device = torch.device('cpu')
-        print("\n⚠  Using CPU (GPU not available)")
+        print("\n Using CPU")
     return device
 
 
-# ============================================================================
+
 # EARLY STOPPING
-# ============================================================================
+
 
 class EarlyStopping:
     """

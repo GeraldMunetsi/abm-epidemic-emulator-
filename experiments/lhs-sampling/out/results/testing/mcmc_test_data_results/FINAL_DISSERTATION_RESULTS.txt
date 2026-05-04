@@ -3,28 +3,28 @@ FINAL TEST RESULTS — 3-Parameter SIR Emulator (τ, γ, ρ)
  THESE ARE YOUR DISSERTATION NUMBERS
 ======================================================================
 
-  Replicates   : 2
-  Test samples : 151
+  Replicates   : 5
+  Test samples : 900
 
 ======================================================================
 OVERALL PERFORMANCE:
 ======================================================================
-  MAE   : 33005.00 ± 1.44
-          95% CI: [32992.03, 33017.97]
+  MAE   : 4675.90 ± 468.45
+          95% CI: [4094.25, 5257.55]
 
-  R²    : -12513.8438 ± 140.6426
-          95% CI: [-13777.4672, -11250.2203]
+  R²    : 0.9711 ± 0.0057
+          95% CI: [0.9640, 0.9782]
 
-  RMSE  : 50887.03 ± 285.95
+  RMSE  : 7006.25 ± 667.78
 
 ======================================================================
 PER-COMPARTMENT MAE:
 ======================================================================
-  Susceptible (S) : 23883.29 ± 1400.36
-  Infected (I)    : 1023.76 ± 82.78  ← KEY METRIC
-                    95% CI: [280.04, 1767.49]
-                    CV = 8.1%
-  Recovered (R)   : 74107.95 ± 1487.47
+  Susceptible (S) : 6909.08 ± 695.00
+  Infected (I)    : 551.83 ± 38.27  ← KEY METRIC
+                    95% CI: [504.32, 599.35]
+                    CV = 6.9%
+  Recovered (R)   : 6566.79 ± 719.62
 
 ======================================================================
 PERFORMANCE ASSESSMENT:
@@ -36,10 +36,10 @@ PERFORMANCE ASSESSMENT:
 SUGGESTED DISSERTATION TEXT:
 ----------------------------------------------------------------------
 "The 3-parameter SIR emulator (τ, γ, ρ) achieved a test set MAE_I
-of 1023.76 (280.04–1767.49, 95% CI,
-n=2 replicates), with overall R² = -12513.8438 ±
-140.6426. Replicate consistency was good (cv < 10%),
-with coefficient of variation 8.1%, indicating robust performance
+of 551.83 (504.32–599.35, 95% CI,
+n=5 replicates), with overall R² = 0.9711 ±
+0.0057. Replicate consistency was good (cv < 10%),
+with coefficient of variation 6.9%, indicating robust performance
 across random initialisations."
 
 ======================================================================

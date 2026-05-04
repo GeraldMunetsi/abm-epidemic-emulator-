@@ -20,13 +20,13 @@ m = 10
 n_timepoints = 80
 tmax = 80
 n_replicates = 2
-n_samples = 1000
+n_samples = 6000
 
 PARAM_NAMES = ['tau','gamma','rho']
 
 PARAM_RANGES = {
     'tau':(0.0005,0.024),
-    'gamma':(0.01,0.5),
+    'gamma':(0.007,0.5),
     'rho':(0.001,0.01)
 }
 
@@ -146,7 +146,6 @@ def run_sir_replicates(G,tau,gamma,rho,
 
 
 # RUN BATCH
-
 def run_batch_with_replicates(G, params_array, n_replicates=n_replicates):
     results = []
 
@@ -170,17 +169,12 @@ def run_batch_with_replicates(G, params_array, n_replicates=n_replicates):
 def generate_dataset():
 
     print("\nGenerating dataset")
-
-    # build network + get cached stats
+    # build network 
     G, net = generate_network()
-
     params_array = random_sampling(n_samples, seed=seed)
-
     sims = run_batch_with_replicates(G, params_array)
-
     tau_arr = np.array([s['params']['tau'] for s in sims])
     gamma_arr = np.array([s['params']['gamma'] for s in sims])
-
     R0_arr = (tau_arr / gamma_arr) * net['ratio']
 
     print("\nR0 distribution")
@@ -212,17 +206,11 @@ def generate_dataset():
 
     return dataset
 
-
-
 # SAVE DATASET
-
-
 def save_dataset(dataset,filepath):
 
     filepath=Path(filepath)
-
     with open(filepath,'wb') as f:
-
         pickle.dump(dataset,f,pickle.HIGHEST_PROTOCOL)
 
     size_mb=filepath.stat().st_size/(1024**2)
@@ -233,7 +221,6 @@ def save_dataset(dataset,filepath):
 
 
 # SAVE CSV SUMMARY
-
 def save_csv(dataset,filepath):
 
     sims = dataset['simulations']
@@ -287,7 +274,6 @@ def save_csv(dataset,filepath):
     print("CSV saved:",filepath)
 
 # MAIN
-
 if __name__=="__main__":
 
     dataset = generate_dataset()
@@ -296,15 +282,12 @@ if __name__=="__main__":
 
     save_csv(dataset,DATA_DIR/"epidemic_data_age_adaptive_sobol.csv")
 
-
-
 random_sampling_data=pd.read_csv(DATA_DIR / 'epidemic_data_age_adaptive_sobol.csv')
 
 print(random_sampling_data.columns)
 print(len(random_sampling_data))
-print(random_sampling_data.isnull().sum()) # no missing values
+print(random_sampling_data.isnull().sum())
 random_sampling_data.describe(include='all')
-
 print(random_sampling_data.head())
 
 
@@ -318,14 +301,12 @@ pc2=(len(between)/total_samples)*100
 print(f"between 0.7 and 1.2: {len(between),pc2}")
 
 #print(pc2)
-
 less_than=random_sampling_data[random_sampling_data['R0']<0.8]
 pc3=(len(less_than)/total_samples)*100
 print(f"less than 0.8: {len(less_than),pc3}")
 
 
 #Plotting
-
 slope=1/34
 plt.figure(figsize=(10,10))
 plt.scatter(random_sampling_data['gamma'], random_sampling_data['tau'], alpha=0.1)
@@ -334,7 +315,6 @@ x_vals = np.linspace(random_sampling_data['gamma'].min(), random_sampling_data['
 y_vals = slope * x_vals
 
 plt.plot(x_vals, y_vals, color='red', linestyle='--', label=f'slope={slope}')
-
 plt.xlabel('gamma')
 plt.ylabel('tau')
 plt.title('Scatter plot of tau vs gamma')

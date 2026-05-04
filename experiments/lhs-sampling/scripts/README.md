@@ -88,6 +88,33 @@ R₀ range covered: approximately [0.12, 4.98] — uniform across the full param
 
 ---
 
+## Step 6 — Cross-testing on MCMC data
+
+After completing the in-sample pipeline (Steps 1–5), run the cross-test to see how the LHS-trained model handles near-threshold dynamics it was not specifically trained on.
+
+```bash
+# Still inside experiments/lhs-sampling/
+python scripts/step6_test_mcmc_data.py
+# Reads models  : out/trained-models/
+# Reads test data: experiments/mcmc-sampling/data/augmented/
+# Writes results : out/results/testing/mcmc_test_data_results/
+# Writes plots   : out/plots/testing_plots/mcmc_test_data_plots/
+```
+
+### Why relative MAE is the right metric here
+
+The MCMC dataset is concentrated near R₀ = 1 — average outbreak size is much smaller than in the LHS dataset (which spans the full parameter space). Comparing absolute MAE counts across datasets with different epidemic size distributions is misleading. A model that produces absolute MAE of 500 on MCMC data and 5,000 on LHS data is not necessarily 10× worse on LHS — the outbreaks are just 10× larger.
+
+**Relative MAE_I** normalises per-sample before averaging:
+
+```
+Relative MAE_I = mean( MAE_I_i / peak_I_i ) × 100%
+```
+
+This gives a percentage error relative to each epidemic's own peak, making results directly comparable across datasets and across strategies.
+
+---
+
 ## EDA notebook
 
 Before running the full pipeline, use `../../notebooks/step1_LHS_sampling.ipynb` to:

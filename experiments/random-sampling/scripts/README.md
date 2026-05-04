@@ -78,6 +78,35 @@ experiments/random-sampling/
 
 ---
 
+## Step 6 — Cross-testing on MCMC data
+
+After completing the in-sample pipeline (Steps 1–5), run the cross-test to evaluate how well the Random-trained model generalises to epidemic scenarios it was never shown — specifically the near-threshold dynamics captured by the MCMC dataset.
+
+```bash
+# Still inside experiments/random-sampling/
+python scripts/step6_test_on_mcmc_data.py
+# Reads models  : out/trained-models/
+# Reads test data: experiments/mcmc-sampling/data/augmented/
+# Writes results : out/results/testing/mcmc_test_data_results/
+# Writes plots   : out/plots/testing_plots/mcmc_test_data_plots/
+```
+
+### Why relative MAE is the right metric here
+
+The MCMC dataset concentrates near R₀ = 1, producing smaller outbreaks on average than the Random dataset. Comparing absolute MAE counts between an in-sample test (Random data, large outbreaks) and a cross-test (MCMC data, near-threshold outbreaks) would be meaningless — the absolute counts are on entirely different scales.
+
+**Relative MAE_I** normalises each sample's error by its own peak infected count before averaging:
+
+```
+Relative MAE_I = mean( MAE_I_i / peak_I_i ) × 100%
+```
+
+This is scale-invariant — it tells you what percentage of the true epidemic peak the emulator is off by, regardless of whether the outbreak was 500 or 50,000 people. It is the correct metric for cross-dataset comparison.
+
+> Sub-critical extinction runs (peak I < 1) are automatically excluded from relative MAE to avoid division by near-zero.
+
+---
+
 ## Expected performance
 
 Random sampling is the **weakest strategy** by design. It will produce the highest MAE and lowest R² compared to LHS and MCMC at the same sample budget — especially for epidemic trajectories near the threshold (R₀ ≈ 1), where dynamics are most complex and most important for public health decisions. Use this as the lower bound when comparing strategies.
