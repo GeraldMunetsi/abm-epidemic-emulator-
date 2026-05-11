@@ -189,50 +189,64 @@ abm-epidemic-emulator/
 ├── experiments/                    # One self-contained folder per sampling strategy
 │   │
 │   ├── random-sampling/
-│   │   ├── scripts/                # ← Run all scripts from here, in order
+│   │   ├── scripts/                # ← Pipeline A: run from experiments/random-sampling/
 │   │   │   ├── Step1_Random_sampling.py
-│   │   │   ├── Step2_data_split_no_aug.py
+│   │   │   ├── Step2_data_split.py
+│   │   │   ├── step2A_augmented.py          # Data augmentation (Pipeline A)
 │   │   │   ├── step3_train.py
 │   │   │   ├── step4_validate.py
-│   │   │   ├── step5_test.py            # in-sample test
-│   │   │   ├── step6_test_on_mcmc_data.py  # cross-test: Random model on MCMC data
-│   │   │   ├── step0_model.py      # MLP architecture
+│   │   │   ├── step5_test.py                # in-sample test
+│   │   │   ├── step6_test_on_mcmc_data.py   # cross-test: Random model on MCMC data
+│   │   │   ├── step0_model.py               # MLP architecture
 │   │   │   └── utils.py
 │   │   ├── data/
-│   │   │   ├── raw/                # ABM simulations output
-│   │   │   └── split/              # Train / test split
+│   │   │   ├── raw/                # Step 1 output (shared by both pipelines)
+│   │   │   ├── split/              # Step 2 output (shared by both pipelines)
+│   │   │   └── augmented/          # Step 2A output (Pipeline A only)
 │   │   └── out/
-│   │       ├── trained-models/     # Saved .pt weights
+│   │       ├── trained-models/     # Pipeline A saved .pt weights
 │   │       ├── plots/
+│   │       │   ├── augmentation_plots/
 │   │       │   ├── validation_plots/
 │   │       │   └── testing_plots/
 │   │       └── results/
 │   │           ├── validation/
-│   │           └── testing/
+│   │           ├── testing/
+│   │           └── uniform_random_no_augmentation/  # Pipeline B (all outputs)
+│   │               └── scripts/
 │   │
 │   ├── lhs-sampling/
-│   │   ├── scripts/
-│   │   │   ├── step1_LHS sampling.py   # ⚠ space in filename — quote when running
-│   │   │   ├── Step2_data_split_no_aug.py
+│   │   ├── scripts/                # ← Pipeline A: run from experiments/lhs-sampling/
+│   │   │   ├── step1_LHS sampling.py    # ⚠ space in filename — quote when running
+│   │   │   ├── Step2_data_split.py
+│   │   │   ├── step2_data_augmentation.py   # Data augmentation (Pipeline A)
 │   │   │   ├── step3_train.py
 │   │   │   ├── step4_validate.py
-│   │   │   ├── step5_test.py               # in-sample test
-│   │   │   ├── step6_test_mcmc_data.py     # cross-test: LHS model on MCMC data
+│   │   │   ├── step5_test.py                # in-sample test
+│   │   │   ├── step6_test_mcmc_data.py      # cross-test: LHS model on MCMC data
 │   │   │   ├── step0_model.py
 │   │   │   └── utils.py
 │   │   ├── data/
 │   │   │   ├── raw/
-│   │   │   └── split/
+│   │   │   ├── split/
+│   │   │   └── augmented/          # Step 2A output (Pipeline A only)
 │   │   └── out/
 │   │       ├── trained-models/
 │   │       ├── plots/
+│   │       │   ├── augmentation_plots/
+│   │       │   ├── validation_plots/
+│   │       │   └── testing_plots/
 │   │       └── results/
+│   │           ├── validation/
+│   │           ├── testing/
+│   │           └── lhs_no_augmentation/     # Pipeline B (all outputs)
+│   │               └── Scripts/
 │   │
-│   └── mcmc-sampling/              # Only experiment with data augmentation (Step 2A)
-│       ├── scripts/
+│   └── mcmc-sampling/
+│       ├── scripts/                # ← Pipeline A: run from experiments/mcmc-sampling/
 │       │   ├── step1_mcmc_sampling.py
 │       │   ├── step2_split.py
-│       │   ├── step2A_augmented.py          # ← unique to MCMC
+│       │   ├── step2A_augmented.py          # Data augmentation (Pipeline A)
 │       │   ├── step3_train.py
 │       │   ├── step4_validate.py
 │       │   ├── step5_test.py                # in-sample test
@@ -243,7 +257,7 @@ abm-epidemic-emulator/
 │       ├── data/
 │       │   ├── raw/
 │       │   ├── split/
-│       │   └── augmented/              # ← unique to MCMC
+│       │   └── augmented/          # Step 2A output (Pipeline A only)
 │       └── out/
 │           ├── trained-models/
 │           ├── plots/
@@ -253,7 +267,11 @@ abm-epidemic-emulator/
 │           │   └── testing_plots/
 │           └── results/
 │               ├── validation/
-│               └── testing/
+│               ├── testing/
+│               │   ├── results_on_lhs_sampled_data/
+│               │   └── results_on_random_sampled_data/
+│               └── mcmc_no_augmentation/    # Pipeline B (all outputs)
+│                   └── Scripts/
 │
 ├── notebooks/                      # EDA notebooks — interactive exploration
 │   ├── step1_random_sampling.ipynb
@@ -306,11 +324,12 @@ Each experiment is fully self-contained. All scripts are inside `scripts/` and a
 cd experiments/random-sampling
 
 python scripts/Step1_Random_sampling.py          # Generate ABM simulations → data/raw/
-python scripts/Step2_data_split_no_aug.py        # Train/test split → data/split/
+python scripts/Step2_data_split.py               # Train/test split → data/split/
+python scripts/step2A_augmented.py               # Data augmentation → data/augmented/
 python scripts/step3_train.py                    # Train emulator → out/trained-models/
 python scripts/step4_validate.py                 # Validation metrics → out/results/validation/
-python scripts/step5_test.py                        # In-sample test → out/results/testing/
-python scripts/step6_test_on_mcmc_data.py           # Cross-test on MCMC data → out/results/testing/mcmc_test_data_results/
+python scripts/step5_test.py                     # In-sample test → out/results/testing/
+python scripts/step6_test_on_mcmc_data.py        # Cross-test on MCMC data → out/results/testing/mcmc_test_data_results/
 ```
 
 ---
@@ -320,12 +339,13 @@ python scripts/step6_test_on_mcmc_data.py           # Cross-test on MCMC data �
 ```bash
 cd experiments/lhs-sampling
 
-python "scripts/step1_LHS sampling.py"              # ⚠ space in filename — quotes required
-python scripts/Step2_data_split_no_aug.py
+python "scripts/step1_LHS sampling.py"           # ⚠ space in filename — quotes required
+python scripts/Step2_data_split.py               # Train/test split → data/split/
+python scripts/step2_data_augmentation.py        # Data augmentation → data/augmented/
 python scripts/step3_train.py
 python scripts/step4_validate.py
-python scripts/step5_test.py                        # In-sample test
-python scripts/step6_test_mcmc_data.py              # Cross-test on MCMC data → out/results/testing/mcmc_test_data_results/
+python scripts/step5_test.py                     # In-sample test
+python scripts/step6_test_mcmc_data.py           # Cross-test on MCMC data → out/results/testing/mcmc_test_data_results/
 ```
 
 ---
@@ -335,21 +355,21 @@ python scripts/step6_test_mcmc_data.py              # Cross-test on MCMC data �
 ```bash
 cd experiments/mcmc-sampling
 
-python scripts/step1_mcmc_sampling.py               # NUTS warm-up (~5–10 min) then ABM runs
-python scripts/step2_split.py                       # Train/test split → data/split/
-python scripts/step2A_augmented.py                  # Data augmentation → data/augmented/  ← MCMC only
-python scripts/step3_train.py                       # Train emulator → out/trained-models/
-python scripts/step4_validate.py                    # Validation → out/results/validation/
-python scripts/step5_test.py                        # In-sample test → out/results/testing/
-python scripts/step6_test_lhs_data.py               # Cross-test on LHS data → out/results/testing/results_on_lhs_sampled_data/
-python scripts/step6_test_random_sampling_data.py   # Cross-test on Random data → out/results/testing/results_on_random_sampled_data/
+python scripts/step1_mcmc_sampling.py            # NUTS warm-up (~5–10 min) then ABM runs
+python scripts/step2_split.py                    # Train/test split → data/split/
+python scripts/step2A_augmented.py               # Data augmentation → data/augmented/
+python scripts/step3_train.py                    # Train emulator → out/trained-models/
+python scripts/step4_validate.py                 # Validation → out/results/validation/
+python scripts/step5_test.py                     # In-sample test → out/results/testing/
+python scripts/step6_test_lhs_data.py            # Cross-test on LHS data → out/results/testing/results_on_lhs_sampled_data/
+python scripts/step6_test_random_sampling_data.py  # Cross-test on Random data → out/results/testing/results_on_random_sampled_data/
 ```
 
 > **MCMC note:** The Step 1 script runs PyMC's NUTS sampler — 2,000 tuning steps and 500 draws per chain (×2 chains = 1,000 posterior samples) — before launching ABM simulations. Budget 10–15 minutes for Step 1.
 
-> **Step 2A — data augmentation** is unique to the MCMC experiment. It generates additional near-threshold simulations to increase training density there.
+> **Step 2A — data augmentation** is now present in all three experiments. It generates additional near-threshold simulations to increase training density at R₀ ≈ 1. Each experiment also has a **Pipeline B** (no-augmentation variant) stored in `out/results/<name>_no_augmentation/` — run those scripts to get the direct augmentation vs. no-augmentation comparison.
 
-> **Step 6 — cross-testing:** Run Step 6 only after all three experiments have completed Step 1, since cross-tests load data from other experiments' `data/` folders.
+> **Step 6 — cross-testing:** Run Step 6 only after all three experiments have completed Steps 1–2, since cross-tests load data from other experiments' `data/` folders.
 
 ---
 
