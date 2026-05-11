@@ -1,47 +1,104 @@
 # Experiment: Random Sampling (Baseline)
 
-**Sampling strategy:** Uniform random draws from the full parameter box  
-**EDA notebook:** `../../notebooks/step1_random_sampling.ipynb`  
+**Sampling strategy:** Uniform random draws from the full parameter box
+**EDA notebook:** `../../notebooks/step1_random_sampling.ipynb`
 **Config:** `../../configs/random_sampling.yaml`
 
 ---
 
 ## Strategy
 
-Draws parameter sets `(τ, γ, ρ)` uniformly at random from the parameter space. No knowledge of the epidemic threshold is used — samples are equally likely to land anywhere in the 3D parameter box. This is the **baseline** against which LHS and MCMC strategies are benchmarked.
+Draws parameter sets `(tau, gamma, rho)` uniformly at random from the 3D parameter space.
+No knowledge of the epidemic threshold is used. This is the **baseline** — all other
+strategies are benchmarked against it.
 
-**Why it matters:** Most random samples will land in sub-threshold (R₀ < 1, extinction) or heavily super-threshold (R₀ >> 1, trivial outbreak) regions where epidemic dynamics are uninformative. The emulator wastes simulation budget learning these uninformative regions. This is the exact inefficiency that LHS and MCMC are designed to fix.
+**Why it matters:** Most random samples land in sub-threshold (R0 < 1, extinction) or
+heavily super-threshold (R0 >> 1, trivial large outbreak) regions — wasting the simulation
+budget where dynamics are uninformative. This is exactly the inefficiency that LHS and MCMC
+are designed to fix.
 
 ---
 
-## Pipeline — run scripts in this order
+## Two pipeline variants
 
-All scripts are run from **within the `experiments/random-sampling/` folder**. Outputs go automatically to the correct subfolders.
+This experiment runs two parallel pipelines so you can directly compare the effect of
+data augmentation on emulator performance.
+
+| Variant | Description | Outputs |
+|---------|-------------|---------|
+| **With augmentation** (main) | Trains on split + augmented data | `out/trained-models/`, `out/results/testing/` |
+| **Without augmentation** | Trains on split data only | `out/results/uniform_random_no_augmentation/` |
+
+---
+
+## Pipeline A — With data augmentation (main pipeline)
+
+Run all scripts from **within the `experiments/random-sampling/` folder**.
 
 ```bash
-# Navigate to this experiment folder first
 cd experiments/random-sampling
 
-# Step 1 — Generate ABM simulations
+# Step 1 — Generate ABM simulations (uniform random draws)
 python scripts/Step1_Random_sampling.py
-# Output → data/raw/data_raw.pkl  +  data/raw/data_raw.csv
+# Writes to: data/raw/data_raw.pkl  +  data/raw/data_raw.csv
 
-# Step 2 — Train/test split (no augmentation for this strategy)
-python scripts/Step2_data_split_no_aug.py
-# Output → data/split/data_split.pkl
+# Step 2 — Train/test split
+python scripts/Step2_data_split.py
+# Writes to: data/split/data_split.pkl
 
-# Step 3 — Train the MLP emulator
+# Step 2A — Data augmentation (near-threshold simulations added)
+python scripts/step2A_augmented.py
+# Writes to: data/augmented/data_augmented.pkl + data_augmented.csv
+#            out/plots/augmentation_plots/
+
+# Step 3 — Train the MLP emulator on augmented data
 python scripts/step3_train.py
-# Output → out/trained-models/  +  out/plots/
+# Writes to: out/trained-models/  +  out/plots/
 
-# Step 4 — Validate on held-out set
+# Step 4 — Validate
 python scripts/step4_validate.py
-# Output → out/results/validation/  +  out/plots/validation_plots/
+# Writes to: out/results/validation/  +  out/plots/validation_plots/
 
-# Step 5 — Final test evaluation
+# Step 5 — In-sample test
 python scripts/step5_test.py
-# Output → out/results/testing/  +  out/plots/testing_plots/
+# Writes to: out/results/testing/random_test_data_results/
+#            out/plots/testing_plots/
+
+# Step 6 — Cross-test on MCMC data (relative MAE is the key metric)
+python scripts/step6_test_on_mcmc_data.py
+# Writes to: out/results/testing/mcmc_test_data_results/
+#            out/plots/testing_plots/mcmc_test_data_plots/
 ```
+
+---
+
+## Pipeline B — Without data augmentation (comparison run)
+
+The no-augmentation scripts are self-contained inside their own subfolder.
+Run these from the **project root** (`abm-epidemic-emulator/`):
+
+```bash
+# From project root:
+
+# Step 3 — Train on split data only (no augmentation)
+python experiments/random-sampling/out/results/uniform_random_no_augmentation/scripts/step3_train_no_aug.py
+# Writes to: out/results/uniform_random_no_augmentation/trained models/
+
+# Step 4 — Validate
+python experiments/random-sampling/out/results/uniform_random_no_augmentation/scripts/step4_validate_no_aug.py
+# Writes to: out/results/uniform_random_no_augmentation/validation/
+
+# Step 5 — In-sample test
+python experiments/random-sampling/out/results/uniform_random_no_augmentation/scripts/step5_test_no_aug.py
+# Writes to: out/results/uniform_random_no_augmentation/testing/
+
+# Step 6 — Cross-test on MCMC data (no-aug model)
+python experiments/random-sampling/out/results/uniform_random_no_augmentation/scripts/step6_test_mcmc_no_aug.py
+# Writes to: out/results/uniform_random_no_augmentation/mcmc_testing_no_aug/
+```
+
+> Steps 1 and 2 are shared between both pipelines — both use the same raw and split data.
+> Only the training onwards differs: Pipeline A uses augmented data, Pipeline B uses split data only.
 
 ---
 
@@ -49,74 +106,57 @@ python scripts/step5_test.py
 
 ```
 experiments/random-sampling/
-├── scripts/          ← you are here
+├── scripts/                    <- Pipeline A scripts live here
 ├── data/
-│   ├── raw/          ← Step 1 writes here
-│   └── split/        ← Step 2 writes here
+│   ├── raw/                    <- Step 1 output (shared)
+│   ├── split/                  <- Step 2 output (shared)
+│   └── augmented/              <- Step 2A output (Pipeline A only)
 └── out/
-    ├── trained-models/   ← Step 3 writes .pt weights here
+    ├── trained-models/             <- Pipeline A trained models (.pt)
     ├── plots/
-    │   ├── validation_plots/   ← Step 4 figures
-    │   └── testing_plots/      ← Step 5 figures
+    │   ├── augmentation_plots/     <- Step 2A figures
+    │   ├── validation_plots/       <- Step 4 figures
+    │   └── testing_plots/
+    │       ├── (in-sample plots)   <- Step 5 figures
+    │       └── mcmc_test_data_plots/ <- Step 6 cross-test figures
     └── results/
-        ├── validation/         ← Step 4 metrics (JSON, TXT)
-        └── testing/            ← Step 5 metrics (JSON, TXT)
+        ├── validation/                         <- Pipeline A validation metrics
+        ├── testing/
+        │   ├── random_test_data_results/       <- Pipeline A in-sample test
+        │   └── mcmc_test_data_results/         <- Pipeline A cross-test
+        └── uniform_random_no_augmentation/     <- Pipeline B (all outputs here)
+            ├── scripts/
+            ├── trained models/
+            ├── validation/
+            ├── testing/
+            └── mcmc_testing_no_aug/
 ```
 
 ---
 
-## Key parameters
+## Why relative MAE for cross-testing
 
-| Parameter | Value | Notes |
-|-----------|-------|-------|
-| N (network nodes) | 100,000 | Barabási-Albert graph |
-| m (BA attachment) | 10 | ⟨k²⟩/⟨k⟩ ≈ 34 |
-| n_samples | 1,000 | Uniform random draws |
-| n_replicates | 2 | Stochastic replicates per parameter set |
-| tmax | 80 | Simulation time horizon |
-| n_timepoints | 80 | Fixed interpolation grid |
+The MCMC dataset concentrates near R0 = 1 with smaller outbreaks. Comparing absolute MAE
+counts between in-sample (Random data, large outbreaks) and cross-test (MCMC data, near-
+threshold outbreaks) is not valid — the scales are completely different.
 
----
-
-## Step 6 — Cross-testing on MCMC data
-
-After completing the in-sample pipeline (Steps 1–5), run the cross-test to evaluate how well the Random-trained model generalises to epidemic scenarios it was never shown — specifically the near-threshold dynamics captured by the MCMC dataset.
-
-```bash
-# Still inside experiments/random-sampling/
-python scripts/step6_test_on_mcmc_data.py
-# Reads models  : out/trained-models/
-# Reads test data: experiments/mcmc-sampling/data/augmented/
-# Writes results : out/results/testing/mcmc_test_data_results/
-# Writes plots   : out/plots/testing_plots/mcmc_test_data_plots/
-```
-
-### Why relative MAE is the right metric here
-
-The MCMC dataset concentrates near R₀ = 1, producing smaller outbreaks on average than the Random dataset. Comparing absolute MAE counts between an in-sample test (Random data, large outbreaks) and a cross-test (MCMC data, near-threshold outbreaks) would be meaningless — the absolute counts are on entirely different scales.
-
-**Relative MAE_I** normalises each sample's error by its own peak infected count before averaging:
+**Relative MAE_I** normalises each sample's error by its own true peak before averaging:
 
 ```
-Relative MAE_I = mean( MAE_I_i / peak_I_i ) × 100%
+Relative MAE_I = mean( MAE_I_i / peak_I_i ) x 100%
 ```
 
-This is scale-invariant — it tells you what percentage of the true epidemic peak the emulator is off by, regardless of whether the outbreak was 500 or 50,000 people. It is the correct metric for cross-dataset comparison.
-
-> Sub-critical extinction runs (peak I < 1) are automatically excluded from relative MAE to avoid division by near-zero.
+This is scale-invariant and the correct metric for comparing performance across datasets
+with different epidemic size distributions. Sub-critical extinction runs (peak_I < 1) are
+excluded automatically.
 
 ---
 
 ## Expected performance
 
-Random sampling is the **weakest strategy** by design. It will produce the highest MAE and lowest R² compared to LHS and MCMC at the same sample budget — especially for epidemic trajectories near the threshold (R₀ ≈ 1), where dynamics are most complex and most important for public health decisions. Use this as the lower bound when comparing strategies.
+Random sampling is the **weakest strategy by design** — it produces the highest relative
+MAE and lowest R2 compared to LHS and MCMC at the same sample budget, especially for near-
+threshold dynamics (R0 ~ 1). Use these results as the lower bound when comparing strategies.
 
----
-
-## EDA notebook
-
-Before running the full pipeline, use `../../notebooks/step1_random_sampling.ipynb` to:
-- Plot the R₀ distribution of sampled parameters
-- Visualise τ vs γ scatter (with R₀ = 1 boundary line)
-- Inspect example SIR trajectories by R₀ class (extinction / outbreak)
-- Check what fraction of samples fall near the threshold (R₀ ∈ [0.8, 1.2])
+The augmentation vs no-augmentation comparison tests whether adding near-threshold
+simulations post-hoc can partially compensate for the poor initial sampling distribution.

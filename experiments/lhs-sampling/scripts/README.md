@@ -13,43 +13,95 @@ Latin Hypercube Sampling (LHS) stratifies the 3D parameter space `(τ, γ, ρ)` 
 LHS is more space-efficient than random sampling at the same budget, but it still does not specifically target the epidemic threshold. Samples are spread across the whole space, not concentrated where dynamics are most complex.
 
 **Where it sits in the hierarchy:**
-- Better than random at uniform coverage ✓
-- Does not concentrate near R₀ = 1 where dynamics are hardest ✗
+- Better than random at uniform coverage 
+- Does not concentrate near R₀ = 1 where dynamics are hardest 
 - Expected to outperform Random but underperform MCMC for near-threshold prediction
 
 ---
 
-## Pipeline — run scripts in this order
+## Two pipeline variants
 
-All scripts are run from **within the `experiments/lhs-sampling/` folder**. Outputs go automatically to the correct subfolders.
+This experiment runs two parallel pipelines so you can directly compare the effect of
+data augmentation on emulator performance.
+
+| Variant | Description | Outputs |
+|---------|-------------|---------|
+| **With augmentation** (main) | Trains on split + augmented data | `out/trained-models/`, `out/results/testing/` |
+| **Without augmentation** | Trains on split data only | `out/results/testing/lhs_no_augmentation/` |
+
+---
+
+## Pipeline A — With data augmentation (main pipeline)
+
+Run all scripts from **within the `experiments/lhs-sampling/` folder**.
 
 ```bash
-# Navigate to this experiment folder first
 cd experiments/lhs-sampling
 
-# Step 1 — Generate ABM simulations using LHS sampling method 
-
+# Step 1 — Generate ABM simulations using LHS
 python "scripts/step1_LHS sampling.py"
-# Output → data/raw/data_raw.pkl  +  data/raw/data_raw.csv
+# Writes to: data/raw/data_raw.pkl  +  data/raw/data_raw.csv
 
-# Step 2 — Train/test split (no augmentation for this strategy)
-python scripts/Step2_data_split_no_aug.py
-# Output → data/split/data_split.pkl
+# Step 2 — Train/test split
+python scripts/Step2_data_split.py
+# Writes to: data/split/data_split.pkl
 
-# Step 3 — Train the MLP emulator
+# Step 2A — Data augmentation (near-threshold simulations added)
+python scripts/step2_data_augmentation.py
+# Writes to: data/augmented/data_augmented.pkl
+#            data/augmented/data_augmented.csv
+#            out/plots/augmentation_plots/
+
+# Step 3 — Train the MLP emulator on augmented data
 python scripts/step3_train.py
-# Output → out/trained-models/ + out/plots/
+# Writes to: out/trained-models/  +  out/plots/
 
 # Step 4 — Validate on held-out set
 python scripts/step4_validate.py
-# Output → out/results/validation/  +  out/plots/validation_plots/
+# Writes to: out/results/validation/  +  out/plots/validation_plots/
 
 # Step 5 — Final test evaluation
 python scripts/step5_test.py
-# Output → out/results/testing/  +  out/plots/testing_plots/
+# Writes to: out/results/testing/  +  out/plots/testing_plots/
+
+# Step 6 — Cross-test on MCMC data (relative MAE is the key metric)
+python scripts/step6_test_mcmc_data.py
+# Reads test data: experiments/mcmc-sampling/data/augmented/
+# Writes to: out/results/testing/mcmc_test_data_results/
+#            out/plots/testing_plots/mcmc_test_data_plots/
 ```
 
-> **Filename note:** `step1_LHS sampling.py` has a space in its name (not an underscore). Always wrap it in double quotes when calling from the terminal, or rename it to `step1_LHS_sampling.py` to avoid this.
+> **Filename note:** `step1_LHS sampling.py` has a space in its name. Always wrap it in double quotes when calling from the terminal, or rename it to `step1_LHS_sampling.py` to avoid shell errors.
+
+---
+
+## Pipeline B — Without data augmentation (comparison run)
+
+The no-augmentation scripts are self-contained inside their own subfolder.
+Run these from the **project root** (`abm-epidemic-emulator/`):
+
+```bash
+# From project root:
+
+# Step 3 — Train on split data only (no augmentation)
+python "experiments/lhs-sampling/out/results/testing/lhs_no_augmentation/Scripts/step3_training_no_augmentation.py"
+# Writes to: out/results/testing/lhs_no_augmentation/trained models/
+
+# Step 4 — Validate
+python "experiments/lhs-sampling/out/results/testing/lhs_no_augmentation/Scripts/step4_validate_no_aug.py"
+# Writes to: out/results/testing/lhs_no_augmentation/validation/
+
+# Step 5 — In-sample test
+python "experiments/lhs-sampling/out/results/testing/lhs_no_augmentation/Scripts/step6_test_no_aug.py"
+# Writes to: out/results/testing/lhs_no_augmentation/testing/
+
+# Step 6 — Cross-test on MCMC data (no-aug model)
+python "experiments/lhs-sampling/out/results/testing/lhs_no_augmentation/Scripts/step6_test_mcmc_no_aug.py"
+# Writes to: out/results/testing/lhs_no_augmentation/mcmc_testing/
+```
+
+> Steps 1 and 2 are shared between both pipelines — both use the same raw and split data.
+> Only the training onwards differs: Pipeline A uses augmented data, Pipeline B uses split data only.
 
 ---
 
@@ -57,18 +109,30 @@ python scripts/step5_test.py
 
 ```
 experiments/lhs-sampling/
-├── scripts/          ← you are here
+├── scripts/                    <- Pipeline A scripts live here
 ├── data/
-│   ├── raw/          ← Step 1 writes here
-│   └── split/        ← Step 2 writes here
+│   ├── raw/                    <- Step 1 output (shared)
+│   ├── split/                  <- Step 2 output (shared)
+│   └── augmented/              <- Step 2A output (Pipeline A only)
 └── out/
-    ├── trained-models/   ← Step 3 writes .pt weights here
+    ├── trained-models/             <- Pipeline A trained models (.pt)
     ├── plots/
-    │   ├── validation_plots/   ← Step 4 figures
-    │   └── testing_plots/      ← Step 5 figures
+    │   ├── augmentation_plots/     <- Step 2A figures
+    │   ├── validation_plots/       <- Step 4 figures
+    │   └── testing_plots/
+    │       ├── (in-sample plots)   <- Step 5 figures
+    │       └── mcmc_test_data_plots/ <- Step 6 cross-test figures
     └── results/
-        ├── validation/         ← Step 4 metrics (JSON, TXT)
-        └── testing/            ← Step 5 metrics (JSON, TXT)
+        ├── validation/                         <- Pipeline A validation metrics
+        ├── testing/
+        │   ├── (in-sample test results)        <- Pipeline A in-sample test
+        │   └── mcmc_test_data_results/         <- Pipeline A cross-test on MCMC
+        └── lhs_no_augmentation/                <- Pipeline B (all outputs here)
+            ├── Scripts/
+            ├── trained models/
+            ├── validation/
+            ├── testing/
+            └── mcmc_testing/
 ```
 
 ---
@@ -88,30 +152,21 @@ R₀ range covered: approximately [0.12, 4.98] — uniform across the full param
 
 ---
 
-## Step 6 — Cross-testing on MCMC data
+## Why relative MAE for cross-testing
 
-After completing the in-sample pipeline (Steps 1–5), run the cross-test to see how the LHS-trained model handles near-threshold dynamics it was not specifically trained on.
+The MCMC dataset concentrates near R₀ = 1 with smaller outbreaks. Comparing absolute MAE
+counts between in-sample (LHS data, large outbreaks) and cross-test (MCMC data, near-
+threshold outbreaks) is not valid — the scales are completely different.
 
-```bash
-# Still inside experiments/lhs-sampling/
-python scripts/step6_test_mcmc_data.py
-# Reads models  : out/trained-models/
-# Reads test data: experiments/mcmc-sampling/data/augmented/
-# Writes results : out/results/testing/mcmc_test_data_results/
-# Writes plots   : out/plots/testing_plots/mcmc_test_data_plots/
-```
-
-### Why relative MAE is the right metric here
-
-The MCMC dataset is concentrated near R₀ = 1 — average outbreak size is much smaller than in the LHS dataset (which spans the full parameter space). Comparing absolute MAE counts across datasets with different epidemic size distributions is misleading. A model that produces absolute MAE of 500 on MCMC data and 5,000 on LHS data is not necessarily 10× worse on LHS — the outbreaks are just 10× larger.
-
-**Relative MAE_I** normalises per-sample before averaging:
+**Relative MAE_I** normalises each sample's error by its own true peak before averaging:
 
 ```
 Relative MAE_I = mean( MAE_I_i / peak_I_i ) × 100%
 ```
 
-This gives a percentage error relative to each epidemic's own peak, making results directly comparable across datasets and across strategies.
+This is scale-invariant and the correct metric for comparing performance across datasets
+with different epidemic size distributions. Sub-critical extinction runs (peak_I < 1) are
+excluded automatically.
 
 ---
 

@@ -15,14 +15,12 @@ from scipy import stats
 from step0_model import create_hybrid_mlp_model
 from utils import create_dataloaders, compute_metrics, get_device, EarlyStopping
 
-DATA_DIR  = Path("experiments/mcmc-sampling/data/augmented")
-MODEL_DIR = Path("experiments/mcmc-sampling/out/trained-models")
-
+DATA_DIR=Path("experiments/mcmc-sampling/data/augmented")
+MODEL_DIR=Path("experiments/mcmc-sampling/out/trained-models")
 n_timepoints=80
 N =100000
 knots=8
-n_replicates=5
-
+n_replicates=10
 
 def set_seed(seed):
     """Fix all random seeds for reproducibility."""
@@ -35,7 +33,6 @@ def compute_balanced_loss(predictions, targets, device, weight_mode='balanced'):
     S_pred = predictions[:, :, 0]
     I_pred = predictions[:, :, 1]
     R_pred = predictions[:, :, 2]
-
     S_true = targets[:, :, 0]
     I_true = targets[:, :, 1]
     R_true = targets[:, :, 2]
@@ -44,7 +41,6 @@ def compute_balanced_loss(predictions, targets, device, weight_mode='balanced'):
     S_n = S_pred / N;  S_t = S_true / N   
     I_n = I_pred / N;  I_t = I_true / N   
     R_n = R_pred / N;  R_t = R_true / N
-
     loss_S = (S_n - S_t).pow(2).mean()
     loss_I = (I_n - I_t).pow(2).mean()
     loss_R = (R_n - R_t).pow(2).mean()
@@ -113,9 +109,7 @@ def validate_balanced(model, val_loader, device, n_timesteps, weight_mode='modes
             # Forward pass 
             predictions = model(batch, n_timesteps=n_timesteps)
             targets= batch.y
-
             loss, *_= compute_balanced_loss(predictions, targets, device, weight_mode)
-
             total_loss += loss.item()
             all_predictions.append(predictions.cpu())
             all_targets.append(targets.cpu())
@@ -492,8 +486,6 @@ def plot_replicates_comparison(all_results, all_histories, output_dir):
     plt.close()
     print(f"Saved: {out}")
 
-
-
 # ENTRY POINT
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
@@ -505,7 +497,7 @@ if __name__ == "__main__":
     parser.add_argument('--seeds',type=str,default=None)
     parser.add_argument('--weight_mode',type=str,default='modest',
                          choices=['equal','modest','balanced'])
-    parser.add_argument('--epochs',type=int,default=50) #50
+    parser.add_argument('--epochs',type=int,default=100) #50
     parser.add_argument('--batch_size',type=int,default=35) #30
     parser.add_argument('--lr',type=float,default=0.00005) #1e-3
     parser.add_argument('--weight_decay',type=float,default=1e-3) #-3
@@ -571,7 +563,6 @@ if __name__ == "__main__":
     df = pd.DataFrame(all_results)
     df.to_csv(Path(args.output_dir)/'replicates_results.csv',index=False)
     print(f"Saved: {Path(args.output_dir)/'replicates_results.csv'}")
-    
     print(" TRAINING COMPLETE")
     print(f"\n  Mean R²_I: {stats_dict['best_val_r2']['mean']:.4f}"
           f" ± {stats_dict['best_val_r2']['std']:.4f}")

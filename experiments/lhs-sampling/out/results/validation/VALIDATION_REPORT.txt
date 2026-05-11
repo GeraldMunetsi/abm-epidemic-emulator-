@@ -3,7 +3,7 @@ VALIDATION REPORT — 3-PARAMETER SIR EMULATOR
 Parameters: tau (τ)  |  gamma (γ)  |  rho (ρ)
 ======================================================================
 
-Number of replicates : 2
+Number of replicates : 10
 Model pattern        : best_balanced_mlp_model_*.pt
 
 ======================================================================
@@ -14,33 +14,41 @@ PRIMARY METRICS:
 ----------------------------------------------------------------------
 
 R2:
-  Mean    : 0.9769
-  Std     : 0.0017
-  95% CI  : [0.9619,  0.9920]
-  CV      : 0.17%
-  Range   : [0.9757,  0.9781]
+  Mean    : 0.9971
+  Std     : 0.0002
+  95% CI  : [0.9969,  0.9972]
+  CV      : 0.02%
+  Range   : [0.9966,  0.9975]
 
 MAE_I:
-  Mean    : 1443.94
-  Std     : 20.90
-  95% CI  : [1256.18,  1631.70]
-  CV      : 1.45%
-  Range   : [1429.16,  1458.71]
+  Mean    : 343.16
+  Std     : 6.35
+  95% CI  : [338.61,  347.71]
+  CV      : 1.85%
+  Range   : [333.41,  351.63]
 
 
 PER-COMPARTMENT MAE:
 ----------------------------------------------------------------------
-  MAE_S: 5111.78 ± 294.02  (95% CI: [2470.16, 7753.40])
-  MAE_I: 1443.94 ± 20.90  (95% CI: [1256.18, 1631.70])
-  MAE_R: 5001.26 ± 278.53  (95% CI: [2498.73, 7503.79])
+  MAE_S: 1640.14 ± 92.23  (95% CI: [1574.16, 1706.12])
+  MAE_I:  343.16 ±  6.35  (95% CI: [338.61, 347.71])
+  MAE_R: 1574.99 ± 87.38  (95% CI: [1512.48, 1637.50])
 
 
 INDIVIDUAL REPLICATE RESULTS:
 ----------------------------------------------------------------------
  ID   Seed       R²    MAE_I  Model File                              
 ----------------------------------------------------------------------
-  1     42   0.9781  1458.71  best_balanced_mlp_model_1.pt            
-  2    123   0.9757  1429.16  best_balanced_mlp_model_2.pt            
+  1     42   0.9970   335.94  best_balanced_mlp_model_1.pt            
+  2    123   0.9970   347.19  best_balanced_mlp_model_2.pt            
+  3    456   0.9970   335.44  best_balanced_mlp_model_3.pt            
+  4    789   0.9971   344.49  best_balanced_mlp_model_4.pt            
+  5   1011   0.9971   351.63  best_balanced_mlp_model_5.pt            
+  6   1213   0.9970   349.05  best_balanced_mlp_model_6.pt            
+  7   1415   0.9975   333.41  best_balanced_mlp_model_7.pt            
+  8   1617   0.9966   348.43  best_balanced_mlp_model_8.pt            
+  9   1819   0.9970   341.56  best_balanced_mlp_model_9.pt            
+ 10   2021   0.9972   344.46  best_balanced_mlp_model_10.pt           
 
 ======================================================================
 INTERPRETATION

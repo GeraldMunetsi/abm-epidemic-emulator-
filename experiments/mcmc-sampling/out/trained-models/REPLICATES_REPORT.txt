@@ -1,9 +1,9 @@
 ----------------------------------------------------------------------
 REPLICATES TRAINING SUMMARY 
 
-Replicates: 5
+Replicates: 10
 Weight mode: modest
-Seeds: [42, 123, 456, 789, 1011]
+Seeds: [42, 123, 456, 789, 1011, 1213, 1415, 1617, 1819, 2021]
 Output dir: experiments\mcmc-sampling\out\trained-models
 
   Model files:
@@ -12,30 +12,40 @@ Output dir: experiments\mcmc-sampling\out\trained-models
 · best_balanced_mlp_model_3.pt(seed=456)
 · best_balanced_mlp_model_4.pt(seed=789)
 · best_balanced_mlp_model_5.pt(seed=1011)
+· best_balanced_mlp_model_6.pt(seed=1213)
+· best_balanced_mlp_model_7.pt(seed=1415)
+· best_balanced_mlp_model_8.pt(seed=1617)
+· best_balanced_mlp_model_9.pt(seed=1819)
+· best_balanced_mlp_model_10.pt(seed=2021)
 
 ----------------------------------------------------------------------
 VALIDATION PERFORMANCE
 
 MAE_I (Infected Compartment):
-  Mean : 98.05
-  Std  : 9.10
-  95% CI: [86.75, 109.35]
+  Mean : 112.20
+  Std  : 5.12
+  95% CI: [108.53, 115.87]
 
 R²:
-Mean:0.9689
-Std:0.0050
-95% CI:[0.9627, 0.9752]
+Mean:0.9607
+Std:0.0033
+95% CI:[0.9583, 0.9631]
 
 Per-Compartment MAE:
-MAE_S:  937.36 ± 213.72  (95% CI: [671.99, 1202.73])
-MAE_I:   98.05 ±  9.10  (95% CI: [86.75, 109.35])
-MAE_R:  910.21 ± 205.57  (95% CI: [654.96, 1165.47])
+MAE_S:  847.25 ± 76.80  (95% CI: [792.31, 902.19])
+MAE_I:  112.20 ±  5.12  (95% CI: [108.53, 115.87])
+MAE_R:  816.32 ± 74.62  (95% CI: [762.94, 869.70])
 
 ----------------------------------------------------------------------
 INDIVIDUAL REPLICATE RESULTS
  ID   Seed  Epoch     R²_I    MAE_I    MAE_S    MAE_R Model File                         
-  1     42     50   0.9754    87.47   755.33   736.04 best_balanced_mlp_model_1.pt       
-  2    123     50   0.9708    93.02   782.51   759.70 best_balanced_mlp_model_2.pt       
-  3    456     50   0.9624   109.01  1181.57  1139.11 best_balanced_mlp_model_3.pt       
-  4    789     50   0.9705    94.77   808.11   786.25 best_balanced_mlp_model_4.pt       
-  5   1011     50   0.9656   105.99  1159.28  1129.96 best_balanced_mlp_model_5.pt       
+  1     42     84   0.9635   105.61   808.32   781.03 best_balanced_mlp_model_1.pt       
+  2    123     93   0.9632   108.72   754.95   725.50 best_balanced_mlp_model_2.pt       
+  3    456    100   0.9612   111.62   853.40   826.03 best_balanced_mlp_model_3.pt       
+  4    789     90   0.9621   110.17   802.21   775.38 best_balanced_mlp_model_4.pt       
+  5   1011     90   0.9569   116.69   977.83   950.18 best_balanced_mlp_model_5.pt       
+  6   1213    100   0.9597   110.87   778.01   744.18 best_balanced_mlp_model_6.pt       
+  7   1415     82   0.9577   122.40   947.82   905.54 best_balanced_mlp_model_7.pt       
+  8   1617     84   0.9571   107.65   815.49   790.15 best_balanced_mlp_model_8.pt       
+  9   1819    100   0.9670   110.80   807.20   775.39 best_balanced_mlp_model_9.pt       
+ 10   2021    100   0.9585   117.46   927.28   889.81 best_balanced_mlp_model_10.pt      

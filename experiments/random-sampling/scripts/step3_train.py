@@ -14,18 +14,14 @@ from scipy import stats
 from step0_model import create_hybrid_mlp_model
 from utils import create_dataloaders, compute_metrics, get_device, EarlyStopping
 
-DATA_DIR = Path("experiments/random-sampling/data/split")
-MODEL_DIR= Path("experiments/random-sampling/out/trained-models")
-
-
+DATA_DIR = Path("experiments/random-sampling/data/augmented")
+MODEL_DIR= Path("experiments/random-sampling/out/trained models")
 n_timepoints=80
 N =100000
 knots=8
-n_replicates=5
-
+n_replicates=10
 
 def set_seed(seed):
-    """Fix all random seeds for reproducibility."""
     torch.manual_seed(seed)
     torch.cuda.manual_seed_all(seed)
     np.random.seed(seed)
@@ -57,7 +53,7 @@ def compute_balanced_loss(predictions, targets, device, weight_mode='balanced'):
 # TRAIN / VALIDATE ONE EPOCH
 def train_epoch_balanced(model, train_loader, optimizer, device, n_timesteps,
                          weight_mode='modest'):
-    """One training epoch — no graph_stats, no dummy tensors."""
+    """One training epoch"""
     model.train()
 
     total_loss = total_loss_S = total_loss_I = total_loss_R = 0.0
@@ -100,7 +96,7 @@ def train_epoch_balanced(model, train_loader, optimizer, device, n_timesteps,
 
 
 def validate_balanced(model, val_loader, device, n_timesteps, weight_mode='modest'):
-    """One validation pass — no graph_stats."""
+    """One validation pass."""
     model.eval()
 
     total_loss = 0.0
@@ -128,8 +124,6 @@ def validate_balanced(model, val_loader, device, n_timesteps, weight_mode='modes
 
 
 # SINGLE REPLICATE TRAINING
-
-
 def train_single_replicate(
     replicate_id,
     seed,
@@ -299,11 +293,8 @@ def train_multiple_replicates(
 ):
     """
     Train n_replicates models, each with a different random seed.
-
     All checkpoints are saved in output_dir as:
         best_balanced_mlp_model_1.pt
-        best_balanced_mlp_model_2.pt
-        ...
     """
     output_dir = Path(output_dir)
     if seeds is None:
@@ -505,7 +496,7 @@ if __name__ == "__main__":
     parser.add_argument('--seeds',type=str,default=None)
     parser.add_argument('--weight_mode',type=str,default='modest',
                          choices=['equal','modest','balanced'])
-    parser.add_argument('--epochs',type=int,default=50) #50
+    parser.add_argument('--epochs',type=int,default=100) #50
     parser.add_argument('--batch_size',type=int,default=35) #30
     parser.add_argument('--lr',type=float,default=0.00005) #1e-3
     parser.add_argument('--weight_decay',type=float,default=1e-3) #-3

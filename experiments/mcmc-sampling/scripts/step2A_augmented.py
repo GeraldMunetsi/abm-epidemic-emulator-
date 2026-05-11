@@ -24,7 +24,7 @@ PARAM_BOUNDS ={
 
 param_noise=0.05
 comp_noise=0.001
-n_param_aug=2
+n_param_aug=1
 n_comp_aug=1
 
 class SIRAugmenter:
@@ -108,7 +108,7 @@ def export_params_with_R0(split_data, csv_path, split_name="train", ratio=ratio)
 
     df = pd.DataFrame(rows)
     df.to_csv(csv_path, index=False)
-    print(f"CSV saved → {csv_path}  shape={df.shape}")
+    print(f"CSV saved {csv_path}  shape={df.shape}")
     return df
 
 # Run augmentation
@@ -165,12 +165,12 @@ if __name__ == "__main__":
 
     total = len(augmented_data)
     greater   = augmented_data[augmented_data['R0'] > 1.2]
-    between   = augmented_data[(augmented_data['R0'] >= 0.7) &
-                               (augmented_data['R0'] <= 1.2)]
+    between   = augmented_data[(augmented_data['R0'] >= 0.5) &
+                               (augmented_data['R0'] <= 1.5)]
     less_than = augmented_data[augmented_data['R0'] < 0.8]
 
     print(f"\nR₀ > 1.2 : {len(greater):5d}  ({len(greater)/total*100:.1f}%)")
-    print(f"0.7 ≤ R₀ ≤ 1.2 : {len(between):5d}  ({len(between)/total*100:.1f}%)")
+    print(f"0.5 ≤ R₀ ≤ 1.5 : {len(between):5d}  ({len(between)/total*100:.1f}%)")
     print(f"R₀ < 0.8 : {len(less_than):5d}  ({len(less_than)/total*100:.1f}%)")
 
 

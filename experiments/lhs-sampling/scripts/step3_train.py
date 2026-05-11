@@ -14,13 +14,13 @@ from scipy import stats
 from step0_model import create_hybrid_mlp_model
 from utils import create_dataloaders, compute_metrics, get_device, EarlyStopping
 
-DATA_DIR = Path("experiments/lhs-sampling/data/split")
+DATA_DIR = Path("experiments/lhs-sampling/data/augmented")
 MODEL_DIR= Path("experiments/lhs-sampling/out/trained-models")
 
 n_timepoints=80
-N =100000
+N=100000
 knots=8
-n_replicates=5
+n_replicates=10
 
 
 def set_seed(seed):
@@ -28,7 +28,6 @@ def set_seed(seed):
     torch.manual_seed(seed)
     torch.cuda.manual_seed_all(seed)
     np.random.seed(seed)
-
 
 def compute_balanced_loss(predictions, targets, device, weight_mode='balanced'):
     S_pred = predictions[:, :, 0]
@@ -504,7 +503,7 @@ if __name__ == "__main__":
     parser.add_argument('--seeds',type=str,default=None)
     parser.add_argument('--weight_mode',type=str,default='modest',
                          choices=['equal','modest','balanced'])
-    parser.add_argument('--epochs',type=int,default=50) #50
+    parser.add_argument('--epochs',type=int,default=100) #50
     parser.add_argument('--batch_size',type=int,default=35) #30
     parser.add_argument('--lr',type=float,default=0.00005) #1e-3
     parser.add_argument('--weight_decay',type=float,default=1e-3) #-3
