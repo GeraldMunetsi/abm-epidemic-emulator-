@@ -13,7 +13,7 @@ from utils import create_dataloaders, compute_metrics, get_device, PARAM_MINS, P
 
 n_timepoints = 80
 N=100000
-knots=9
+knots=7
 
 DATA_DIR=Path("experiments/mcmc-sampling/out/results/testing/mcmc_no_augmentation/trained models")
 SPLIT_DATA_DIR=Path("experiments/mcmc-sampling/data/split")
@@ -456,7 +456,7 @@ def save_results(results_list, stats_dict, output_dir):
 
     # JSON 
     results_data = {
-        'model_description'   : '3-Parameter SIR Emulator (tau, gamma, rho)',
+        'model_description': 'NNE',
         'individual_results'  : [
             {
                 'replicate_id': int(r['replicate_id']) if r['replicate_id'] is not None else None,

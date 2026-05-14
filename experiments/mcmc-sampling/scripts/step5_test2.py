@@ -256,7 +256,7 @@ def plot_infected_only(results_list, targets, plots_dir, n_samples=8):
     n_reps = len(results_list)
     pred_colors = plt.cm.tab10(np.linspace(0, 1, n_reps))
 
-    fig, axes = plt.subplots(4, 2,figsize=(16, 18))
+    fig, axes = plt.subplots(4, 4,figsize=(16, 18))
     axes = axes.flatten()
     fig.suptitle('MCMC MODEL ON MCMC TEST SET — INFECTED (I) COMPARTMENT',
         fontsize=14,
@@ -432,7 +432,7 @@ if __name__ == "__main__":
     parser.add_argument('--data',type=str,default=str(TEST_DATA_DIR /'epidemic_data_age_adaptive_sobol_split.pkl'))
     parser.add_argument('--output_dir', type=str, default=str(RESULTS_DIR))
     parser.add_argument('--plots_dir',type=str, default=str(PLOTS_DIR))
-    parser.add_argument('--n_samples', type=int, default=8,help='Trajectory samples to plot')
+    parser.add_argument('--n_samples', type=int, default=16)
     parser.add_argument('--batch_size', type=int, default=35)
     args = parser.parse_args()
     results_dir=Path(args.output_dir)

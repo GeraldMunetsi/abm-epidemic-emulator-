@@ -14,7 +14,6 @@ import pymc as pm
 import arviz as az
 import matplotlib.pyplot as plt
 import pandas as pd
-
 import warnings
 warnings.filterwarnings("ignore")
 
@@ -31,7 +30,7 @@ m = 10                      # Barabasi–Albert attachment parameter
 tmax=80
 n_timepoints=80
 initial_samples=10000  # initial Sobol samples #500
-sigma = 1.0      # width of R0 target distribution
+sigma = 1.0     # width of R0 target distribution
 n_replicates=1  # replicates of parameter sets 
 
 PARAM_RANGES = {
@@ -43,9 +42,7 @@ PARAM_RANGES = {
 PARAM_NAMES = ['tau', 'gamma', 'rho']
 output_path = Path('epidemic_data_age_adaptive_sobol.pkl')
 
-
 ratio=34.0 # calculated for 100000 graphs
-
 net_stats = {
     'k_avg': 9.9988,
     'k2_avg': 266.020,

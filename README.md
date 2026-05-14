@@ -64,7 +64,7 @@ Draws parameter sets uniformly at random from the parameter box. Simple to imple
 
 Stratifies the parameter space into a grid and ensures exactly one sample per row and column — guaranteeing uniform marginal coverage even with small budgets. More space-efficient than random sampling, but still does not target the epidemic threshold region specifically.
 
-- N = 10,000 nodes, m = 5
+- N = 10,000 nodes, m = 10
 - Uses `scipy.stats.qmc.LatinHypercube`
 - R₀ range covered: approximately [0.12, 4.98]
 - Discrepancy metric monitored to verify coverage quality
@@ -92,7 +92,9 @@ where  R₀ = (τ / γ) × ⟨k²⟩/⟨k⟩  =  (τ / γ) × 34.0
 This `pm.Potential` term shapes the posterior so that samples concentrate near the epidemic threshold, where dynamics are most complex and most informative for the emulator. Sub-threshold extinctions and large unconstrained outbreaks are down-weighted — not by filtering, but by the geometry of the posterior.
 
 **Sampler settings:**
-- 500 draws × 2 chains = **1,000 posterior samples**
+- 10000 draws × 4 chains
+-Thinning=10
+- Total samples= 4000
 - 2,000 tuning steps (warm-up)
 - `target_accept = 0.95` (high acceptance rate for NUTS near a sharp potential)
 - N = 100,000 nodes, m = 10, tmax = 80, 2 replicates per parameter set
@@ -159,16 +161,16 @@ This is **scale-invariant** — a 10% error on a small outbreak (peak I = 500) a
 
 ## Current Results
 
-In-sample results from the **MCMC Sampling** strategy (NUTS near R₀ = 1), 5 replicates, 300 test samples.
+In-sample results from the **MCMC Sampling** strategy (NUTS near R₀ = 1), 10 replicates, 600 test samples.
 
 | Metric | Value | 95% CI |
 |--------|-------|--------|
-| R² (overall) | 0.8156 ± 0.1255 | [0.660, 0.971] |
-| Absolute MAE — I(t) | 3,157 ± 1,172 | [1,702, 4,613] |
+| R² (overall) | |  |
+| Absolute MAE — I(t) |  |  |
 | **Relative MAE_I** | **reported per experiment** | see `out/results/testing/` |
-| MAE — S(t) | 11,608 ± 4,553 | — |
-| MAE — R(t) | 9,210 ± 3,016 | — |
-| Replicate CV (MAE_I) | 37.1% | — |
+| MAE — S(t) |   | — |
+| MAE — R(t) | | — |
+| Replicate CV (MAE_I) | | — |
 
 Full cross-testing results (Step 6) are in each experiment's `out/results/testing/` subfolders — one subfolder per tested dataset.
 
@@ -216,10 +218,10 @@ abm-epidemic-emulator/
 │   │               └── scripts/
 │   │
 │   ├── lhs-sampling/
-│   │   ├── scripts/                # ← Pipeline A: run from experiments/lhs-sampling/
-│   │   │   ├── step1_LHS sampling.py    # ⚠ space in filename — quote when running
+│   │   ├── scripts/                # ← Pipeline : run from experiments/lhs-sampling/
+│   │   │   ├── step1_LHS sampling.py    
 │   │   │   ├── Step2_data_split.py
-│   │   │   ├── step2_data_augmentation.py   # Data augmentation (Pipeline A)
+│   │   │   ├── step2_data_augmentation.py   # Data augmentation 
 │   │   │   ├── step3_train.py
 │   │   │   ├── step4_validate.py
 │   │   │   ├── step5_test.py                # in-sample test
@@ -229,7 +231,7 @@ abm-epidemic-emulator/
 │   │   ├── data/
 │   │   │   ├── raw/
 │   │   │   ├── split/
-│   │   │   └── augmented/          # Step 2A output (Pipeline A only)
+│   │   │   └── augmented/          # Step 2A output 
 │   │   └── out/
 │   │       ├── trained-models/
 │   │       ├── plots/
@@ -243,10 +245,10 @@ abm-epidemic-emulator/
 │   │               └── Scripts/
 │   │
 │   └── mcmc-sampling/
-│       ├── scripts/                # ← Pipeline A: run from experiments/mcmc-sampling/
+│       ├── scripts/                #  Pipeline : run from experiments/mcmc-sampling/
 │       │   ├── step1_mcmc_sampling.py
 │       │   ├── step2_split.py
-│       │   ├── step2A_augmented.py          # Data augmentation (Pipeline A)
+│       │   ├── step2A_augmented.py          # Data augmentation
 │       │   ├── step3_train.py
 │       │   ├── step4_validate.py
 │       │   ├── step5_test.py                # in-sample test
@@ -257,7 +259,7 @@ abm-epidemic-emulator/
 │       ├── data/
 │       │   ├── raw/
 │       │   ├── split/
-│       │   └── augmented/          # Step 2A output (Pipeline A only)
+│       │   └── augmented/          # Step 2A 
 │       └── out/
 │           ├── trained-models/
 │           ├── plots/
@@ -270,7 +272,7 @@ abm-epidemic-emulator/
 │               ├── testing/
 │               │   ├── results_on_lhs_sampled_data/
 │               │   └── results_on_random_sampled_data/
-│               └── mcmc_no_augmentation/    # Pipeline B (all outputs)
+│               └── mcmc_no_augmentation/    # 
 │                   └── Scripts/
 │
 ├── notebooks/                      # EDA notebooks — interactive exploration
@@ -339,7 +341,7 @@ python scripts/step6_test_on_mcmc_data.py        # Cross-test on MCMC data → o
 ```bash
 cd experiments/lhs-sampling
 
-python "scripts/step1_LHS sampling.py"           # ⚠ space in filename — quotes required
+python "scripts/step1_LHS_sampling.py"          
 python scripts/Step2_data_split.py               # Train/test split → data/split/
 python scripts/step2_data_augmentation.py        # Data augmentation → data/augmented/
 python scripts/step3_train.py
@@ -355,7 +357,7 @@ python scripts/step6_test_mcmc_data.py           # Cross-test on MCMC data → o
 ```bash
 cd experiments/mcmc-sampling
 
-python scripts/step1_mcmc_sampling.py            # NUTS warm-up (~5–10 min) then ABM runs
+python scripts/step1_mcmc_sampling.py            # NUTS warm-up  then ABM runs
 python scripts/step2_split.py                    # Train/test split → data/split/
 python scripts/step2A_augmented.py               # Data augmentation → data/augmented/
 python scripts/step3_train.py                    # Train emulator → out/trained-models/
@@ -365,9 +367,9 @@ python scripts/step6_test_lhs_data.py            # Cross-test on LHS data → ou
 python scripts/step6_test_random_sampling_data.py  # Cross-test on Random data → out/results/testing/results_on_random_sampled_data/
 ```
 
-> **MCMC note:** The Step 1 script runs PyMC's NUTS sampler — 2,000 tuning steps and 500 draws per chain (×2 chains = 1,000 posterior samples) — before launching ABM simulations. Budget 10–15 minutes for Step 1.
+> **MCMC note:** The Step 1 script runs PyMC's NUTS sampler — 3,000 tuning steps and 10000 draws per chain (×4 chains = 40,000 posterior samples, thin=10, total samples=4000) — before launching ABM simulations. Budget 10–15 minutes for Step 1.
 
-> **Step 2A — data augmentation** is now present in all three experiments. It generates additional near-threshold simulations to increase training density at R₀ ≈ 1. Each experiment also has a **Pipeline B** (no-augmentation variant) stored in `out/results/<name>_no_augmentation/` — run those scripts to get the direct augmentation vs. no-augmentation comparison.
+> **Step 2A — data augmentation** is now present in all three experiments. It generates additional near-threshold simulations to increase training density at R₀ ≈ 1. 
 
 > **Step 6 — cross-testing:** Run Step 6 only after all three experiments have completed Steps 1–2, since cross-tests load data from other experiments' `data/` folders.
 

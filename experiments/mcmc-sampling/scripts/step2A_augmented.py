@@ -157,16 +157,14 @@ if __name__ == "__main__":
 
     #  Step 5: Explore 
     augmented_data = pd.read_csv(AUGMENTED_CSV)   
-
-    print(f"\nColumns      : {list(augmented_data.columns)}")
-    print(f"Total rows   : {len(augmented_data)}")
-    print(f"Missing      :\n{augmented_data.isnull().sum()}")
+    print(f"\nColumns : {list(augmented_data.columns)}")
+    print(f"Total rows : {len(augmented_data)}")
+    print(f"Missing :\n{augmented_data.isnull().sum()}")
     print(f"\n{augmented_data.describe(include='all')}")
 
     total = len(augmented_data)
-    greater   = augmented_data[augmented_data['R0'] > 1.2]
-    between   = augmented_data[(augmented_data['R0'] >= 0.5) &
-                               (augmented_data['R0'] <= 1.5)]
+    greater = augmented_data[augmented_data['R0'] > 1.2]
+    between = augmented_data[(augmented_data['R0'] >= 0.5) &(augmented_data['R0'] <= 1.5)]
     less_than = augmented_data[augmented_data['R0'] < 0.8]
 
     print(f"\nR₀ > 1.2 : {len(greater):5d}  ({len(greater)/total*100:.1f}%)")

@@ -14,7 +14,7 @@ from utils  import create_dataloaders, compute_metrics, get_device, \
                          PARAM_MINS, PARAM_MAXS
 
 N=100000
-n_knots=8
+n_knots=7
 n_timepoints=80
 
 #I/O PATHS 
@@ -258,12 +258,11 @@ def plot_infected_only(results_list, targets, plots_dir, n_samples=8):
     n_reps = len(results_list)
     pred_colors = plt.cm.tab10(np.linspace(0, 1, n_reps))
 
-    fig, axes = plt.subplots(4, 2,figsize=(16, 18))
+    fig, axes = plt.subplots(4, 4,figsize=(16, 18))
     axes = axes.flatten()
     fig.suptitle('MCMC MODEL ON RANDOM TEST SET — INFECTED (I) COMPARTMENT',fontsize=22,fontweight='bold')
     
     for row, idx in enumerate(indices):
-
         ax = axes[row]
         target = targets_np[idx]
         ax.plot(target[:, 1],'o',color='steelblue',alpha=0.7,markersize=4,label='Ground Truth',zorder=10 )
@@ -431,7 +430,7 @@ if __name__ == "__main__":
     parser.add_argument('--data',type=str,default=str(TEST_DATA_DIR /'epidemic_data_age_adaptive_sobol_split.pkl'))
     parser.add_argument('--output_dir', type=str, default=str(RESULTS_DIR))
     parser.add_argument('--plots_dir',type=str, default=str(PLOTS_DIR))
-    parser.add_argument('--n_samples', type=int, default=8,help='Trajectory samples to plot')
+    parser.add_argument('--n_samples', type=int, default=16,help='Trajectory samples to plot')
     parser.add_argument('--batch_size', type=int, default=35)
     args = parser.parse_args()
     results_dir=Path(args.output_dir)

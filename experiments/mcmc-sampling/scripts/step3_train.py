@@ -15,19 +15,20 @@ from scipy import stats
 from step0_model import create_hybrid_mlp_model
 from utils import create_dataloaders, compute_metrics, get_device, EarlyStopping
 
+#I/O Paths
 DATA_DIR=Path("experiments/mcmc-sampling/data/augmented")
 MODEL_DIR=Path("experiments/mcmc-sampling/out/trained-models")
+
+#Global constants
 n_timepoints=80
 N =100000
-knots=8
+knots=7
 n_replicates=10
 
 def set_seed(seed):
-    """Fix all random seeds for reproducibility."""
     torch.manual_seed(seed)
     torch.cuda.manual_seed_all(seed)
     np.random.seed(seed)
-
 
 def compute_balanced_loss(predictions, targets, device, weight_mode='balanced'):
     S_pred = predictions[:, :, 0]
@@ -83,20 +84,20 @@ def train_epoch_balanced(model, train_loader, optimizer, device, n_timesteps,
         all_predictions.append(predictions.detach().cpu())
         all_targets.append(targets.detach().cpu())
 
-    predictions= torch.cat(all_predictions,dim=0)
-    targets= torch.cat(all_targets,dim=0)
-    metrics= compute_metrics(predictions, targets)
+        predictions= torch.cat(all_predictions,dim=0)
+        targets= torch.cat(all_targets,dim=0)
+        metrics= compute_metrics(predictions, targets)
 
-    n_batches       = len(train_loader)
-    metrics['loss_S'] = total_loss_S / n_batches
-    metrics['loss_I'] = total_loss_I / n_batches
-    metrics['loss_R'] = total_loss_R / n_batches
+        n_batches = len(train_loader)
+        metrics['loss_S'] = total_loss_S / n_batches
+        metrics['loss_I'] = total_loss_I / n_batches
+        metrics['loss_R'] = total_loss_R / n_batches
 
     return total_loss / n_batches, metrics
 
 
 def validate_balanced(model, val_loader, device, n_timesteps, weight_mode='modest'):
-    """One validation pass — no graph_stats."""
+    """One validation pass """
     model.eval()
 
     total_loss = 0.0
@@ -120,19 +121,8 @@ def validate_balanced(model, val_loader, device, n_timesteps, weight_mode='modes
 
     return total_loss/len(val_loader),metrics
 
-
 # SINGLE REPLICATE TRAINING
-
-
-def train_single_replicate(
-    replicate_id,
-    seed,
-    config,
-    dataloaders,
-    output_dir,
-    weight_mode='modest',
-    verbose=True,
-):
+def train_single_replicate(replicate_id,seed,config,dataloaders,output_dir,weight_mode='modest',verbose=True,):
     """
     Train one replicate with a given seed.
 
@@ -178,15 +168,9 @@ def train_single_replicate(
         print(f"fusion:{comp['fusion']:,}")       
         print(f"temporal_decoder: {comp['temporal_decoder']:,}")
 
-    # Optimiser & scheduler ─
-    optimizer = optim.AdamW(
-        model.parameters(),
-        lr=config['lr'],
-        weight_decay=config['weight_decay'],
-    )
-    scheduler = optim.lr_scheduler.CosineAnnealingLR(
-        optimizer, T_max=config['epochs'], eta_min=1e-6
-    )
+    # Optimiser & scheduler 
+    optimizer= optim.AdamW(model.parameters(),lr=config['lr'],weight_decay=config['weight_decay'],)
+    scheduler = optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=config['epochs'], eta_min=1e-6)
     early_stopping = EarlyStopping(patience=config['patience'],mode='min')
 
     # History buffers 
@@ -273,17 +257,17 @@ def train_single_replicate(
     np.save(history_path, history)
 
     return {
-        'replicate_id'          : replicate_id,
-        'seed'                  : seed,
-        'best_epoch'            : best_epoch,
-        'best_val_r2'           : float(best_val_r2),
-        'best_val_mae'          : float(best_val_mae),
-        'best_val_mae_i'        : float(val_metrics['MAE_I']),
-        'best_val_mae_s'        : float(val_metrics['MAE_S']),
-        'best_val_mae_r'        : float(val_metrics['MAE_R']),
-        'training_time_minutes' : training_time / 60,
-        'model_filename'        : model_filename,
-        'output_dir'            : str(output_dir),
+        'replicate_id': replicate_id,
+        'seed': seed,
+        'best_epoch': best_epoch,
+        'best_val_r2': float(best_val_r2),
+        'best_val_mae': float(best_val_mae),
+        'best_val_mae_i': float(val_metrics['MAE_I']),
+        'best_val_mae_s': float(val_metrics['MAE_S']),
+        'best_val_mae_r': float(val_metrics['MAE_R']),
+        'training_time_minutes': training_time / 60,
+        'model_filename': model_filename,
+        'output_dir': str(output_dir),
     }, history
 
 

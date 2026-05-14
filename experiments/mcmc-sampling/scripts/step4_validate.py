@@ -623,20 +623,19 @@ if __name__ == "__main__":
     print(f"Pattern: best_balanced_mlp_model_*.pt")
 
     device = get_device()
-
     #  Load validation data 
     print(f"\nLoading data: {data_path}")
     dataloaders=create_dataloaders(str(data_path), batch_size=40) 
     val_loader=dataloaders['val']
     n_timesteps=dataloaders['metadata']['n_timepoints']
-    print(f"Validation samples : {len(val_loader.dataset)}")
+    print(f"Validation samples:{len(val_loader.dataset)}")
 
     #  Evaluate all replicates 
     results_list, targets, params = evaluate_all_replicates(
         models_dir, val_loader, device, n_timesteps
     )
 
-    #  Aggregate statistics 
+    # Aggregate statistics 
     print("AGGREGATE STATISTICS")
     stats_dict = compute_aggregate_statistics(results_list)
     print(f"\n Statistics over {len(results_list)} replicate(s)")

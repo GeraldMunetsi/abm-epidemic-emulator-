@@ -106,13 +106,13 @@ def split_dataset(dataset,
                          ("test",  test_param_idx)]:
         r0s = np.array([(param_keys[i][0] / param_keys[i][1]) * RATIO
                          for i in p_idx])
-        sub   = (r0s < 0.8).sum()
-        thr   = ((r0s >= 0.8) & (r0s <= 1.2)).sum()
-        sup   = (r0s > 1.2).sum()
+        sub   = (r0s < 0.5).sum()
+        thr   = ((r0s >= 0.5) & (r0s <= 1.5)).sum()
+        sup   = (r0s > 1.5).sum()
         n     = len(r0s)
-        print(f"  {name:5s}  R₀<0.8: {sub:4d} ({100*sub/n:.1f}%)  "
-              f"0.8–1.2: {thr:4d} ({100*thr/n:.1f}%)  "
-              f">1.2: {sup:4d} ({100*sup/n:.1f}%)  "
+        print(f"  {name:5s}  R₀<0.5: {sub:4d} ({100*sub/n:.1f}%)  "
+              f"0.5–1.5: {thr:4d} ({100*thr/n:.1f}%)  "
+              f">1.5: {sup:4d} ({100*sup/n:.1f}%)  "
               f"mean={r0s.mean():.3f}")
 
     # Infer n_timepoints from first simulation 
@@ -206,10 +206,10 @@ def export_training_csv(split_data: dict, output_csv_path: Path) -> pd.DataFrame
     print(f"\nTraining CSV: {len(df)} rows")
     if 'R0' in df.columns:
         total = len(df)
-        print(f"R₀ < 0.8 : {(df['R0'] < 0.8).sum():5d}  ({100*(df['R0']<0.8).mean():.1f}%)")
-        print(f"0.8 ≤ R₀ ≤ 1.2 : {((df['R0']>=0.8)&(df['R0']<=1.2)).sum():5d}  "
-              f"({100*((df['R0']>=0.8)&(df['R0']<=1.2)).mean():.1f}%)")
-        print(f"R₀ > 1.2: {(df['R0'] > 1.2).sum():5d}  ({100*(df['R0']>1.2).mean():.1f}%)")
+        print(f"R₀ < 0.5 : {(df['R0'] < 0.5).sum():5d}  ({100*(df['R0']<0.5).mean():.1f}%)")
+        print(f"0.5 ≤ R₀ ≤ 1.5 : {((df['R0']>=0.5)&(df['R0']<=1.5)).sum():5d}  "
+              f"({100*((df['R0']>=0.5)&(df['R0']<=1.5)).mean():.1f}%)")
+        print(f"R₀ > 1.5: {(df['R0'] > 1.5).sum():5d}  ({100*(df['R0']>1.5).mean():.1f}%)")
         print(f"  Near threshold (±0.2): {df['near_threshold'].sum()} "
               f"({100*df['near_threshold'].mean():.1f}%)")
 

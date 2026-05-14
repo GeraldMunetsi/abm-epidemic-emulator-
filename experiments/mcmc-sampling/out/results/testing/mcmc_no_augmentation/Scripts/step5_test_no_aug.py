@@ -7,13 +7,12 @@ from pathlib import Path
 import json
 import pandas as pd
 from scipy import stats
-
 from step0_model import create_hybrid_mlp_model
 from utils  import create_dataloaders, compute_metrics, get_device, \
                          PARAM_MINS, PARAM_MAXS
 
 N=100000
-n_knots=9
+n_knots=7
 n_timepoints=80
 
 # FIXED I/O PATHS 
@@ -257,7 +256,7 @@ def plot_infected_only(results_list, targets, plots_dir, n_samples=8):
     n_reps = len(results_list)
     pred_colors = plt.cm.tab10(np.linspace(0, 1, n_reps))
 
-    fig, axes = plt.subplots(4, 2,figsize=(16, 18))
+    fig, axes = plt.subplots(4, 4,figsize=(16, 18))
     axes = axes.flatten()
     fig.suptitle('MCMC MODEL(NO AUGMENTATION) ON MCMC TEST SET (INFECTED (I) COMPARTMENT)',
         fontsize=14,
@@ -431,9 +430,9 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Final test evaluation")
     parser.add_argument('--models_dir',type=str, default=str(MODELS_DIR))
     parser.add_argument('--data',type=str,default=str(TEST_DATA_DIR /'epidemic_data_age_adaptive_sobol_split.pkl'))
-    parser.add_argument('--output_dir', type=str, default=str(RESULTS_DIR))
+    parser.add_argument('--output_dir',type=str, default=str(RESULTS_DIR))
     parser.add_argument('--plots_dir',type=str, default=str(PLOTS_DIR))
-    parser.add_argument('--n_samples', type=int, default=8,help='Trajectory samples to plot')
+    parser.add_argument('--n_samples', type=int, default=16,help='Trajectory samples to plot')
     parser.add_argument('--batch_size', type=int, default=35)
     args = parser.parse_args()
     results_dir=Path(args.output_dir)
