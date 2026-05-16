@@ -11,9 +11,9 @@ from matplotlib.gridspec import GridSpec
 from step0_model import create_hybrid_mlp_model          
 from utils import create_dataloaders, compute_metrics, get_device, PARAM_MINS, PARAM_MAXS
 
-n_timepoints = 80
+n_timepoints = 250
 N=100000
-knots=8
+knots=7
 
 DATA_DIR=Path("experiments/random-sampling/out/results/uniform_random_no_augmentation/trained models")
 SPLIT_DATA_DIR=Path("experiments/random-sampling/data/split")
@@ -22,7 +22,7 @@ PLOTS_DIR=Path("experiments/random-sampling/out/results/uniform_random_no_augmen
 
 # CONSTANTS
 PARAM_NAMES   = ['tau', 'gamma', 'rho']    
-N_PARAMS      = 3
+N_PARAMS = 3
 COMPARTMENTS  = ['Susceptible (S)', 'Infected (I)', 'Recovered (R)']
 COMP_COLORS   = ['lightblue', 'lightcoral', 'lightgreen']
 

@@ -17,11 +17,10 @@ from utils import create_dataloaders, compute_metrics, get_device, EarlyStopping
 DATA_DIR = Path("experiments/lhs-sampling/data/augmented")
 MODEL_DIR= Path("experiments/lhs-sampling/out/trained-models")
 
-n_timepoints=80
+n_timepoints=250
 N=100000
-knots=8
+knots=7
 n_replicates=10
-
 
 def set_seed(seed):
     """Fix all random seeds for reproducibility."""

@@ -4,18 +4,12 @@ import pandas as pd
 import argparse
 from pathlib import Path
 
-
-RAW_DATA_DIR  =  Path("experiments/lhs-sampling/data/raw")
-SPLIT_DATA_DIR =  Path("experiments/lhs-sampling/data/split")
+RAW_DATA_DIR=Path("experiments/lhs-sampling/data/raw")
+SPLIT_DATA_DIR=Path("experiments/lhs-sampling/data/split")
 # SPLIT DATASET BY PARAMETER SET (RANDOM, NO STRATIFICATION)
 
 
-def split_dataset(dataset,
-                  train_ratio=0.70,
-                  val_ratio=0.15,
-                  test_ratio=0.15,
-                  seed=42):
-
+def split_dataset(dataset,train_ratio=0.70,val_ratio=0.15,test_ratio=0.15,seed=42):
     """
     Split dataset by PARAMETER SET.
 

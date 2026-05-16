@@ -27,8 +27,8 @@ DATA_DIR = Path("experiments/lhs-sampling/data/raw")
 # GLOBAL SETTINGS
 N = 100000
 m = 10
-n_timepoints = 80
-tmax = 80
+n_timepoints = 250
+tmax = 250
 n_replicates = 1
 n_samples = 4000
 PARAM_NAMES = ['tau','gamma','rho']

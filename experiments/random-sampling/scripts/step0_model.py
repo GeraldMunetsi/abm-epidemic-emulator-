@@ -6,9 +6,9 @@ import torch.nn.functional as F
 import numpy as np
 from scipy.interpolate import BSpline
 
-timepoints=80
+timepoints=250
 N=100000
-knots=8
+knots=7
 class StandardRFF(nn.Module):
     def __init__(self, n_params=3, n_fourier=64, sigma=1.0):
         super().__init__()

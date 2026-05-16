@@ -17,8 +17,8 @@ DATA_DIR = Path("experiments/random-sampling/data/raw")
 N = 100000
 m = 10
 
-n_timepoints = 80
-tmax = 80
+n_timepoints = 250
+tmax = 250
 n_replicates= 1
 n_samples = 4000
 
@@ -30,7 +30,7 @@ PARAM_RANGES = {
     'rho':(0.001,0.01)
 }
 
-seed = 4849
+seed = 42
 
 # NETWORK STATISTICS
 

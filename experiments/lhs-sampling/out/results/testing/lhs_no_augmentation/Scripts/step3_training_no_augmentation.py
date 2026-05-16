@@ -17,9 +17,9 @@ from utils import create_dataloaders, compute_metrics, get_device, EarlyStopping
 DATA_DIR = Path("experiments/lhs-sampling/data/split")
 MODEL_DIR= Path("experiments/lhs-sampling/out/results/testing/lhs_no_augmentation/trained models")
 
-n_timepoints=80
+n_timepoints=250
 N=100000
-knots=8
+knots=7
 n_replicates=10
 
 
@@ -33,7 +33,6 @@ def compute_balanced_loss(predictions, targets, device, weight_mode='balanced'):
     S_pred = predictions[:, :, 0]
     I_pred = predictions[:, :, 1]
     R_pred = predictions[:, :, 2]
-
     S_true = targets[:, :, 0]
     I_true = targets[:, :, 1]
     R_true = targets[:, :, 2]
@@ -42,13 +41,12 @@ def compute_balanced_loss(predictions, targets, device, weight_mode='balanced'):
     S_n = S_pred / N;  S_t = S_true / N   
     I_n = I_pred / N;  I_t = I_true / N   
     R_n = R_pred / N;  R_t = R_true / N
-
     loss_S = (S_n - S_t).pow(2).mean()
     loss_I = (I_n - I_t).pow(2).mean()
     loss_R = (R_n - R_t).pow(2).mean()
     loss_R=0
     total_loss = loss_S + 100*loss_I           
-
+    
     return total_loss, loss_S, loss_I, loss_R
 
 
@@ -497,7 +495,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(
         description="Train replicate SIR emulators — 3 parameters (tau, gamma, rho)"
     )
-    parser.add_argument('--input',type=str,default=DATA_DIR /'epidemic_data_age_adaptive_sobol_split_augmented.pkl')
+    parser.add_argument('--input',type=str,default=DATA_DIR /'epidemic_data_age_adaptive_sobol_split.pkl')
     parser.add_argument('--output_dir',type=str,default=MODEL_DIR)
     parser.add_argument('--n_replicates',type=int,default=n_replicates)
     parser.add_argument('--seeds',type=str,default=None)

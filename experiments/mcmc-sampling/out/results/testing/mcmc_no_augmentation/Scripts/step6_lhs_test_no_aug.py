@@ -7,14 +7,13 @@ from pathlib import Path
 import json
 import pandas as pd
 from scipy import stats
-
 from step0_model import create_hybrid_mlp_model
 from utils  import create_dataloaders, compute_metrics, get_device, \
                          PARAM_MINS, PARAM_MAXS
 
 N=100000
 n_knots=7
-n_timepoints=80
+n_timepoints=250
 
 # I/O PATHS 
 MODELS_DIR = Path("experiments/mcmc-sampling/out/results/testing/mcmc_no_augmentation/trained models")

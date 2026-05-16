@@ -28,8 +28,8 @@ OUTPUT_CSV = DATA_DIR /"epidemic_data_age_adaptive_sobol.csv"
 N = 100000              # network size
 m = 10                      # Barabasi–Albert attachment parameter
 
-tmax=80
-n_timepoints=80
+tmax=200
+n_timepoints=200
 initial_samples=10000  # initial Sobol samples #500
 sigma = 1.0      # width of R0 target distribution
 n_replicates=1  # replicates of parameter sets 

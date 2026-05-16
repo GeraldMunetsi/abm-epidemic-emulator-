@@ -40,7 +40,6 @@ class SIRAugmenter:
             sims.append(self.augment_compartments(sim))
         return sims
 
-        
 
     def augment_params(self, sim):
         sim_new = deepcopy(sim)
@@ -78,9 +77,7 @@ class SIRAugmenter:
 # Apply augmentation
     
 def augment_train_split(split_data, augmenter):
-
     augmented = deepcopy(split_data)
-
     original = split_data["train"]["simulations"]
     new_sims = []
 

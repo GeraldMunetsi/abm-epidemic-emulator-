@@ -13,8 +13,8 @@ from utils  import create_dataloaders, compute_metrics, get_device, \
                          PARAM_MINS, PARAM_MAXS
 
 N=100000
-n_knots=8
-n_timepoints=80
+n_knots=7
+n_timepoints=250
 
 #I/O PATHS 
 MODELS_DIR = Path("experiments/lhs-sampling/out/trained-models")

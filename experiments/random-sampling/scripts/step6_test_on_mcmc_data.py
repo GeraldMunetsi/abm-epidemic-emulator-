@@ -7,13 +7,12 @@ from pathlib import Path
 import json
 import pandas as pd
 from scipy import stats
-
 from step0_model import create_hybrid_mlp_model
 from utils  import create_dataloaders, compute_metrics, get_device, \
                          PARAM_MINS, PARAM_MAXS
 N=100000
-n_knots=8
-n_timepoints=80
+n_knots=7
+n_timepoints=250
 # FIXED I/O PATHS 
 MODELS_DIR= Path("experiments/random-sampling/out/trained models")
 TEST_DATA_DIR= Path("experiments/mcmc-sampling/data/split")
@@ -445,18 +444,12 @@ def save_results(results_list, stats_dict, output_dir):
 
 # ENTRY POINT
 if __name__ == "__main__":
-
-    parser = argparse.ArgumentParser(
-        description="Final test evaluation "
-    )
+    parser = argparse.ArgumentParser(description="Final test evaluation ")
     parser.add_argument('--models_dir', type=str, default=str(MODELS_DIR))
-    parser.add_argument('--data',       type=str,
-                        default=str(TEST_DATA_DIR /
-                                    'epidemic_data_age_adaptive_sobol_split.pkl'))
+    parser.add_argument('--data', type=str,default=str(TEST_DATA_DIR /'epidemic_data_age_adaptive_sobol_split.pkl'))
     parser.add_argument('--output_dir', type=str, default=str(RESULTS_DIR))
     parser.add_argument('--plots_dir',  type=str, default=str(PLOTS_DIR))
-    parser.add_argument('--n_samples',  type=int, default=16,
-                        help='Trajectory samples to plot')
+    parser.add_argument('--n_samples',  type=int, default=16,help='Trajectory samples to plot')
     parser.add_argument('--batch_size', type=int, default=35)
     args = parser.parse_args()
     results_dir=Path(args.output_dir)
@@ -467,7 +460,6 @@ if __name__ == "__main__":
     print(f"Data : {args.data}")
     print(f"Results : {results_dir.resolve()}")
     print(f"Plots: {plots_dir.resolve()}")
-
     device = get_device()
 
     # Load test set

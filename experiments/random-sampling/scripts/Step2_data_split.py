@@ -4,19 +4,11 @@ import pandas as pd
 import argparse
 from pathlib import Path
 
-#PROJECT_ROOT = Path(__file__).resolve().parent
 RAW_DATA_DIR  =  Path("experiments/random-sampling/data/raw")
 SPLIT_DATA_DIR =  Path("experiments/random-sampling/data/split")
 
-
-# SPLIT DATASET BY PARAMETER SET (RANDOM, NO STRATIFICATION)
-
-
-def split_dataset(dataset,
-                  train_ratio=0.70,
-                  val_ratio=0.15,
-                  test_ratio=0.15,
-                  seed=42):
+# SPLIT DATASET  
+def split_dataset(dataset,train_ratio=0.70,val_ratio=0.15,test_ratio=0.15,seed=42):
 
     """
     Split dataset by PARAMETER SET.
@@ -57,17 +49,14 @@ def split_dataset(dataset,
     n_param_sets = len(param_keys)
 
     print("\nDataset summary")
-    print("----------------------")
+
     print(f"Total simulations: {len(sims)}")
     print(f"Unique parameter sets: {n_param_sets}")
     print(f"Average replicates per set: {len(sims)/n_param_sets:.2f}")
 
   
     # Step 2: Random shuffle parameter sets
-   
-
     perm = rng.permutation(n_param_sets)
-
     n_train = int(n_param_sets * train_ratio)
     n_val   = int(n_param_sets * val_ratio)
 
@@ -77,12 +66,9 @@ def split_dataset(dataset,
 
   
     # Step 3: Collect simulations for each split
-  
 
     def collect_simulations(param_indices):
-
         sim_indices = []
-
         for pi in param_indices:
             sim_indices.extend(param_to_indices[param_keys[pi]])
 

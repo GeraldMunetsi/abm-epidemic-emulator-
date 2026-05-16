@@ -18,18 +18,16 @@ from utils import create_dataloaders, compute_metrics, get_device, EarlyStopping
 DATA_DIR  = Path("experiments/random-sampling/data/split")
 MODEL_DIR = Path("experiments/random-sampling/out/results/uniform_random_no_augmentation/trained models")
 
-n_timepoints=80
+n_timepoints=250    
 N =100000
-knots=8
+knots=7
 n_replicates=10
-
 
 def set_seed(seed):
     """Fix all random seeds for reproducibility."""
     torch.manual_seed(seed)
     torch.cuda.manual_seed_all(seed)
     np.random.seed(seed)
-
 
 def compute_balanced_loss(predictions, targets, device, weight_mode='balanced'):
     S_pred = predictions[:, :, 0]
@@ -55,9 +53,8 @@ def compute_balanced_loss(predictions, targets, device, weight_mode='balanced'):
 
 
 # TRAIN / VALIDATE ONE EPOCH
-def train_epoch_balanced(model, train_loader, optimizer, device, n_timesteps,
-                         weight_mode='modest'):
-    """One training epoch — no graph_stats, no dummy tensors."""
+def train_epoch_balanced(model, train_loader, optimizer, device, n_timesteps,weight_mode='modest'):
+    """One training epoch."""
     model.train()
 
     total_loss = total_loss_S = total_loss_I = total_loss_R = 0.0
@@ -70,39 +67,31 @@ def train_epoch_balanced(model, train_loader, optimizer, device, n_timesteps,
         #  Forward pass 
         predictions = model(batch, n_timesteps=n_timesteps)
         targets= batch.y
-
-        loss, loss_S, loss_I, loss_R = compute_balanced_loss(
-            predictions, targets, device, weight_mode
-        )
+        loss, loss_S, loss_I, loss_R = compute_balanced_loss(predictions, targets, device, weight_mode)
         loss_R=0.0 # R=N-S-I by conservation,
         loss.backward()
         torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=1.0)
         optimizer.step()
-
         total_loss += loss.item()
         total_loss_S += loss_S.item()
         total_loss_I += loss_I.item()
         total_loss_R += loss_R
-
         all_predictions.append(predictions.detach().cpu())
         all_targets.append(targets.detach().cpu())
 
     predictions= torch.cat(all_predictions,dim=0)
     targets= torch.cat(all_targets,dim=0)
     metrics= compute_metrics(predictions, targets)
-
-    n_batches       = len(train_loader)
+    n_batches = len(train_loader)
     metrics['loss_S'] = total_loss_S / n_batches
     metrics['loss_I'] = total_loss_I / n_batches
     metrics['loss_R'] = total_loss_R / n_batches
 
     return total_loss / n_batches, metrics
 
-
 def validate_balanced(model, val_loader, device, n_timesteps, weight_mode='modest'):
-    """One validation pass — no graph_stats."""
+    """One validation pass """
     model.eval()
-
     total_loss = 0.0
     all_predictions, all_targets = [], []
 
@@ -115,7 +104,6 @@ def validate_balanced(model, val_loader, device, n_timesteps, weight_mode='modes
             targets= batch.y
 
             loss, *_= compute_balanced_loss(predictions, targets, device, weight_mode)
-
             total_loss += loss.item()
             all_predictions.append(predictions.cpu())
             all_targets.append(targets.cpu())
@@ -130,15 +118,7 @@ def validate_balanced(model, val_loader, device, n_timesteps, weight_mode='modes
 # SINGLE REPLICATE TRAINING
 
 
-def train_single_replicate(
-    replicate_id,
-    seed,
-    config,
-    dataloaders,
-    output_dir,
-    weight_mode='modest',
-    verbose=True,
-):
+def train_single_replicate(replicate_id,seed,config,dataloaders,output_dir,weight_mode='modest',verbose=True,):
     """
     Train one replicate with a given seed.
 
@@ -185,9 +165,7 @@ def train_single_replicate(
         print(f"temporal_decoder: {comp['temporal_decoder']:,}")
 
     # Optimiser & scheduler ─
-    optimizer = optim.AdamW(
-        model.parameters(),
-        lr=config['lr'],
+    optimizer = optim.AdamW(model.parameters(), lr=config['lr'],
         weight_decay=config['weight_decay'],
     )
     scheduler = optim.lr_scheduler.CosineAnnealingLR(
@@ -496,15 +474,12 @@ def plot_replicates_comparison(all_results, all_histories, output_dir):
 
 # ENTRY POINT
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(
-        description="Train replicate SIR emulators"
-    )
+    parser = argparse.ArgumentParser(description="NNE")
     parser.add_argument('--input',type=str,default=DATA_DIR /'epidemic_data_age_adaptive_sobol_split.pkl')
     parser.add_argument('--output_dir',type=str,default=MODEL_DIR)
     parser.add_argument('--n_replicates',type=int,default=n_replicates)
     parser.add_argument('--seeds',type=str,default=None)
-    parser.add_argument('--weight_mode',type=str,default='modest',
-                         choices=['equal','modest','balanced'])
+    parser.add_argument('--weight_mode',type=str,default='modest',choices=['equal','modest','balanced'])
     parser.add_argument('--epochs',type=int,default=100) #50
     parser.add_argument('--batch_size',type=int,default=35) #30
     parser.add_argument('--lr',type=float,default=0.00005) #1e-3
@@ -538,7 +513,6 @@ if __name__ == "__main__":
 
     
     print(" SIR NNE ")
-  
     print(f"\nOutput dir:{args.output_dir}")
     print(f"Replicates:{args.n_replicates}")
     print(f"Epochs/rep:{args.epochs}")
@@ -578,5 +552,4 @@ if __name__ == "__main__":
     print(f"  Mean MAE_I : {stats_dict['best_val_mae_i']['mean']:.2f}"
           f" ± {stats_dict['best_val_mae_i']['std']:.2f}")
     print(f"CV:{stats_dict['best_val_mae_i']['cv']:.2f}%")
-    print(f"\n Validate: python step4_validate_SIR3param.py --models_dir {args.output_dir}")
-    print(f"Test:python step5_test_SIR3param.py --models_dir {args.output_dir}")
+  

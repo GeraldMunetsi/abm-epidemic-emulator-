@@ -14,7 +14,7 @@ from utils  import create_dataloaders, compute_metrics, get_device, \
 
 N=100000
 n_knots=7
-n_timepoints=80
+n_timepoints=250
 
 #I/O PATHS 
 MODELS_DIR = Path("experiments/mcmc-sampling/out/results/testing/mcmc_no_augmentation/trained models")

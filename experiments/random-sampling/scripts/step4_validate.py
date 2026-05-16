@@ -10,7 +10,7 @@ from matplotlib.gridspec import GridSpec
 from step0_model import create_hybrid_mlp_model          
 from utils import create_dataloaders, compute_metrics, get_device, PARAM_MINS, PARAM_MAXS
 
-n_timepoints = 80
+n_timepoints = 250
 N=100000
 knots=7
 

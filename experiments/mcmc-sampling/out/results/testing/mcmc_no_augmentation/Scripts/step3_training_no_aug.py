@@ -18,10 +18,10 @@ from utils import create_dataloaders, compute_metrics, get_device, EarlyStopping
 DATA_DIR  = Path("experiments/mcmc-sampling/data/split")
 MODEL_DIR = Path("experiments/mcmc-sampling/out/results/testing/mcmc_no_augmentation/trained models")
 
-n_timepoints=80
+n_timepoints=250
 N =100000
 knots=7
-n_replicates=5
+n_replicates=10
 
 
 def set_seed(seed):
@@ -496,15 +496,12 @@ def plot_replicates_comparison(all_results, all_histories, output_dir):
 
 # ENTRY POINT
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(
-        description="Train replicate SIR emulators — 3 parameters (tau, gamma, rho)"
-    )
+    parser = argparse.ArgumentParser(description="NNE")
     parser.add_argument('--input',type=str,default=DATA_DIR /'epidemic_data_age_adaptive_sobol_split.pkl')
     parser.add_argument('--output_dir',type=str,default=MODEL_DIR)
     parser.add_argument('--n_replicates',type=int,default=n_replicates)
     parser.add_argument('--seeds',type=str,default=None)
-    parser.add_argument('--weight_mode',type=str,default='modest',
-                         choices=['equal','modest','balanced'])
+    parser.add_argument('--weight_mode',type=str,default='modest',choices=['equal','modest','balanced'])
     parser.add_argument('--epochs',type=int,default=100 ) #50
     parser.add_argument('--batch_size',type=int,default=35) #30
     parser.add_argument('--lr',type=float,default=0.00005) #1e-3

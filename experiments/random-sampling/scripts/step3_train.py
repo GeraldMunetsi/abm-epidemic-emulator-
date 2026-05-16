@@ -16,16 +16,15 @@ from utils import create_dataloaders, compute_metrics, get_device, EarlyStopping
 
 DATA_DIR = Path("experiments/random-sampling/data/augmented")
 MODEL_DIR= Path("experiments/random-sampling/out/trained models")
-n_timepoints=80
+n_timepoints=250
 N =100000
-knots=8
+knots=7
 n_replicates=10
 
 def set_seed(seed):
     torch.manual_seed(seed)
     torch.cuda.manual_seed_all(seed)
     np.random.seed(seed)
-
 
 def compute_balanced_loss(predictions, targets, device, weight_mode='balanced'):
     S_pred = predictions[:, :, 0]
@@ -87,7 +86,7 @@ def train_epoch_balanced(model, train_loader, optimizer, device, n_timesteps,
     targets= torch.cat(all_targets,dim=0)
     metrics= compute_metrics(predictions, targets)
 
-    n_batches       = len(train_loader)
+    n_batches= len(train_loader)
     metrics['loss_S'] = total_loss_S / n_batches
     metrics['loss_I'] = total_loss_I / n_batches
     metrics['loss_R'] = total_loss_R / n_batches
@@ -156,7 +155,6 @@ def train_single_replicate(
     model_path= output_dir / model_filename
     history_filename= f'training_history_{replicate_id}.npy'
     history_path = output_dir / history_filename
-
     train_loader=dataloaders['train']
     val_loader=dataloaders['val']
     n_timesteps=dataloaders['metadata']['n_timepoints']
@@ -487,15 +485,12 @@ def plot_replicates_comparison(all_results, all_histories, output_dir):
 
 # ENTRY POINT
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(
-        description="Train replicate SIR emulators — 3 parameters (tau, gamma, rho)"
-    )
+    parser = argparse.ArgumentParser(description="NNE")
     parser.add_argument('--input',type=str,default=DATA_DIR /'epidemic_data_age_adaptive_sobol_split_augmented.pkl')
     parser.add_argument('--output_dir',type=str,default=MODEL_DIR)
     parser.add_argument('--n_replicates',type=int,default=n_replicates)
     parser.add_argument('--seeds',type=str,default=None)
-    parser.add_argument('--weight_mode',type=str,default='modest',
-                         choices=['equal','modest','balanced'])
+    parser.add_argument('--weight_mode',type=str,default='modest',choices=['equal','modest','balanced'])
     parser.add_argument('--epochs',type=int,default=100) #50
     parser.add_argument('--batch_size',type=int,default=35) #30
     parser.add_argument('--lr',type=float,default=0.00005) #1e-3

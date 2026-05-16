@@ -24,11 +24,11 @@ OUTPUT_PKL = DATA_DIR /"epidemic_data_age_adaptive_sobol.pkl"
 OUTPUT_CSV = DATA_DIR /"epidemic_data_age_adaptive_sobol.csv"
 
 # PARAMETERS
-N = 100000              # network size
-m = 10                      # Barabasi–Albert attachment parameter
+N=100000              # network size
+m=10                      # Barabasi–Albert attachment parameter
 
-tmax=80
-n_timepoints=80
+tmax=250
+n_timepoints=250
 initial_samples=10000  # initial Sobol samples #500
 sigma = 1.0     # width of R0 target distribution
 n_replicates=1  # replicates of parameter sets 
@@ -73,9 +73,9 @@ def compute_R0(samples,ratio):
 with pm.Model() as model:
     
     # Priors: Uniform over plausible ranges
-    tau   = pm.Uniform("tau", lower=PARAM_RANGES['tau'][0], upper=PARAM_RANGES['tau'][1])
-    gamma = pm.Uniform("gamma", lower=PARAM_RANGES['gamma'][0], upper=PARAM_RANGES['gamma'][1])
-    rho   = pm.Uniform("rho", lower=PARAM_RANGES['rho'][0], upper=PARAM_RANGES['rho'][1])
+    tau= pm.Uniform("tau", lower=PARAM_RANGES['tau'][0], upper=PARAM_RANGES['tau'][1])
+    gamma= pm.Uniform("gamma", lower=PARAM_RANGES['gamma'][0], upper=PARAM_RANGES['gamma'][1])
+    rho = pm.Uniform("rho", lower=PARAM_RANGES['rho'][0], upper=PARAM_RANGES['rho'][1])
 
     # Compute R0 deterministically
     R0 = pm.Deterministic("R0", (tau / gamma) * ratio)
