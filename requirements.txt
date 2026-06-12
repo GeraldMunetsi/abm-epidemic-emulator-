@@ -15,6 +15,8 @@ torchvision==0.25.0
 
 # ── Machine learning utilities ───────────────────────────────
 scikit-learn==1.7.2
+statsmodels==0.14.6
+patsy==1.0.2
 
 # ── Epidemic network modelling ───────────────────────────────
 EoN==1.2

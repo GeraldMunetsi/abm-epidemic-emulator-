@@ -1,0 +1,55 @@
+----------------------------------------------------------------------
+FINAL TEST RESULTS
+
+  Replicates : 10
+  Test samples : 600
+  Mean peak I  : 12,054.6 counts (ground truth)
+
+----------------------------------------------------------------------
+OVERALL PERFORMANCE
+
+  R²: 0.9814 ± 0.0010
+  95%CI: [0.9808, 0.9821]
+
+  MAE: 3167.17 ± 100.78
+  RMSE: 4967.74 ± 129.53
+
+----------------------------------------------------------------------
+PER-COMPARTMENT MAE (absolute counts)
+
+  MAE_S : 4477.90 ± 149.03
+  MAE_I : 581.01 ± 9.82 : key metric
+  95% CI: [574.35, 587.67]
+  CV   : 1.6%
+  MAE_R : 4442.59 ± 149.69
+
+----------------------------------------------------------------------
+RELATIVE MAE_I  (per-sample MAE_I / peak_I, then averaged)
+
+  Mean peak I  : 12,054.6  (ground truth, test set)
+  Relative MAE : 10.88% ± 0.57%
+  95%CI        : [10.49%, 11.26%]
+  Interpretation : for the average epidemic in the test set,
+  the emulator's I(t) prediction is 10.9% away from
+  the true peak — regardless of epidemic size.
+
+----------------------------------------------------------------------
+PERFORMANCE ASSESSMENT
+
+  Level: GOOD  (based on relative MAE_I = 10.9%)
+  Consistency : EXCELLENT (CV < 5%)
+
+----------------------------------------------------------------------
+REPORT
+
+"The SIR NNE achieved a test set MAE_I of 581 counts (574-588,
+95% CI, n=10 replicates), corresponding to 10.9% of the mean ground-truth peak infected count
+(12,055 individuals)
+The R² of the Susceptibles, Infectious and Recovered is 0.964, 0.929, 0.961 respectively
+There confidence intervals are [0.963 0.966],[0.928 0.931] and [0.96  0.963] respectively.
+0.0010. Replicate consistency was excellent (cv < 5%),
+with coefficient of variation 1.6%
+across random initialisations. The relative MAE_I of 10.9%
+(95% CI [10.5%, 11.3%]) provides a scale-invariant
+measure of accuracy that is directly comparable across epidemic regimes
+with different outbreak sizes."

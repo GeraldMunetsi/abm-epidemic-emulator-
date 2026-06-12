@@ -1,0 +1,169 @@
+
+----------------------------------------------------------------------
+STEP 5: TEST : LHS→LHS  aug=1
+
+  Models: C:\Users\gmm71\OneDrive - University of Cambridge\Documents\Emulation models\abm-epidemic-emulator\experiments\runs\models\LHS_aug
+Data : C:\Users\gmm71\OneDrive - University of Cambridge\Documents\Emulation models\abm-epidemic-emulator\experiments\lhs-sampling\data\split\epidemic_data_age_adaptive_sobol_split.pkl
+Results : C:\Users\gmm71\OneDrive - University of Cambridge\Documents\Emulation models\abm-epidemic-emulator\experiments\runs\results\LHS_aug_eval_LHS
+Plots: C:\Users\gmm71\OneDrive - University of Cambridge\Documents\Emulation models\abm-epidemic-emulator\experiments\runs\results\LHS_aug_eval_LHS\plots
+ Using CPU 
+
+Loading test data: C:\Users\gmm71\OneDrive - University of Cambridge\Documents\Emulation models\abm-epidemic-emulator\experiments\lhs-sampling\data\split\epidemic_data_age_adaptive_sobol_split.pkl
+
+Loading dataset : C:\Users\gmm71\OneDrive - University of Cambridge\Documents\Emulation models\abm-epidemic-emulator\experiments\lhs-sampling\data\split\epidemic_data_age_adaptive_sobol_split.pkl
+  n_timepoints  : 250
+  Train=2800, Val=600, Test=600
+Test samples : 600
+n_timepoints : 250
+N: 100,000
+
+----------------------------------------------------------------------
+TEST EVALUATION·10 REPLICATE(S)
+Replicate 1/10 : best_balanced_mlp_model_1.pt
+  best_balanced_mlp_model_1.pt  epoch=20  val R²=0.9843  N=100,000
+  MAE_I :561.52:key metric
+  R²_I:0.9306
+
+Evaluated 1 replicate(s)
+Replicate 2/10 : best_balanced_mlp_model_2.pt
+  best_balanced_mlp_model_2.pt  epoch=20  val R²=0.9842  N=100,000
+  MAE_I :566.36:key metric
+  R²_I:0.9264
+
+Evaluated 2 replicate(s)
+Replicate 3/10 : best_balanced_mlp_model_3.pt
+  best_balanced_mlp_model_3.pt  epoch=20  val R²=0.9830  N=100,000
+  MAE_I :589.04:key metric
+  R²_I:0.9246
+
+Evaluated 3 replicate(s)
+Replicate 4/10 : best_balanced_mlp_model_4.pt
+  best_balanced_mlp_model_4.pt  epoch=20  val R²=0.9843  N=100,000
+  MAE_I :567.31:key metric
+  R²_I:0.9307
+
+Evaluated 4 replicate(s)
+Replicate 5/10 : best_balanced_mlp_model_5.pt
+  best_balanced_mlp_model_5.pt  epoch=20  val R²=0.9834  N=100,000
+  MAE_I :582.14:key metric
+  R²_I:0.9233
+
+Evaluated 5 replicate(s)
+Replicate 6/10 : best_balanced_mlp_model_6.pt
+  best_balanced_mlp_model_6.pt  epoch=20  val R²=0.9818  N=100,000
+  MAE_I :583.08:key metric
+  R²_I:0.9245
+
+Evaluated 6 replicate(s)
+Replicate 7/10 : best_balanced_mlp_model_7.pt
+  best_balanced_mlp_model_7.pt  epoch=20  val R²=0.9818  N=100,000
+  MAE_I :587.46:key metric
+  R²_I:0.9264
+
+Evaluated 7 replicate(s)
+Replicate 8/10 : best_balanced_mlp_model_8.pt
+  best_balanced_mlp_model_8.pt  epoch=20  val R²=0.9818  N=100,000
+  MAE_I :594.58:key metric
+  R²_I:0.9231
+
+Evaluated 8 replicate(s)
+Replicate 9/10 : best_balanced_mlp_model_9.pt
+  best_balanced_mlp_model_9.pt  epoch=20  val R²=0.9842  N=100,000
+  MAE_I :575.32:key metric
+  R²_I:0.9266
+
+Evaluated 9 replicate(s)
+Replicate 10/10 : best_balanced_mlp_model_10.pt
+  best_balanced_mlp_model_10.pt  epoch=20  val R²=0.9842  N=100,000
+  MAE_I :553.20:key metric
+  R²_I:0.9313
+
+Evaluated 10 replicate(s)
+
+  Mean peak I (ground truth) : 12,054.6
+  Absolute MAE_I: 576.00 ± 13.47
+  Relative MAE_I: 10.88% ± 0.70%  (per-sample, then averaged)
+
+  Replicate dataframe: 10 rows × 20 columns
+ replicate_id train_strategy test_strategy  augmentation  in_domain  n_train_simulations  relative_MAE_I  absolute_MAE_I     R2_I
+            1            LHS           LHS             1          0                 8400         10.0633        561.5234 0.930612
+            2            LHS           LHS             1          0                 8400         10.0581        566.3616 0.926385
+            3            LHS           LHS             1          0                 8400         10.7449        589.0378 0.924621
+            4            LHS           LHS             1          0                 8400         10.8328        567.3120 0.930661
+            5            LHS           LHS             1          0                 8400         11.3404        582.1393 0.923270
+            6            LHS           LHS             1          0                 8400         11.6134        583.0752 0.924482
+            7            LHS           LHS             1          0                 8400         12.1442        587.4633 0.926449
+            8            LHS           LHS             1          0                 8400         11.2706        594.5820 0.923090
+            9            LHS           LHS             1          0                 8400         10.2122        575.3234 0.926616
+           10            LHS           LHS             1          0                 8400         10.4805        553.2017 0.931292
+
+Saved replicate dataframe → C:\Users\gmm71\OneDrive - University of Cambridge\Documents\Emulation models\abm-epidemic-emulator\experiments\runs\results\LHS_aug_eval_LHS\test_replicate_results_LHS_to_LHS_aug1.csv
+Saved: C:\Users\gmm71\OneDrive - University of Cambridge\Documents\Emulation models\abm-epidemic-emulator\experiments\runs\results\LHS_aug_eval_LHS\plots\test_comparison_plots.png
+Total test samples: 600
+Saved: C:\Users\gmm71\OneDrive - University of Cambridge\Documents\Emulation models\abm-epidemic-emulator\experiments\runs\results\LHS_aug_eval_LHS\plots\test_infected_predictions.png
+Saved: C:\Users\gmm71\OneDrive - University of Cambridge\Documents\Emulation models\abm-epidemic-emulator\experiments\runs\results\LHS_aug_eval_LHS\plots\test_relative_mae_distribution.png
+Saved: C:\Users\gmm71\OneDrive - University of Cambridge\Documents\Emulation models\abm-epidemic-emulator\experiments\runs\results\LHS_aug_eval_LHS\test_replicate_results.csv
+Saved: C:\Users\gmm71\OneDrive - University of Cambridge\Documents\Emulation models\abm-epidemic-emulator\experiments\runs\results\LHS_aug_eval_LHS\test_final_statistics.json
+  Rel_MAE_I:10.8760
+
+Saved: C:\Users\gmm71\OneDrive - University of Cambridge\Documents\Emulation models\abm-epidemic-emulator\experiments\runs\results\LHS_aug_eval_LHS\report.txt
+
+----------------------------------------------------------------------
+FINAL TEST RESULTS
+
+  Replicates : 10
+  Test samples : 600
+  Mean peak I  : 12,054.6 counts (ground truth)
+
+----------------------------------------------------------------------
+OVERALL PERFORMANCE
+
+  R²: 0.9828 ± 0.0008
+  95%CI: [0.9822, 0.9833]
+
+  MAE: 2988.67 ± 89.37
+  RMSE: 4784.16 ± 116.66
+
+----------------------------------------------------------------------
+PER-COMPARTMENT MAE (absolute counts)
+
+  MAE_S : 4216.84 ± 125.61
+  MAE_I : 576.00 ± 13.47 : key metric
+  95% CI: [566.86, 585.14]
+  CV   : 2.2%
+  MAE_R : 4173.17 ± 134.26
+
+----------------------------------------------------------------------
+RELATIVE MAE_I  (per-sample MAE_I / peak_I, then averaged)
+
+  Mean peak I  : 12,054.6  (ground truth, test set)
+  Relative MAE : 10.88% ± 0.70%
+  95%CI        : [10.40%, 11.35%]
+  Interpretation : for the average epidemic in the test set,
+  the emulator's I(t) prediction is 10.9% away from
+  the true peak — regardless of epidemic size.
+
+----------------------------------------------------------------------
+PERFORMANCE ASSESSMENT
+
+  Level: GOOD  (based on relative MAE_I = 10.9%)
+  Consistency : EXCELLENT (CV < 5%)
+
+----------------------------------------------------------------------
+REPORT
+
+"The SIR NNE achieved a test set MAE_I of 576 counts (567-585,
+95% CI, n=10 replicates), corresponding to 10.9% of the mean ground-truth peak infected count
+(12,055 individuals)
+The R² of the Susceptibles, Infectious and Recovered is 0.967, 0.927, 0.964 respectively
+There confidence intervals are [0.966 0.968],[0.925 0.929] and [0.963 0.966] respectively.
+0.0008. Replicate consistency was excellent (cv < 5%),
+with coefficient of variation 2.2%
+across random initialisations. The relative MAE_I of 10.9%
+(95% CI [10.4%, 11.4%]) provides a scale-invariant
+measure of accuracy that is directly comparable across epidemic regimes
+with different outbreak sizes."
+
+  R²_I: 0.9267 ± 0.0031
+  Absolute MAE_I  : 576.00 ± 13.47
+  Relative MAE_I  : 10.88% ± 0.70%

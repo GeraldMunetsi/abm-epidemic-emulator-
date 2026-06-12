@@ -1,0 +1,71 @@
+STEP 4: VALIDATION 
+
+Models dir: C:\Users\gmm71\OneDrive - University of Cambridge\Documents\Emulation models\abm-epidemic-emulator\experiments\runs\models\MCMC_aug
+Data file: C:\Users\gmm71\OneDrive - University of Cambridge\Documents\Emulation models\abm-epidemic-emulator\experiments\mcmc-sampling\data\split\epidemic_data_age_adaptive_sobol_split.pkl
+Results dir : C:\Users\gmm71\OneDrive - University of Cambridge\Documents\Emulation models\abm-epidemic-emulator\experiments\runs\validation\MCMC_aug
+Plots dir: C:\Users\gmm71\OneDrive - University of Cambridge\Documents\Emulation models\abm-epidemic-emulator\experiments\runs\validation\MCMC_aug\plots
+Pattern: best_balanced_mlp_model_*.pt
+
+ Using CPU
+
+Loading data: C:\Users\gmm71\OneDrive - University of Cambridge\Documents\Emulation models\abm-epidemic-emulator\experiments\mcmc-sampling\data\split\epidemic_data_age_adaptive_sobol_split.pkl
+
+Loading dataset : C:\Users\gmm71\OneDrive - University of Cambridge\Documents\Emulation models\abm-epidemic-emulator\experiments\mcmc-sampling\data\split\epidemic_data_age_adaptive_sobol_split.pkl
+  n_timepoints  : 250
+  Train=2800, Val=600, Test=600
+Validation samples:600
+
+----------------------------------------------------------------------
+EVALUATING 10 REPLICATES
+Models directory : C:\Users\gmm71\OneDrive - University of Cambridge\Documents\Emulation models\abm-epidemic-emulator\experiments\runs\models\MCMC_aug
+  · best_balanced_mlp_model_1.pt
+  · best_balanced_mlp_model_2.pt
+  · best_balanced_mlp_model_3.pt
+  · best_balanced_mlp_model_4.pt
+  · best_balanced_mlp_model_5.pt
+  · best_balanced_mlp_model_6.pt
+  · best_balanced_mlp_model_7.pt
+  · best_balanced_mlp_model_8.pt
+  · best_balanced_mlp_model_9.pt
+  · best_balanced_mlp_model_10.pt
+
+Replicate 1/10: best_balanced_mlp_model_1.pt
+R² = 0.9951 | MAE_I = 157.30
+
+Replicate 2/10: best_balanced_mlp_model_2.pt
+R² = 0.9949 | MAE_I = 156.78
+
+Replicate 3/10: best_balanced_mlp_model_3.pt
+R² = 0.9938 | MAE_I = 163.59
+
+Replicate 4/10: best_balanced_mlp_model_4.pt
+R² = 0.9947 | MAE_I = 160.27
+
+Replicate 5/10: best_balanced_mlp_model_5.pt
+R² = 0.9935 | MAE_I = 178.76
+
+Replicate 6/10: best_balanced_mlp_model_6.pt
+R² = 0.9943 | MAE_I = 166.23
+
+Replicate 7/10: best_balanced_mlp_model_7.pt
+R² = 0.9946 | MAE_I = 163.81
+
+Replicate 8/10: best_balanced_mlp_model_8.pt
+R² = 0.9946 | MAE_I = 157.69
+
+Replicate 9/10: best_balanced_mlp_model_9.pt
+R² = 0.9945 | MAE_I = 169.44
+
+Replicate 10/10: best_balanced_mlp_model_10.pt
+R² = 0.9941 | MAE_I = 165.43
+
+AGGREGATE STATISTICS
+
+ Statistics over 10 replicate(s)
+Mean R²: 0.9944 ± 0.0005
+Mean MAE_I: 163.93 ± 6.71
+CV (MAE_I): 4.09%
+ Saved: C:\Users\gmm71\OneDrive - University of Cambridge\Documents\Emulation models\abm-epidemic-emulator\experiments\runs\validation\MCMC_aug\plots\training_curves_all_replicates.png
+Saved: C:\Users\gmm71\OneDrive - University of Cambridge\Documents\Emulation models\abm-epidemic-emulator\experiments\runs\validation\MCMC_aug\plots\training_curves.png
+Saved: C:\Users\gmm71\OneDrive - University of Cambridge\Documents\Emulation models\abm-epidemic-emulator\experiments\runs\validation\MCMC_aug\plots\training_curve_only.png
+ Saved: C:\Users\gmm71\OneDrive - University of Cambridge\Documents\Emulation models\abm-epidemic-emulator\experiments\runs\validation\MCMC_aug\plots\predictions_all_replicates.png

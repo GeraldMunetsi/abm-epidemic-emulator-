@@ -1,0 +1,368 @@
+ SIR NNE 
+
+Output dir:C:\Users\gmm71\OneDrive - University of Cambridge\Documents\Emulation models\abm-epidemic-emulator\experiments\runs\models\MCMC_noaug
+Replicates:10
+Epochs/rep:20
+Batch size:35
+Weight mode:modest
+
+Loading data:C:\Users\gmm71\OneDrive - University of Cambridge\Documents\Emulation models\abm-epidemic-emulator\experiments\mcmc-sampling\data\split\epidemic_data_age_adaptive_sobol_split.pkl
+
+Loading dataset : C:\Users\gmm71\OneDrive - University of Cambridge\Documents\Emulation models\abm-epidemic-emulator\experiments\mcmc-sampling\data\split\epidemic_data_age_adaptive_sobol_split.pkl
+  n_timepoints  : 250
+  Train=2800, Val=600, Test=600
+Train:2800
+Val:600
+TRAINING 10 REPLICATES 
+
+ All models> C:\Users\gmm71\OneDrive - University of Cambridge\Documents\Emulation models\abm-epidemic-emulator\experiments\runs\models\MCMC_noaug
+ Seeds: [42, 123, 456, 789, 1011, 1213, 1415, 1617, 1819, 2021]
+Loss mode: modest
+
+ Using CPU
+REPLICATE 1  (seed=42)
+Parameters: tau , gamma , rho 
+Saving to:best_balanced_mlp_model_1.pt
+Total parameters: 34,124
+rff_trainable: 0
+rff_frozen: 192
+fusion:25,024
+temporal_decoder: 9,100
+Epoch   1/20: Val R²_I=-55.1739, MAE_I=7598.31
+Epoch   2/20: Val R²_I=-10.7271, MAE_I=3329.75
+Epoch   4/20: Val R²_I=0.1619, MAE_I=411.12
+Epoch   6/20: Val R²_I=0.1508, MAE_I=314.77
+Epoch   8/20: Val R²_I=0.2288, MAE_I=316.62
+Epoch  10/20: Val R²_I=0.2977, MAE_I=306.71
+Epoch  12/20: Val R²_I=0.3450, MAE_I=294.40
+Epoch  14/20: Val R²_I=0.3760, MAE_I=287.76
+Epoch  16/20: Val R²_I=0.3938, MAE_I=286.63
+Epoch  18/20: Val R²_I=0.3989, MAE_I=282.85
+Epoch  20/20: Val R²_I=0.4016, MAE_I=281.52
+Best epoch : 20  |  Val R²_I: 0.4016  |  MAE: 3868.92
+Time: 59.1s (0.98 min)
+Saved: best_balanced_mlp_model_1.pt
+
+Progress:1/10 replicates done
+Mean R²: 0.4016
+Mean MAE_I: 281.52
+
+ Using CPU
+REPLICATE 2  (seed=123)
+Parameters: tau , gamma , rho 
+Saving to:best_balanced_mlp_model_2.pt
+Total parameters: 34,124
+rff_trainable: 0
+rff_frozen: 192
+fusion:25,024
+temporal_decoder: 9,100
+Epoch   1/20: Val R²_I=-67.7077, MAE_I=8308.42
+Epoch   2/20: Val R²_I=-11.4323, MAE_I=3349.40
+Epoch   4/20: Val R²_I=0.1404, MAE_I=473.23
+Epoch   6/20: Val R²_I=0.1589, MAE_I=334.56
+Epoch   8/20: Val R²_I=0.2481, MAE_I=344.49
+Epoch  10/20: Val R²_I=0.3205, MAE_I=325.93
+Epoch  12/20: Val R²_I=0.3655, MAE_I=304.56
+Epoch  14/20: Val R²_I=0.3898, MAE_I=286.80
+Epoch  16/20: Val R²_I=0.4046, MAE_I=279.14
+Epoch  18/20: Val R²_I=0.4105, MAE_I=274.61
+Epoch  20/20: Val R²_I=0.4131, MAE_I=273.80
+Best epoch : 20  |  Val R²_I: 0.4131  |  MAE: 3840.15
+Time: 57.0s (0.95 min)
+Saved: best_balanced_mlp_model_2.pt
+
+Progress:2/10 replicates done
+Mean R²: 0.4074
+Mean MAE_I: 277.66
+
+ Using CPU
+REPLICATE 3  (seed=456)
+Parameters: tau , gamma , rho 
+Saving to:best_balanced_mlp_model_3.pt
+Total parameters: 34,124
+rff_trainable: 0
+rff_frozen: 192
+fusion:25,024
+temporal_decoder: 9,100
+Epoch   1/20: Val R²_I=-45.3457, MAE_I=6850.79
+Epoch   2/20: Val R²_I=-7.7752, MAE_I=2823.60
+Epoch   4/20: Val R²_I=0.1440, MAE_I=473.34
+Epoch   6/20: Val R²_I=0.1810, MAE_I=364.97
+Epoch   8/20: Val R²_I=0.2375, MAE_I=370.14
+Epoch  10/20: Val R²_I=0.2948, MAE_I=362.49
+Epoch  12/20: Val R²_I=0.3328, MAE_I=345.03
+Epoch  14/20: Val R²_I=0.3580, MAE_I=337.22
+Epoch  16/20: Val R²_I=0.3687, MAE_I=331.43
+Epoch  18/20: Val R²_I=0.3724, MAE_I=330.90
+Epoch  20/20: Val R²_I=0.3751, MAE_I=327.56
+Best epoch : 20  |  Val R²_I: 0.3751  |  MAE: 4519.29
+Time: 57.0s (0.95 min)
+Saved: best_balanced_mlp_model_3.pt
+
+Progress:3/10 replicates done
+Mean R²: 0.3966
+Mean MAE_I: 294.29
+
+ Using CPU
+REPLICATE 4  (seed=789)
+Parameters: tau , gamma , rho 
+Saving to:best_balanced_mlp_model_4.pt
+Total parameters: 34,124
+rff_trainable: 0
+rff_frozen: 192
+fusion:25,024
+temporal_decoder: 9,100
+Epoch   1/20: Val R²_I=-63.5592, MAE_I=7783.46
+Epoch   2/20: Val R²_I=-18.0224, MAE_I=3930.29
+Epoch   4/20: Val R²_I=-0.2245, MAE_I=711.71
+Epoch   6/20: Val R²_I=0.1701, MAE_I=331.66
+Epoch   8/20: Val R²_I=0.1813, MAE_I=297.61
+Epoch  10/20: Val R²_I=0.2816, MAE_I=304.15
+Epoch  12/20: Val R²_I=0.3302, MAE_I=299.72
+Epoch  14/20: Val R²_I=0.3485, MAE_I=300.14
+Epoch  16/20: Val R²_I=0.3579, MAE_I=289.67
+Epoch  18/20: Val R²_I=0.3635, MAE_I=290.14
+Epoch  20/20: Val R²_I=0.3651, MAE_I=288.84
+Best epoch : 20  |  Val R²_I: 0.3651  |  MAE: 4717.64
+Time: 59.1s (0.98 min)
+Saved: best_balanced_mlp_model_4.pt
+
+Progress:4/10 replicates done
+Mean R²: 0.3887
+Mean MAE_I: 292.93
+
+ Using CPU
+REPLICATE 5  (seed=1011)
+Parameters: tau , gamma , rho 
+Saving to:best_balanced_mlp_model_5.pt
+Total parameters: 34,124
+rff_trainable: 0
+rff_frozen: 192
+fusion:25,024
+temporal_decoder: 9,100
+Epoch   1/20: Val R²_I=-68.3133, MAE_I=8440.69
+Epoch   2/20: Val R²_I=-14.2247, MAE_I=3815.52
+Epoch   4/20: Val R²_I=0.1439, MAE_I=504.56
+Epoch   6/20: Val R²_I=0.1858, MAE_I=381.10
+Epoch   8/20: Val R²_I=0.2493, MAE_I=384.56
+Epoch  10/20: Val R²_I=0.3112, MAE_I=366.15
+Epoch  12/20: Val R²_I=0.3555, MAE_I=338.87
+Epoch  14/20: Val R²_I=0.3811, MAE_I=317.25
+Epoch  16/20: Val R²_I=0.3955, MAE_I=311.56
+Epoch  18/20: Val R²_I=0.4017, MAE_I=307.05
+Epoch  20/20: Val R²_I=0.4039, MAE_I=305.07
+Best epoch : 20  |  Val R²_I: 0.4039  |  MAE: 4170.63
+Time: 59.1s (0.98 min)
+Saved: best_balanced_mlp_model_5.pt
+
+Progress:5/10 replicates done
+Mean R²: 0.3918
+Mean MAE_I: 295.36
+
+ Using CPU
+REPLICATE 6  (seed=1213)
+Parameters: tau , gamma , rho 
+Saving to:best_balanced_mlp_model_6.pt
+Total parameters: 34,124
+rff_trainable: 0
+rff_frozen: 192
+fusion:25,024
+temporal_decoder: 9,100
+Epoch   1/20: Val R²_I=-68.0035, MAE_I=8525.98
+Epoch   2/20: Val R²_I=-11.2326, MAE_I=3554.65
+Epoch   4/20: Val R²_I=0.1531, MAE_I=479.19
+Epoch   6/20: Val R²_I=0.1650, MAE_I=365.82
+Epoch   8/20: Val R²_I=0.2239, MAE_I=377.02
+Epoch  10/20: Val R²_I=0.2848, MAE_I=362.81
+Epoch  12/20: Val R²_I=0.3344, MAE_I=341.69
+Epoch  14/20: Val R²_I=0.3659, MAE_I=329.15
+Epoch  16/20: Val R²_I=0.3820, MAE_I=321.81
+Epoch  18/20: Val R²_I=0.3888, MAE_I=313.91
+Epoch  20/20: Val R²_I=0.3911, MAE_I=313.10
+Best epoch : 20  |  Val R²_I: 0.3911  |  MAE: 4391.77
+Time: 60.8s (1.01 min)
+Saved: best_balanced_mlp_model_6.pt
+
+Progress:6/10 replicates done
+Mean R²: 0.3917
+Mean MAE_I: 298.31
+
+ Using CPU
+REPLICATE 7  (seed=1415)
+Parameters: tau , gamma , rho 
+Saving to:best_balanced_mlp_model_7.pt
+Total parameters: 34,124
+rff_trainable: 0
+rff_frozen: 192
+fusion:25,024
+temporal_decoder: 9,100
+Epoch   1/20: Val R²_I=-90.5139, MAE_I=10117.17
+Epoch   2/20: Val R²_I=-13.6963, MAE_I=3987.98
+Epoch   4/20: Val R²_I=0.1619, MAE_I=471.91
+Epoch   6/20: Val R²_I=0.2003, MAE_I=384.31
+Epoch   8/20: Val R²_I=0.2617, MAE_I=386.70
+Epoch  10/20: Val R²_I=0.3251, MAE_I=377.56
+Epoch  12/20: Val R²_I=0.3648, MAE_I=354.81
+Epoch  14/20: Val R²_I=0.3955, MAE_I=337.81
+Epoch  16/20: Val R²_I=0.4083, MAE_I=326.94
+Epoch  18/20: Val R²_I=0.4165, MAE_I=321.67
+Epoch  20/20: Val R²_I=0.4196, MAE_I=320.37
+Best epoch : 20  |  Val R²_I: 0.4196  |  MAE: 3969.43
+Time: 59.4s (0.99 min)
+Saved: best_balanced_mlp_model_7.pt
+
+Progress:7/10 replicates done
+Mean R²: 0.3956
+Mean MAE_I: 301.46
+
+ Using CPU
+REPLICATE 8  (seed=1617)
+Parameters: tau , gamma , rho 
+Saving to:best_balanced_mlp_model_8.pt
+Total parameters: 34,124
+rff_trainable: 0
+rff_frozen: 192
+fusion:25,024
+temporal_decoder: 9,100
+Epoch   1/20: Val R²_I=-50.4606, MAE_I=6961.49
+Epoch   2/20: Val R²_I=-7.4494, MAE_I=2585.47
+Epoch   4/20: Val R²_I=0.1547, MAE_I=429.28
+Epoch   6/20: Val R²_I=0.1817, MAE_I=331.93
+Epoch   8/20: Val R²_I=0.2256, MAE_I=336.46
+Epoch  10/20: Val R²_I=0.2755, MAE_I=340.87
+Epoch  12/20: Val R²_I=0.3135, MAE_I=324.21
+Epoch  14/20: Val R²_I=0.3352, MAE_I=315.14
+Epoch  16/20: Val R²_I=0.3455, MAE_I=313.27
+Epoch  18/20: Val R²_I=0.3511, MAE_I=311.65
+Epoch  20/20: Val R²_I=0.3532, MAE_I=312.12
+Best epoch : 20  |  Val R²_I: 0.3532  |  MAE: 5112.24
+Time: 60.0s (1.00 min)
+Saved: best_balanced_mlp_model_8.pt
+
+Progress:8/10 replicates done
+Mean R²: 0.3903
+Mean MAE_I: 302.80
+
+ Using CPU
+REPLICATE 9  (seed=1819)
+Parameters: tau , gamma , rho 
+Saving to:best_balanced_mlp_model_9.pt
+Total parameters: 34,124
+rff_trainable: 0
+rff_frozen: 192
+fusion:25,024
+temporal_decoder: 9,100
+Epoch   1/20: Val R²_I=-75.8512, MAE_I=9163.48
+Epoch   2/20: Val R²_I=-11.9899, MAE_I=3748.05
+Epoch   4/20: Val R²_I=0.1412, MAE_I=457.42
+Epoch   6/20: Val R²_I=0.1302, MAE_I=335.21
+Epoch   8/20: Val R²_I=0.1743, MAE_I=346.73
+Epoch  10/20: Val R²_I=0.2283, MAE_I=353.86
+Epoch  12/20: Val R²_I=0.2668, MAE_I=337.13
+Epoch  14/20: Val R²_I=0.2970, MAE_I=326.28
+Epoch  16/20: Val R²_I=0.3162, MAE_I=326.33
+Epoch  18/20: Val R²_I=0.3242, MAE_I=322.42
+Epoch  20/20: Val R²_I=0.3277, MAE_I=322.97
+Best epoch : 20  |  Val R²_I: 0.3277  |  MAE: 4865.04
+Time: 59.6s (0.99 min)
+Saved: best_balanced_mlp_model_9.pt
+
+Progress:9/10 replicates done
+Mean R²: 0.3834
+Mean MAE_I: 305.04
+
+ Using CPU
+REPLICATE 10  (seed=2021)
+Parameters: tau , gamma , rho 
+Saving to:best_balanced_mlp_model_10.pt
+Total parameters: 34,124
+rff_trainable: 0
+rff_frozen: 192
+fusion:25,024
+temporal_decoder: 9,100
+Epoch   1/20: Val R²_I=-54.7297, MAE_I=7512.69
+Epoch   2/20: Val R²_I=-7.2280, MAE_I=2616.74
+Epoch   4/20: Val R²_I=0.1433, MAE_I=473.58
+Epoch   6/20: Val R²_I=0.1718, MAE_I=319.01
+Epoch   8/20: Val R²_I=0.2439, MAE_I=314.31
+Epoch  10/20: Val R²_I=0.3146, MAE_I=316.77
+Epoch  12/20: Val R²_I=0.3493, MAE_I=307.08
+Epoch  14/20: Val R²_I=0.3676, MAE_I=302.09
+Epoch  16/20: Val R²_I=0.3783, MAE_I=298.48
+Epoch  18/20: Val R²_I=0.3830, MAE_I=295.95
+Epoch  20/20: Val R²_I=0.3842, MAE_I=294.82
+Best epoch : 20  |  Val R²_I: 0.3842  |  MAE: 4205.26
+Time: 60.1s (1.00 min)
+Saved: best_balanced_mlp_model_10.pt
+
+Progress:10/10 replicates done
+Mean R²: 0.3835
+Mean MAE_I: 304.02
+ALL REPLICATES COMPLETE
+Total time:9.91 min
+Mean time per replicate:0.99 min
+SUMMARY STATISTICS
+
+Saved: C:\Users\gmm71\OneDrive - University of Cambridge\Documents\Emulation models\abm-epidemic-emulator\experiments\runs\models\MCMC_noaug\REPLICATES_REPORT.txt
+
+----------------------------------------------------------------------
+REPLICATES TRAINING SUMMARY 
+
+Replicates: 10
+Weight mode: modest
+Seeds: [42, 123, 456, 789, 1011, 1213, 1415, 1617, 1819, 2021]
+Output dir: C:\Users\gmm71\OneDrive - University of Cambridge\Documents\Emulation models\abm-epidemic-emulator\experiments\runs\models\MCMC_noaug
+
+  Model files:
+· best_balanced_mlp_model_1.pt(seed=42)
+· best_balanced_mlp_model_2.pt(seed=123)
+· best_balanced_mlp_model_3.pt(seed=456)
+· best_balanced_mlp_model_4.pt(seed=789)
+· best_balanced_mlp_model_5.pt(seed=1011)
+· best_balanced_mlp_model_6.pt(seed=1213)
+· best_balanced_mlp_model_7.pt(seed=1415)
+· best_balanced_mlp_model_8.pt(seed=1617)
+· best_balanced_mlp_model_9.pt(seed=1819)
+· best_balanced_mlp_model_10.pt(seed=2021)
+
+----------------------------------------------------------------------
+VALIDATION PERFORMANCE
+
+MAE_I (Infected Compartment):
+  Mean : 304.02
+  Std  : 18.45
+  95% CI: [290.82, 317.22]
+
+R²:
+Mean:0.3835
+Std:0.0287
+95% CI:[0.3629, 0.4040]
+
+Per-Compartment MAE:
+MAE_S: 6412.96 ± 651.34  (95% CI: [5947.02, 6878.89])
+MAE_I:  304.02 ± 18.45  (95% CI: [290.82, 317.22])
+MAE_R: 6381.14 ± 642.98  (95% CI: [5921.19, 6841.10])
+
+----------------------------------------------------------------------
+INDIVIDUAL REPLICATE RESULTS
+ ID   Seed  Epoch     R²_I    MAE_I    MAE_S    MAE_R Model File                         
+  1     42     20   0.4016   281.52  5679.04  5646.20 best_balanced_mlp_model_1.pt       
+  2    123     20   0.4131   273.80  5640.27  5606.39 best_balanced_mlp_model_2.pt       
+  3    456     20   0.3751   327.56  6617.94  6612.39 best_balanced_mlp_model_3.pt       
+  4    789     20   0.3651   288.84  6956.00  6908.09 best_balanced_mlp_model_4.pt       
+  5   1011     20   0.4039   305.07  6116.88  6089.94 best_balanced_mlp_model_5.pt       
+  6   1213     20   0.3911   313.10  6446.97  6415.25 best_balanced_mlp_model_6.pt       
+  7   1415     20   0.4196   320.37  5794.76  5793.15 best_balanced_mlp_model_7.pt       
+  8   1617     20   0.3532   312.12  7538.92  7485.67 best_balanced_mlp_model_8.pt       
+  9   1819     20   0.3277   322.97  7156.86  7115.29 best_balanced_mlp_model_9.pt       
+ 10   2021     20   0.3842   294.82  6181.91  6139.05 best_balanced_mlp_model_10.pt      
+Saved: C:\Users\gmm71\OneDrive - University of Cambridge\Documents\Emulation models\abm-epidemic-emulator\experiments\runs\models\MCMC_noaug\replicates_comparison.png
+Saved: C:\Users\gmm71\OneDrive - University of Cambridge\Documents\Emulation models\abm-epidemic-emulator\experiments\runs\models\MCMC_noaug\replicates_results.csv
+ TRAINING COMPLETE
+
+  Mean R²_I: 0.3835 ± 0.0287
+  Mean MAE_I : 304.02 ± 18.45
+CV:6.07%
+
+ Validate: python step4_validate_SIR3param.py --models_dir C:\Users\gmm71\OneDrive - University of Cambridge\Documents\Emulation models\abm-epidemic-emulator\experiments\runs\models\MCMC_noaug
+Test:python step5_test_SIR3param.py --models_dir C:\Users\gmm71\OneDrive - University of Cambridge\Documents\Emulation models\abm-epidemic-emulator\experiments\runs\models\MCMC_noaug

@@ -321,7 +321,7 @@ def plot_training_curves(results_list, models_dir, output_dir):
     axes[2].grid(True, alpha=0.3)
     out_path = output_dir/'training_curves.png'
     plt.savefig(out_path, dpi=200, bbox_inches='tight')
-    plt.show()
+    #plt.show()
     print(f"Saved: {out_path}")
 
     #Training vs Validation Loss single plot
@@ -339,7 +339,7 @@ def plot_training_curves(results_list, models_dir, output_dir):
     plt.yscale('log')
     out_path = output_dir/'training_curve_only.png'
     plt.savefig(out_path, dpi=200, bbox_inches='tight')
-    plt.show()
+    #plt.show()
     print(f"Saved: {out_path}")
     
 

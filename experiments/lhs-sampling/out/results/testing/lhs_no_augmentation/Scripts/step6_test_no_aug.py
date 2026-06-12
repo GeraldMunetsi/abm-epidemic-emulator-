@@ -9,7 +9,6 @@ from pathlib import Path
 import json
 import pandas as pd
 from scipy import stats
-
 from step0_model import create_hybrid_mlp_model
 from utils  import create_dataloaders, compute_metrics, get_device, \
                          PARAM_MINS, PARAM_MAXS
@@ -24,11 +23,15 @@ TEST_DATA_DIR = Path("experiments/lhs-sampling/data/split")
 RESULTS_DIR= Path("experiments/lhs-sampling/out/results/testing/lhs_no_augmentation/testing")
 PLOTS_DIR= Path("experiments/lhs-sampling/out/results/testing/lhs_no_augmentation/testing")
 
+TRAIN_STRATEGY = 'LHS'  
+TEST_STRATEGY= 'LHS'  
+AUGMENTATION= 0      
+N_TRAIN_SIMULATIONS = 2800 
+
 # MODEL LOADING
 def load_replicate_model(model_path: Path, device: torch.device):
     """
     Load a single replicate checkpoint.
-    Handles minor architecture mismatches (e.g. knot count off-by-one).
     """
     checkpoint = torch.load(model_path, map_location=device, weights_only=False)
 
@@ -123,16 +126,16 @@ def evaluate_all_replicates(models_dir, test_loader, device, n_timesteps):
             'predictions': predictions,
             'metrics' : metrics,
             'checkpoint_info': {
-                'epoch': checkpoint.get('epoch', '?'),
+                'epoch': checkpoint.get('epoch'),
                 'val_metrics': checkpoint.get('val_metrics', {}),
                 'param_names': checkpoint.get('param_names', ['tau','gamma','rho']),
             },
         })
 
         print(f"  MAE_I :{metrics['MAE_I']:.2f}:key metric")
-        print(f"  R²:{metrics['R2_I']:.4f}\n")
+        print(f"  R²_I:{metrics['R2_I']:.4f}\n")
+        print(f"Evaluated {len(results_list)} replicate(s)")
 
-    print(f"Evaluated {len(results_list)} replicate(s)")
     return results_list, shared_targets, shared_params
 
 # RELATIVE MAE — per-sample then averaged 
@@ -150,6 +153,63 @@ def compute_relative_mae_i(predictions, targets):
 
     return float(rel.mean()), float(rel.std(ddof=1) if len(rel) > 1 else 0.0), \
            rel, float(peak_per_sample[valid].mean().item()) # rel.mean()-average relative accross valid test outbreaks
+
+    # PER-REPLICATE DATAFRAME — for regression joining 
+def build_replicate_dataframe(results_list, targets,
+                               train_strategy, test_strategy,
+                               augmentation, n_train_simulations):
+    """
+    One row per replicate. CSV can be concatenated with files from
+    other conditions (LHS, Random, aug/no-aug, OOD) into a master
+    dataframe for regression:
+ 
+        relative_MAE_I ~ train_strategy + test_strategy
+                       + augmentation + in_domain
+                       + n_train_simulations
+                       + train_strategy:augmentation
+                       + train_strategy:in_domain
+    """
+    rows = []
+    for r in results_list:
+        mean_rel, std_rel, per_sample, mean_peak = compute_relative_mae_i(
+            r['predictions'], targets)
+        m = r['metrics']
+        rows.append({
+            # Join keys — identical structure across all condition CSVs
+            'replicate_id'        : int(r['replicate_id']),
+            'train_strategy'      : train_strategy,
+            'test_strategy'       : test_strategy,
+            'augmentation'        : int(augmentation),
+            'in_domain'           : 0,
+            'n_train_simulations' : int(n_train_simulations),
+            # Primary outcome
+            'relative_MAE_I'      : round(mean_rel, 4),
+            # Secondary metrics
+            'absolute_MAE_I'      : round(m['MAE_I'], 4),
+            'R2_I'                : round(m['R2_I'],  6),
+            'R2_S'                : round(m['R2_S'],  6),
+            'R2_R'                : round(m['R2_R'],  6),
+            'R2_overall'          : round(m['R2'],    6),
+            'MAE_S'               : round(m['MAE_S'], 4),
+            'MAE_R'               : round(m['MAE_R'], 4),
+            'RMSE'                : round(m['RMSE'],  4),
+            # Metadata
+            'mean_peak_I'         : round(mean_peak, 2),
+            'n_valid_samples'     : int((targets[:,:,1].max(dim=1)[0]>=1).sum()),
+            'n_test_samples'      : int(len(targets)),
+            'model_path'          : r['model_path'],
+            'training_epoch'      : r['checkpoint_info']['epoch'],
+        })
+    df = pd.DataFrame(rows)
+    print(f"\n  Replicate dataframe: {len(df)} rows × {len(df.columns)} columns")
+    preview = ['replicate_id','train_strategy','test_strategy',
+               'augmentation','in_domain','n_train_simulations',
+               'relative_MAE_I','absolute_MAE_I','R2_I']
+    print(df[preview].to_string(index=False))
+    return df
+ 
+ 
+
 
 # AGGREGATE STATISTICS
 def compute_aggregate_statistics(results_list, targets):
@@ -209,6 +269,7 @@ def compute_aggregate_statistics(results_list, targets):
 
     return stats_dict
 
+
 # VISUALISATION
 def plot_all_compartments(results_list, targets, plots_dir, n_samples=8):
     """S, I, R trajectories for a sample of test cases."""
@@ -259,9 +320,9 @@ def plot_infected_only(results_list, targets, plots_dir, n_samples=8):
     n_reps = len(results_list)
     pred_colors = plt.cm.tab10(np.linspace(0, 1, n_reps))
 
-    fig, axes = plt.subplots(4, 2,figsize=(16, 18))
+    fig, axes = plt.subplots(4, 4,figsize=(16, 18))
     axes = axes.flatten()
-    fig.suptitle('LHS MODEL(NO AUGMENTATION) ON LHS TEST SET — INFECTED (I) COMPARTMENT',
+    fig.suptitle('MCMC MODEL ON MCMC TEST SET — INFECTED (I) COMPARTMENT',
         fontsize=14,
         fontweight='bold'
     )
@@ -316,7 +377,7 @@ def plot_relative_mae_distribution(results_list, targets, plots_dir):
 
 # SAVE RESULTS
 def save_results(results_list, stats_dict, output_dir):
-    """Save CSV, JSON, and dissertation-ready plain-text report."""
+    """Save CSV, JSON, and report."""
     # CSV 
     rows = [{'replicate_id': r['replicate_id'],'model_path': r['model_path'],**r['metrics'],
         'training_epoch': r['checkpoint_info']['epoch'],
@@ -349,6 +410,7 @@ def save_results(results_list, stats_dict, output_dir):
     r2_r_mean = stats_dict['R2_R']['mean']
     r2_r_ci = stats_dict['R2_R']['ci_95']
 
+    print(f"  Rel_MAE_I:{stats_dict['relative_MAE_I_%']['mean']:.4f}\n")
     performance = (
         "EXCEPTIONAL"if rel_mean < 5 else
         "EXCELLENT"if rel_mean < 10  else
@@ -428,6 +490,23 @@ def save_results(results_list, stats_dict, output_dir):
     print(f"Saved: {output_dir/'report.txt'}")
     print("\n" + report)
 
+    # MASTER DATAFRAME 
+def build_master_dataframe(results_root):
+    """
+    After ALL condition scripts have been run, collect their CSVs
+    into one master dataframe for regression analysis.
+    """
+    csv_files = sorted(Path(results_root).rglob("test_replicate_results_*.csv"))
+
+    dfs = []
+    for f in csv_files:
+        df = pd.read_csv(f)
+        print(f"  {f.name} : {len(df)} rows")
+        dfs.append(df)
+    master = pd.concat(dfs, ignore_index=True)
+   
+    return master
+
 # ENTRY POINT
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Final test evaluation")
@@ -435,12 +514,31 @@ if __name__ == "__main__":
     parser.add_argument('--data',type=str,default=str(TEST_DATA_DIR /'epidemic_data_age_adaptive_sobol_split.pkl'))
     parser.add_argument('--output_dir', type=str, default=str(RESULTS_DIR))
     parser.add_argument('--plots_dir',type=str, default=str(PLOTS_DIR))
-    parser.add_argument('--n_samples', type=int, default=8,help='Trajectory samples to plot')
+    parser.add_argument('--n_samples', type=int, default=16)
+    parser.add_argument('--train_strategy', type=str, default=TRAIN_STRATEGY,choices=['MCMC','LHS','Random'])
+    parser.add_argument('--test_strategy',type=str, default=TEST_STRATEGY,choices=['MCMC','LHS','Random'])
+    parser.add_argument('--augmentation',type=int, default=AUGMENTATION,choices=[0,1])
+    parser.add_argument('--n_train_sims',type=int, default=N_TRAIN_SIMULATIONS)
+    parser.add_argument('--build_master',action='store_true',help='Build master df from all saved CSVs and exit')
     parser.add_argument('--batch_size', type=int, default=35)
     args = parser.parse_args()
+
+    TRAIN_STRATEGY= args.train_strategy
+    TEST_STRATEGY= args.test_strategy
+    AUGMENTATION= args.augmentation
+    N_TRAIN_SIMULATIONS = args.n_train_sims
     results_dir=Path(args.output_dir)
     plots_dir= Path(args.plots_dir)
-  
+    
+    if args.build_master:
+        master = build_master_dataframe(RESULTS_DIR)
+        mp = RESULTS_DIR/ 'master_replicate_results.csv'
+        master.to_csv(mp, index=False)
+        print(f"\nSaved master → {mp.resolve()}")
+        raise SystemExit(0)
+    
+    print("\n"+"-"*70)
+    print(f"STEP 5: TEST : {TRAIN_STRATEGY}→{TEST_STRATEGY}  aug={AUGMENTATION}")
     print(f"\n  Models: {Path(args.models_dir).resolve()}")
     print(f"Data : {args.data}")
     print(f"Results : {results_dir.resolve()}")
@@ -448,6 +546,7 @@ if __name__ == "__main__":
 
     device = get_device()
 
+   
     # Load test set
     print(f"\nLoading test data: {args.data}")
     dataloaders = create_dataloaders(args.data, batch_size=args.batch_size)
@@ -465,7 +564,18 @@ if __name__ == "__main__":
 
     # Statistics (pass targets for relative MAE) 
     stats_dict = compute_aggregate_statistics(results_list, targets)
+    df_replicates = build_replicate_dataframe(results_list, targets,
+        TRAIN_STRATEGY, TEST_STRATEGY, AUGMENTATION, N_TRAIN_SIMULATIONS)
+    
+    replicate_csv = results_dir / (
+    f"test_replicate_results_"
+    f"{TRAIN_STRATEGY}_to_{TEST_STRATEGY}_"
+    f"aug{AUGMENTATION}.csv"
+    )
 
+    df_replicates.to_csv(replicate_csv, index=False)
+
+    print(f"\nSaved replicate dataframe → {replicate_csv.resolve()}")
     # Plots 
     plot_all_compartments(results_list, targets, plots_dir, args.n_samples)
     plot_infected_only(results_list, targets, plots_dir,args.n_samples)
@@ -479,4 +589,6 @@ if __name__ == "__main__":
           f"± {stats_dict['MAE_I']['std']:.2f}")
     print(f"  Relative MAE_I  : {stats_dict['relative_MAE_I_%']['mean']:.2f}% "
           f"± {stats_dict['relative_MAE_I_%']['std']:.2f}%")
+    
+    
    

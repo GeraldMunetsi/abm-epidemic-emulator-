@@ -1,0 +1,170 @@
+
+----------------------------------------------------------------------
+STEP 5: TEST : MCMC→LHS  aug=0
+
+  Models: C:\Users\gmm71\OneDrive - University of Cambridge\Documents\Emulation models\abm-epidemic-emulator\experiments\runs\models\MCMC_noaug
+Data : C:\Users\gmm71\OneDrive - University of Cambridge\Documents\Emulation models\abm-epidemic-emulator\experiments\lhs-sampling\data\split\epidemic_data_age_adaptive_sobol_split.pkl
+Results : C:\Users\gmm71\OneDrive - University of Cambridge\Documents\Emulation models\abm-epidemic-emulator\experiments\runs\results\MCMC_noaug_eval_LHS
+Plots: C:\Users\gmm71\OneDrive - University of Cambridge\Documents\Emulation models\abm-epidemic-emulator\experiments\runs\results\MCMC_noaug_eval_LHS\plots
+
+ Using CPU
+
+Loading test data: C:\Users\gmm71\OneDrive - University of Cambridge\Documents\Emulation models\abm-epidemic-emulator\experiments\lhs-sampling\data\split\epidemic_data_age_adaptive_sobol_split.pkl
+
+Loading dataset : C:\Users\gmm71\OneDrive - University of Cambridge\Documents\Emulation models\abm-epidemic-emulator\experiments\lhs-sampling\data\split\epidemic_data_age_adaptive_sobol_split.pkl
+  n_timepoints  : 250
+  Train=2800, Val=600, Test=600
+Test samples : 600
+n_timepoints : 250
+N: 100,000
+
+----------------------------------------------------------------------
+TEST EVALUATION·10 REPLICATE(S)
+Replicate 1/10 : best_balanced_mlp_model_1.pt
+  best_balanced_mlp_model_1.pt  epoch=20  val R²=0.9748  N=100,000
+  MAE_I :1656.31:key metric
+  R²_I:0.2754
+
+Evaluated 1 replicate(s)
+Replicate 2/10 : best_balanced_mlp_model_2.pt
+  best_balanced_mlp_model_2.pt  epoch=20  val R²=0.9753  N=100,000
+  MAE_I :1582.58:key metric
+  R²_I:0.3093
+
+Evaluated 2 replicate(s)
+Replicate 3/10 : best_balanced_mlp_model_3.pt
+  best_balanced_mlp_model_3.pt  epoch=20  val R²=0.9651  N=100,000
+  MAE_I :1692.35:key metric
+  R²_I:0.2754
+
+Evaluated 3 replicate(s)
+Replicate 4/10 : best_balanced_mlp_model_4.pt
+  best_balanced_mlp_model_4.pt  epoch=20  val R²=0.9645  N=100,000
+  MAE_I :1702.18:key metric
+  R²_I:0.3048
+
+Evaluated 4 replicate(s)
+Replicate 5/10 : best_balanced_mlp_model_5.pt
+  best_balanced_mlp_model_5.pt  epoch=20  val R²=0.9694  N=100,000
+  MAE_I :1642.88:key metric
+  R²_I:0.2693
+
+Evaluated 5 replicate(s)
+Replicate 6/10 : best_balanced_mlp_model_6.pt
+  best_balanced_mlp_model_6.pt  epoch=20  val R²=0.9671  N=100,000
+  MAE_I :1685.17:key metric
+  R²_I:0.2532
+
+Evaluated 6 replicate(s)
+Replicate 7/10 : best_balanced_mlp_model_7.pt
+  best_balanced_mlp_model_7.pt  epoch=20  val R²=0.9740  N=100,000
+  MAE_I :1716.13:key metric
+  R²_I:0.2684
+
+Evaluated 7 replicate(s)
+Replicate 8/10 : best_balanced_mlp_model_8.pt
+  best_balanced_mlp_model_8.pt  epoch=20  val R²=0.9566  N=100,000
+  MAE_I :1690.02:key metric
+  R²_I:0.2249
+
+Evaluated 8 replicate(s)
+Replicate 9/10 : best_balanced_mlp_model_9.pt
+  best_balanced_mlp_model_9.pt  epoch=20  val R²=0.9602  N=100,000
+  MAE_I :1777.30:key metric
+  R²_I:0.1911
+
+Evaluated 9 replicate(s)
+Replicate 10/10 : best_balanced_mlp_model_10.pt
+  best_balanced_mlp_model_10.pt  epoch=20  val R²=0.9704  N=100,000
+  MAE_I :1698.47:key metric
+  R²_I:0.2945
+
+Evaluated 10 replicate(s)
+
+  Mean peak I (ground truth) : 12,054.6
+  Absolute MAE_I: 1684.34 ± 50.69
+  Relative MAE_I: 15.67% ± 1.62%  (per-sample, then averaged)
+
+  Replicate dataframe: 10 rows × 20 columns
+ replicate_id train_strategy test_strategy  augmentation  in_domain  n_train_simulations  relative_MAE_I  absolute_MAE_I     R2_I
+            1           MCMC           LHS             0          1                 8400         13.4337       1656.3142 0.275442
+            2           MCMC           LHS             0          1                 8400         12.9924       1582.5826 0.309330
+            3           MCMC           LHS             0          1                 8400         17.5099       1692.3512 0.275428
+            4           MCMC           LHS             0          1                 8400         14.4910       1702.1825 0.304804
+            5           MCMC           LHS             0          1                 8400         16.4047       1642.8762 0.269273
+            6           MCMC           LHS             0          1                 8400         16.5235       1685.1720 0.253232
+            7           MCMC           LHS             0          1                 8400         17.1350       1716.1260 0.268375
+            8           MCMC           LHS             0          1                 8400         17.3758       1690.0184 0.224932
+            9           MCMC           LHS             0          1                 8400         15.7283       1777.2990 0.191082
+           10           MCMC           LHS             0          1                 8400         15.0610       1698.4681 0.294487
+
+Saved replicate dataframe → C:\Users\gmm71\OneDrive - University of Cambridge\Documents\Emulation models\abm-epidemic-emulator\experiments\runs\results\MCMC_noaug_eval_LHS\test_replicate_results_MCMC_to_LHS_aug0.csv
+Saved: C:\Users\gmm71\OneDrive - University of Cambridge\Documents\Emulation models\abm-epidemic-emulator\experiments\runs\results\MCMC_noaug_eval_LHS\plots\test_comparison_plots.png
+Total test samples: 600
+Saved: C:\Users\gmm71\OneDrive - University of Cambridge\Documents\Emulation models\abm-epidemic-emulator\experiments\runs\results\MCMC_noaug_eval_LHS\plots\test_infected_predictions.png
+Saved: C:\Users\gmm71\OneDrive - University of Cambridge\Documents\Emulation models\abm-epidemic-emulator\experiments\runs\results\MCMC_noaug_eval_LHS\plots\test_relative_mae_distribution.png
+Saved: C:\Users\gmm71\OneDrive - University of Cambridge\Documents\Emulation models\abm-epidemic-emulator\experiments\runs\results\MCMC_noaug_eval_LHS\test_replicate_results.csv
+Saved: C:\Users\gmm71\OneDrive - University of Cambridge\Documents\Emulation models\abm-epidemic-emulator\experiments\runs\results\MCMC_noaug_eval_LHS\test_final_statistics.json
+  Rel_MAE_I:15.6655
+
+Saved: C:\Users\gmm71\OneDrive - University of Cambridge\Documents\Emulation models\abm-epidemic-emulator\experiments\runs\results\MCMC_noaug_eval_LHS\report.txt
+
+----------------------------------------------------------------------
+FINAL TEST RESULTS
+
+  Replicates : 10
+  Test samples : 600
+  Mean peak I  : 12,054.6 counts (ground truth)
+
+----------------------------------------------------------------------
+OVERALL PERFORMANCE
+
+  R²: 0.8294 ± 0.0429
+  95%CI: [0.8003, 0.8585]
+
+  MAE: 8702.05 ± 1141.36
+  RMSE: 14950.36 ± 1867.93
+
+----------------------------------------------------------------------
+PER-COMPARTMENT MAE (absolute counts)
+
+  MAE_S : 12614.13 ± 1723.31
+  MAE_I : 1684.34 ± 50.69 : key metric
+  95% CI: [1649.94, 1718.74]
+  CV   : 2.9%
+  MAE_R : 11807.68 ± 1668.97
+
+----------------------------------------------------------------------
+RELATIVE MAE_I  (per-sample MAE_I / peak_I, then averaged)
+
+  Mean peak I  : 12,054.6  (ground truth, test set)
+  Relative MAE : 15.67% ± 1.62%
+  95%CI        : [14.57%, 16.77%]
+  Interpretation : for the average epidemic in the test set,
+  the emulator's I(t) prediction is 15.7% away from
+  the true peak — regardless of epidemic size.
+
+----------------------------------------------------------------------
+PERFORMANCE ASSESSMENT
+
+  Level: GOOD  (based on relative MAE_I = 15.7%)
+  Consistency : EXCELLENT (CV < 5%)
+
+----------------------------------------------------------------------
+REPORT
+
+"The SIR NNE achieved a test set MAE_I of 1684 counts (1650-1719,
+95% CI, n=10 replicates), corresponding to 15.7% of the mean ground-truth peak infected count
+(12,055 individuals)
+The R² of the Susceptibles, Infectious and Recovered is 0.645, 0.267, 0.679 respectively
+There confidence intervals are [0.584 0.706],[0.242 0.291] and [0.62  0.739] respectively.
+0.0429. Replicate consistency was excellent (cv < 5%),
+with coefficient of variation 2.9%
+across random initialisations. The relative MAE_I of 15.7%
+(95% CI [14.6%, 16.8%]) provides a scale-invariant
+measure of accuracy that is directly comparable across epidemic regimes
+with different outbreak sizes."
+
+  R²_I: 0.2666 ± 0.0363
+  Absolute MAE_I  : 1684.34 ± 50.69
+  Relative MAE_I  : 15.67% ± 1.62%

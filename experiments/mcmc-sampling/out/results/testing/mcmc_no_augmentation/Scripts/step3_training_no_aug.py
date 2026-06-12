@@ -502,7 +502,7 @@ if __name__ == "__main__":
     parser.add_argument('--n_replicates',type=int,default=n_replicates)
     parser.add_argument('--seeds',type=str,default=None)
     parser.add_argument('--weight_mode',type=str,default='modest',choices=['equal','modest','balanced'])
-    parser.add_argument('--epochs',type=int,default=100 ) #50
+    parser.add_argument('--epochs',type=int,default=100) #50
     parser.add_argument('--batch_size',type=int,default=35) #30
     parser.add_argument('--lr',type=float,default=0.00005) #1e-3
     parser.add_argument('--weight_decay',type=float,default=1e-3) #-3
