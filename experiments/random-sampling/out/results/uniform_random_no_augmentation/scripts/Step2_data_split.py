@@ -218,9 +218,7 @@ if __name__ == "__main__":
         description="Random split by PARAMETER SET (replicates grouped)"
     )
 
-    parser.add_argument('--input',
-                        type=str,
-                        default="epidemic_data_age_adaptive_sobol.pkl")
+    parser.add_argument('--input',type=str,default="abm-data.pkl")
     parser.add_argument('--output',type=str,default=None)
     parser.add_argument('--output_csv',type=str,default=None)
     parser.add_argument('--train_ratio',type=float,default=0.70)
@@ -253,7 +251,7 @@ if __name__ == "__main__":
     with open(out_path, 'wb') as f:
         pickle.dump(split_data, f, protocol=pickle.HIGHEST_PROTOCOL)
 
-    print(f"\nSaved split dataset → {out_path.resolve()}")
+    print(f"\nSaved split dataset : {out_path.resolve()}")
 
     #  CSV: also write to split/ 
     csv_path = SPLIT_DATA_DIR / args.output_csv if args.output_csv else \

@@ -1,0 +1,25 @@
+{
+  "wall_clock_seconds": 0.06,
+  "wall_clock_minutes": 0.0,
+  "wall_clock_hours": 0.0,
+  "data_prep_total_s": 0.01,
+  "training_total_s": 0.01,
+  "validation_total_s": 0,
+  "test_total_s": 0,
+  "per_data_prep": {
+    "LHS": 0.0,
+    "MCMC": 0.0,
+    "Random": 0.0
+  },
+  "per_training": {
+    "LHS_aug": 0.0,
+    "LHS_noaug": 0.0,
+    "MCMC_aug": 0.0,
+    "MCMC_noaug": 0.0,
+    "Random_aug": 0.0,
+    "Random_noaug": 0.0
+  },
+  "per_validation": {},
+  "per_test": {},
+  "completed_at": "2026-06-16 11:55:46"
+}

@@ -1,0 +1,11 @@
+replicate_id,train_strategy,test_strategy,augmentation,in_domain,n_train_simulations,relative_MAE_I,R2_I,MAE_I,R2_S,R2_R,R2_overall,MAE_S,MAE_R,RMSE,MSE,peak_I,mean_peak_I,n_test_samples,model_path,training_epoch
+1,MCMC,LHS,1,1,8400,4.2709,0.688241,241.3826,0.970135,0.97568,0.994398,1852.7245,1710.1703,3155.1748,9955128.0,4015.44,4015.44,600,experiments\mcmc-sampling\out\trained-models\best_balanced_mlp_model_1.pt,65
+2,MCMC,LHS,1,1,8400,4.2357,0.702685,234.4778,0.973938,0.978914,0.99508,1734.3589,1602.9816,2956.8409,8742908.0,4015.44,4015.44,600,experiments\mcmc-sampling\out\trained-models\best_balanced_mlp_model_2.pt,77
+3,MCMC,LHS,1,1,8400,4.2889,0.669962,243.8559,0.970996,0.976453,0.994519,1777.6536,1638.1342,3120.9233,9740162.0,4015.44,4015.44,600,experiments\mcmc-sampling\out\trained-models\best_balanced_mlp_model_3.pt,74
+4,MCMC,LHS,1,1,8400,4.2111,0.70574,234.5579,0.96918,0.97493,0.994269,1816.3309,1676.1254,3191.3873,10184953.0,4015.44,4015.44,600,experiments\mcmc-sampling\out\trained-models\best_balanced_mlp_model_4.pt,72
+5,MCMC,LHS,1,1,8400,4.343,0.673456,244.327,0.97027,0.976315,0.994443,1867.7662,1725.8734,3142.5619,9875695.0,4015.44,4015.44,600,experiments\mcmc-sampling\out\trained-models\best_balanced_mlp_model_5.pt,86
+6,MCMC,LHS,1,1,8400,4.247,0.69138,237.3188,0.968985,0.974856,0.994219,1838.2043,1696.3416,3205.3182,10274065.0,4015.44,4015.44,600,experiments\mcmc-sampling\out\trained-models\best_balanced_mlp_model_6.pt,69
+7,MCMC,LHS,1,1,8400,4.2649,0.7069,232.2462,0.974748,0.980102,0.995273,1662.5823,1524.3184,2898.4625,8401085.0,4015.44,4015.44,600,experiments\mcmc-sampling\out\trained-models\best_balanced_mlp_model_7.pt,87
+8,MCMC,LHS,1,1,8400,4.2638,0.697638,237.2057,0.970045,0.974916,0.994337,1936.4243,1802.2885,3172.4007,10064126.0,4015.44,4015.44,600,experiments\mcmc-sampling\out\trained-models\best_balanced_mlp_model_8.pt,96
+9,MCMC,LHS,1,1,8400,4.2408,0.684282,239.0406,0.971018,0.977092,0.994604,1758.7979,1612.3546,3096.8061,9590208.0,4015.44,4015.44,600,experiments\mcmc-sampling\out\trained-models\best_balanced_mlp_model_9.pt,98
+10,MCMC,LHS,1,1,8400,4.3282,0.652193,246.742,0.960908,0.968489,0.992801,1895.4824,1737.6287,3576.9672,12794694.0,4015.44,4015.44,600,experiments\mcmc-sampling\out\trained-models\best_balanced_mlp_model_10.pt,77

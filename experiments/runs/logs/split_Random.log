@@ -1,0 +1,25 @@
+
+Loading : C:\Users\gmm71\OneDrive - University of Cambridge\Documents\Emulation models\abm-epidemic-emulator\experiments\random-sampling\data\raw\epidemic_data_age_adaptive_sobol.pkl
+
+Dataset summary
+Total simulations: 100
+Unique parameter sets: 100
+Average replicates per set: 1.00
+
+Leakage check
+Train ∩ Test param sets: 0
+Train ∩ Val  param sets: 0
+Val   ∩ Test param sets: 0
+Zero leakage confirmed
+
+Split summary
+Train: 70 param sets | 70 simulations
+Val  : 15 param sets | 15 simulations
+Test : 15 param sets | 15 simulations
+
+Saved split dataset → C:\Users\gmm71\OneDrive - University of Cambridge\Documents\Emulation models\abm-epidemic-emulator\experiments\random-sampling\data\split\epidemic_data_age_adaptive_sobol_split.pkl
+
+Training CSV rows: 70
+Saved CSV → experiments\random-sampling\data\split\epidemic_data_age_adaptive_sobol_train_params.csv
+
+Done.

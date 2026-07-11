@@ -1,0 +1,11 @@
+replicate_id,train_strategy,test_strategy,augmentation,in_domain,n_train_simulations,relative_MAE_I,absolute_MAE_I,R2_I,R2_S,R2_R,R2_overall,MAE_S,MAE_R,RMSE,mean_peak_I,n_valid_samples,n_test_samples,model_path,training_epoch
+1,MCMC,LHS,1,1,8400,7.5715,290.856,0.631115,0.88171,0.889169,0.978024,3432.075,3273.7102,6252.0624,4000.91,600,600,experiments\Ablation studies\out\trained-models\no_rff\best_balanced_mlp_model_1.pt,100
+2,MCMC,LHS,1,1,8400,6.6503,300.6674,0.622946,0.926055,0.933902,0.986298,2699.5002,2547.6721,4936.8397,4000.91,600,600,experiments\Ablation studies\out\trained-models\no_rff\best_balanced_mlp_model_2.pt,100
+3,MCMC,LHS,1,1,8400,6.8915,269.803,0.720334,0.95915,0.963537,0.992312,2243.5085,2129.4087,3697.8349,4000.91,600,600,experiments\Ablation studies\out\trained-models\no_rff\best_balanced_mlp_model_3.pt,100
+4,MCMC,LHS,1,1,8400,11.7497,325.9255,0.592572,0.919137,0.925479,0.984823,3676.3887,3508.906,5195.7893,4000.91,600,600,experiments\Ablation studies\out\trained-models\no_rff\best_balanced_mlp_model_4.pt,100
+5,MCMC,LHS,1,1,8400,5.1852,299.5567,0.649189,0.921388,0.927533,0.985321,2832.3606,2704.1538,5109.7646,4000.91,600,600,experiments\Ablation studies\out\trained-models\no_rff\best_balanced_mlp_model_5.pt,100
+6,MCMC,LHS,1,1,8400,8.201,326.3596,0.689727,0.928442,0.930775,0.98636,3335.7603,3213.8064,4925.5714,4000.91,600,600,experiments\Ablation studies\out\trained-models\no_rff\best_balanced_mlp_model_6.pt,100
+7,MCMC,LHS,1,1,8400,5.691,287.6178,0.671506,0.951932,0.957098,0.990955,2318.4834,2205.8137,4010.9447,4000.91,600,600,experiments\Ablation studies\out\trained-models\no_rff\best_balanced_mlp_model_7.pt,100
+8,MCMC,LHS,1,1,8400,5.613,303.4447,0.68989,0.95043,0.953369,0.990507,2625.9473,2534.4016,4109.1739,4000.91,600,600,experiments\Ablation studies\out\trained-models\no_rff\best_balanced_mlp_model_8.pt,100
+9,MCMC,LHS,1,1,8400,6.22,295.9753,0.70987,0.94658,0.949326,0.989807,2626.5425,2541.4116,4257.8816,4000.91,600,600,experiments\Ablation studies\out\trained-models\no_rff\best_balanced_mlp_model_9.pt,100
+10,MCMC,LHS,1,1,8400,6.6945,291.5798,0.69207,0.945042,0.948763,0.989578,2839.2834,2734.6865,4305.4524,4000.91,600,600,experiments\Ablation studies\out\trained-models\no_rff\best_balanced_mlp_model_10.pt,100

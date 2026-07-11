@@ -1,0 +1,11 @@
+replicate_id,train_strategy,test_strategy,augmentation,in_domain,n_train_simulations,relative_MAE_I,absolute_MAE_I,R2_I,R2_S,R2_R,R2_overall,MAE_S,MAE_R,RMSE,mean_peak_I,n_valid_samples,n_test_samples,model_path,training_epoch
+1,MCMC,MCMC,1,1,8400,5.6363,52.7046,0.854452,0.971248,0.970369,0.998969,956.1679,963.1066,1406.4166,1232.99,600,600,experiments\Ablation studies\out\trained-models\full\best_balanced_mlp_model_1.pt,85
+2,MCMC,MCMC,1,1,8400,5.3941,55.2764,0.843542,0.956174,0.954785,0.998433,1088.1808,1096.4312,1734.0779,1232.99,600,600,experiments\Ablation studies\out\trained-models\full\best_balanced_mlp_model_2.pt,92
+3,MCMC,MCMC,1,1,8400,4.765,58.014,0.823714,0.967186,0.966284,0.998825,923.8174,930.4463,1501.8878,1232.99,600,600,experiments\Ablation studies\out\trained-models\full\best_balanced_mlp_model_3.pt,92
+4,MCMC,MCMC,1,1,8400,5.6664,52.0324,0.853045,0.969922,0.969133,0.998925,921.2673,928.2805,1436.7194,1232.99,600,600,experiments\Ablation studies\out\trained-models\full\best_balanced_mlp_model_4.pt,85
+5,MCMC,MCMC,1,1,8400,5.3528,53.5504,0.86811,0.957461,0.955946,0.998478,1144.7246,1155.6288,1709.1673,1232.99,600,600,experiments\Ablation studies\out\trained-models\full\best_balanced_mlp_model_5.pt,100
+6,MCMC,MCMC,1,1,8400,5.2675,56.0772,0.835679,0.947824,0.947018,0.998151,1173.6833,1178.4644,1883.7864,1232.99,600,600,experiments\Ablation studies\out\trained-models\full\best_balanced_mlp_model_6.pt,100
+7,MCMC,MCMC,1,1,8400,5.4078,56.1124,0.843539,0.968294,0.967409,0.998865,922.1429,926.8439,1475.7662,1232.99,600,600,experiments\Ablation studies\out\trained-models\full\best_balanced_mlp_model_7.pt,76
+8,MCMC,MCMC,1,1,8400,5.5933,62.6582,0.812289,0.929808,0.92823,0.997507,1416.6615,1421.0182,2187.5436,1232.99,600,600,experiments\Ablation studies\out\trained-models\full\best_balanced_mlp_model_8.pt,84
+9,MCMC,MCMC,1,1,8400,5.9262,55.4624,0.841009,0.948672,0.94684,0.998164,1240.0806,1249.5482,1877.4871,1232.99,600,600,experiments\Ablation studies\out\trained-models\full\best_balanced_mlp_model_9.pt,81
+10,MCMC,MCMC,1,1,8400,5.6753,49.4515,0.883956,0.97207,0.971354,0.999003,926.1035,930.8776,1383.185,1232.99,600,600,experiments\Ablation studies\out\trained-models\full\best_balanced_mlp_model_10.pt,94

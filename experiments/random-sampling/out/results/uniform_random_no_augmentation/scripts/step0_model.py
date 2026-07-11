@@ -6,7 +6,7 @@ from scipy.interpolate import BSpline
 
 timepoints=250
 N=100000
-knots=7
+knots=8
 class StandardRFF(nn.Module):
     def __init__(self, n_params=3, n_fourier=64, sigma=1.0):
         super().__init__()

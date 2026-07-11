@@ -11,10 +11,10 @@ DATA_DIR = Path("experiments/random-sampling/data/split")
 AUGMENTED_DATA_DIR =Path("experiments/random-sampling/data/augmented")
 PLOTS_DIR = Path("experiments/random-sampling/out/plots/augmentation_plots")
 
-ratio = 34.0
+ratio = 58
 PARAM_BOUNDS ={
-    'tau':(0.0005,0.024),
-    'gamma':(0.007,0.5),
+    'tau':(0.0003,0.02),
+    'gamma':(0.03,1),
     'rho':(0.001,0.01)
 }
 
@@ -105,9 +105,9 @@ def export_params_with_R0(split_data, csv_path, split_name="train", ratio=ratio)
     return df
 
 
-INPUT_PKL=DATA_DIR/"epidemic_data_age_adaptive_sobol_split.pkl"
-AUGMENTED_PKL=AUGMENTED_DATA_DIR/"epidemic_data_age_adaptive_sobol_split_augmented.pkl"
-AUGMENTED_CSV=AUGMENTED_DATA_DIR/"epidemic_data_age_adaptive_sobol_split_augmented.csv"
+INPUT_PKL=DATA_DIR/"abm-data_split.pkl"
+AUGMENTED_PKL=AUGMENTED_DATA_DIR/"abm-data_split_augmented.pkl"
+AUGMENTED_CSV=AUGMENTED_DATA_DIR/"abm-data_split_augmented.csv"
 
 # Run augmentation
 if __name__ == "__main__":
@@ -160,14 +160,14 @@ if __name__ == "__main__":
     print(f"\n{augmented_data.describe(include='all')}")
 
     total = len(augmented_data)
-    greater   = augmented_data[augmented_data['R0'] > 1.2]
-    between   = augmented_data[(augmented_data['R0'] >= 0.5) &
-                               (augmented_data['R0'] <= 1.5)]
-    less_than = augmented_data[augmented_data['R0'] < 0.8]
+    greater   = augmented_data[augmented_data['R0'] > 2]
+    between   = augmented_data[(augmented_data['R0'] >= 0.1) &
+                               (augmented_data['R0'] <= 2)]
+    less_than = augmented_data[augmented_data['R0'] < 2]
 
-    print(f"\nR₀ > 1.2 : {len(greater):5d}  ({len(greater)/total*100:.1f}%)")
-    print(f"0.5 ≤ R₀ ≤ 1.5 : {len(between):5d}  ({len(between)/total*100:.1f}%)")
-    print(f"R₀ < 0.8 : {len(less_than):5d}  ({len(less_than)/total*100:.1f}%)")
+    print(f"\nR0 > 2 : {len(greater):5d}  ({len(greater)/total*100:.1f}%)")
+    print(f"0.1 ≤ R0 ≤ 2: {len(between):5d}  ({len(between)/total*100:.1f}%)")
+    print(f"R0 < 0.1 : {len(less_than):5d}  ({len(less_than)/total*100:.1f}%)")
 
 
     taus = [s['params']['tau'] for s in augmented['train']['simulations']]
@@ -189,19 +189,48 @@ if __name__ == "__main__":
                          augmented_data['gamma'].max(), 100)
     y_vals = slope * x_vals
     plt.plot(x_vals, y_vals, color='red', linestyle='--',
-             label=f'R₀=1 boundary  (slope={slope:.5f})')
+             label=f'R0=1 boundary  (slope={slope:.5f})')
 
     plt.xlabel('gamma')
     plt.ylabel('tau ')
     plt.title('Augmented Posterior Samples'
-              '(Points above red line: R₀ > 1)')
+              '(Points above red line: R0 > 1)')
     plt.legend()
     plt.grid(True)
 
-    scatter_path = PLOTS_DIR / "tau_gamma_scatter_augmented.png" 
+    scatter_path = PLOTS_DIR / "tau_gamma_scatter_augmented.png"
     plt.savefig(scatter_path, dpi=200, bbox_inches='tight')
-    plt.show()
+    plt.close()
     print(f"Saved: {scatter_path}")
+
+    # Step 7: R₀ distribution plot
+    r0 = augmented_data['R0'].values
+    n_sub = (r0 < 1).sum()
+    n_sup = (r0 >= 1).sum()
+
+    fig, ax = plt.subplots(figsize=(10, 6))
+
+    ax.hist(r0, bins=60, color='steelblue', alpha=0.6, edgecolor='white',
+            linewidth=0.4, density=True, label='R₀ distribution (density)')
+
+    ax.axvline(1.0, color='crimson', linewidth=2.0, linestyle='--',
+               label='R₀ = 1  (epidemic threshold)')
+
+    ax.set_xlabel('R₀', fontweight='bold', fontsize=12)
+    ax.set_ylabel('Density', fontweight='bold', fontsize=12)
+    ax.set_title(
+        f'R₀ Distribution: Random Sampling Augmented Training Set\n'
+        f'Sub-critical (R₀ < 1): {n_sub} ({n_sub/len(r0)*100:.1f}%)   '
+        f'Super-critical (R₀ ≥ 1): {n_sup} ({n_sup/len(r0)*100:.1f}%)',
+        fontsize=12
+    )
+    ax.legend(fontsize=10, framealpha=0.85)
+    ax.grid(True, alpha=0.3)
+
+    r0_dist_path = PLOTS_DIR / "r0_distribution_augmented.png"
+    fig.savefig(r0_dist_path, dpi=200, bbox_inches='tight')
+    plt.close(fig)
+    print(f"Saved: {r0_dist_path}")
 
     
 

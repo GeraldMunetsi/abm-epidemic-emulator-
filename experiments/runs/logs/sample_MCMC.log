@@ -1,0 +1,96 @@
+WARNING (pytensor.configdefaults): g++ not available, if using conda: `conda install gxx`
+WARNING (pytensor.configdefaults): g++ not detected!  PyTensor will be unable to compile C-implementations and will default to Python. Performance may be severely degraded. To remove this warning, set PyTensor flags cxx to an empty string.
+Initializing NUTS using jitter+adapt_diag...
+Sequential sampling (4 chains in 1 job)
+NUTS: [tau, gamma, rho]
+                                                                               
+                              Step      Grad      Sampli…                      
+  Progre…   Draws   Diverg…   size      evals     Speed     Elapsed   Remain…  
+ ───────────────────────────────────────────────────────────────────────────── 
+  -------   3100    0         0.39      15        344.33    0:00:09   0:00:00  
+                                                  draws/s                      
+  -------   3100    0         0.37      7         162.57    0:00:19   0:00:00  
+                                                  draws/s                      
+  -------   3100    0         0.38      15        108.68    0:00:28   0:00:00  
+                                                  draws/s                      
+  -------   3100    0         0.46      15        81.42     0:00:38   0:00:00  
+                                                  draws/s                      
+                                                                               
+Sampling 4 chains for 3_000 tune and 100 draw iterations (12_000 + 400 draws total) took 38 seconds.
+The rhat statistic is larger than 1.01 for some parameters. This indicates problems during sampling. See https://arxiv.org/abs/1903.08008 for details
+The effective sample size per chain is smaller than 100 for some parameters.  A higher number is needed for reliable rhat and ess computation. See https://arxiv.org/abs/1903.08008 for details
+        mean     sd  hdi_3%  hdi_97%  ...  mcse_sd  ess_bulk  ess_tail  r_hat
+tau    0.009  0.006   0.001    0.020  ...    0.000      47.0      30.0   1.05
+gamma  0.320  0.119   0.131    0.473  ...    0.008      64.0      61.0   0.97
+rho    0.005  0.003   0.002    0.010  ...    0.000      35.0      61.0   1.12
+
+[3 rows x 9 columns]
+Saved: experiments\mcmc-sampling\out\plots\mcmc_sampling_plots\mcmc_trace_plot.png
+(40, 3)
+Running batch simulations:   0%|          | 0/40 [00:00<?, ?it/s]Running batch simulations:  10%|█         | 4/40 [00:00<00:02, 15.50it/s]Running batch simulations:  15%|█▌        | 6/40 [00:00<00:06,  5.63it/s]Running batch simulations:  20%|██        | 8/40 [00:01<00:06,  4.61it/s]Running batch simulations:  25%|██▌       | 10/40 [00:01<00:04,  6.01it/s]Running batch simulations:  30%|███       | 12/40 [00:01<00:04,  6.88it/s]Running batch simulations:  32%|███▎      | 13/40 [00:02<00:05,  5.25it/s]Running batch simulations:  35%|███▌      | 14/40 [00:02<00:07,  3.46it/s]Running batch simulations:  40%|████      | 16/40 [00:03<00:06,  3.75it/s]Running batch simulations:  42%|████▎     | 17/40 [00:03<00:05,  4.10it/s]Running batch simulations:  45%|████▌     | 18/40 [00:03<00:06,  3.44it/s]Running batch simulations:  48%|████▊     | 19/40 [00:04<00:05,  3.88it/s]Running batch simulations:  50%|█████     | 20/40 [00:04<00:05,  3.58it/s]Running batch simulations:  52%|█████▎    | 21/40 [00:04<00:05,  3.20it/s]Running batch simulations:  65%|██████▌   | 26/40 [00:04<00:01,  7.98it/s]Running batch simulations:  70%|███████   | 28/40 [00:06<00:03,  3.01it/s]Running batch simulations:  72%|███████▎  | 29/40 [00:06<00:03,  3.40it/s]Running batch simulations:  78%|███████▊  | 31/40 [00:07<00:02,  3.01it/s]Running batch simulations:  80%|████████  | 32/40 [00:07<00:02,  3.15it/s]Running batch simulations:  92%|█████████▎| 37/40 [00:08<00:00,  4.31it/s]Running batch simulations:  95%|█████████▌| 38/40 [00:09<00:00,  3.50it/s]Running batch simulations: 100%|██████████| 40/40 [00:09<00:00,  4.38it/s]Running batch simulations: 100%|██████████| 40/40 [00:09<00:00,  4.19it/s]
+Generated 40 simulations (40 param sets × 1 replicates)
+Saved: experiments\mcmc-sampling\out\plots\mcmc_sampling_plots\trajectories_split.png
+Dataset saved experiments\mcmc-sampling\data\raw\epidemic_data_age_adaptive_sobol.pkl (40 sims)
+CSV saved to experiments\mcmc-sampling\data\raw\epidemic_data_age_adaptive_sobol.csv (40 rows)
+Index(['sim_id', 'replicate_id', 'tau', 'gamma', 'rho', 'R0', 'peak_I',
+       'peak_time', 'final_R', 'attack_rate', 'near_threshold'],
+      dtype='object')
+    sim_id  replicate_id       tau  ...  final_R  attack_rate  near_threshold
+0        0             0  0.000930  ...    307.0      0.00307               0
+1        1             0  0.006296  ...    645.0      0.00645               0
+2        2             0  0.001996  ...    901.0      0.00901               0
+3        3             0  0.009005  ...  15732.0      0.15732               0
+4        4             0  0.003055  ...  25727.0      0.25727               0
+5        5             0  0.005125  ...   8989.0      0.08989               1
+6        6             0  0.010621  ...   4782.0      0.04782               0
+7        7             0  0.015819  ...  31748.0      0.31748               0
+8        8             0  0.000587  ...    324.0      0.00324               0
+9        9             0  0.010470  ...   8939.0      0.08939               1
+10      10             0  0.001402  ...    803.0      0.00803               0
+11      11             0  0.016023  ...  13621.0      0.13621               1
+12      12             0  0.012942  ...  25431.0      0.25431               0
+13      13             0  0.020452  ...  31584.0      0.31584               0
+14      14             0  0.005926  ...   1303.0      0.01303               0
+15      15             0  0.023302  ...  32969.0      0.32969               0
+16      16             0  0.010382  ...  11380.0      0.11380               1
+17      17             0  0.022887  ...  31109.0      0.31109               0
+18      18             0  0.011344  ...  12172.0      0.12172               1
+19      19             0  0.009015  ...  12663.0      0.12663               1
+
+[20 rows x 11 columns]
+
+Total rows   : 40
+Missing values:
+sim_id            0
+replicate_id      0
+tau               0
+gamma             0
+rho               0
+R0                0
+peak_I            0
+peak_time         0
+final_R           0
+attack_rate       0
+near_threshold    0
+dtype: int64
+Shape        : (40, 11)
+
+          sim_id  replicate_id  ...  attack_rate  near_threshold
+count  40.000000          40.0  ...    40.000000       40.000000
+mean   19.500000           0.0  ...     0.143886        0.250000
+std    11.690452           0.0  ...     0.156286        0.438529
+min     0.000000           0.0  ...     0.002100        0.000000
+25%     9.750000           0.0  ...     0.008965        0.000000
+50%    19.500000           0.0  ...     0.089640        0.000000
+75%    29.250000           0.0  ...     0.262325        0.250000
+max    39.000000           0.0  ...     0.668020        1.000000
+
+[8 rows x 11 columns]
+
+R₀ > 1.5     : 14  (35.0%)
+0.5 ≤ R₀ ≤ 1.5: 18 (45.0%)
+R₀ < 0.5      : 16  (40.0%)
+
+Data : experiments\mcmc-sampling\data\raw
+Plots : experiments\mcmc-sampling\out\plots\mcmc_sampling_plots
+Saved: experiments\mcmc-sampling\out\plots\mcmc_sampling_plots\tau_gamma_scatter.png

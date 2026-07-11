@@ -6,8 +6,6 @@ from pathlib import Path
 
 RAW_DATA_DIR=Path("experiments/lhs-sampling/data/raw")
 SPLIT_DATA_DIR=Path("experiments/lhs-sampling/data/split")
-# SPLIT DATASET BY PARAMETER SET (RANDOM, NO STRATIFICATION)
-
 
 def split_dataset(dataset,train_ratio=0.70,val_ratio=0.15,test_ratio=0.15,seed=42):
     """
@@ -211,9 +209,7 @@ if __name__ == "__main__":
         description="Random split by PARAMETER SET (replicates grouped)"
     )
 
-    parser.add_argument('--input',
-                        type=str,
-                        default="epidemic_data_age_adaptive_sobol.pkl")
+    parser.add_argument('--input',type=str, default="abm-data.pkl")
     parser.add_argument('--output',      type=str,   default=None)
     parser.add_argument('--output_csv',  type=str,   default=None)
     parser.add_argument('--train_ratio', type=float, default=0.70)
@@ -223,18 +219,16 @@ if __name__ == "__main__":
 
     args, unknown = parser.parse_known_args()
 
-    print("=" * 65)
-    print("STEP 2: RANDOM PARAMETER SPLIT (LEAKAGE-FREE)")
-    print("=" * 65)
 
-    # ── Input: read from raw/ ──────────────────────────────────
+
+    # Input
     input_path = RAW_DATA_DIR / args.input
-    print(f"\nLoading → {input_path.resolve()}")
+    print(f"\nLoading :{input_path.resolve()}")
 
     with open(input_path, 'rb') as f:
         dataset = pickle.load(f)
 
-    # ── Run split ─────────────────────────────────────────────
+    # Run split 
     split_data = split_dataset(
         dataset,
         train_ratio=args.train_ratio,

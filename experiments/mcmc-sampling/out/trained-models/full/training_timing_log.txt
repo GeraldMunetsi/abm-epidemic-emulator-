@@ -1,0 +1,26 @@
+Run timestamp          : 2026-06-25 21:51:16
+Replicates             : 2
+Epochs (max)           : 100
+Batch size             : 35
+Total training time    : 351.77 s  (5.86 min)
+Mean time / replicate  : 174.23 s  (2.90 min)
+
+  Rep    Seed  Best epoch    Time (s)  Time (min)
+    1      42          85      166.40        2.77
+    2     123          92      182.07        3.03
+------------------------------------------------------------
+
+Run timestamp          : 2026-06-25 21:56:48
+Replicates             : 4
+Epochs (max)           : 100
+Batch size             : 35
+Total training time    : 760.20 s  (12.67 min)
+Mean time / replicate  : 189.09 s  (3.15 min)
+
+  Rep    Seed  Best epoch    Time (s)  Time (min)
+    1      42          85      167.92        2.80
+    2     123          92      181.42        3.02
+    3     456          92      209.51        3.49
+    4     789          85      197.51        3.29
+------------------------------------------------------------
+

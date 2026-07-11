@@ -1,0 +1,47 @@
+============================================================
+SIR DATA AUGMENTATION
+============================================================
+
+  Input   : C:\Users\gmm71\OneDrive - University of Cambridge\Documents\Emulation models\abm-epidemic-emulator\experiments\mcmc-sampling\data\split\epidemic_data_age_adaptive_sobol_split.pkl
+  Output  : C:\Users\gmm71\OneDrive - University of Cambridge\Documents\Emulation models\abm-epidemic-emulator\experiments\mcmc-sampling\data\augmented\epidemic_data_age_adaptive_sobol_split_augmented.pkl
+  CSV     : C:\Users\gmm71\OneDrive - University of Cambridge\Documents\Emulation models\abm-epidemic-emulator\experiments\mcmc-sampling\data\augmented\epidemic_data_age_adaptive_sobol_split_augmented.csv
+  Plots   : C:\Users\gmm71\OneDrive - University of Cambridge\Documents\Emulation models\abm-epidemic-emulator\experiments\mcmc-sampling\out\plots\augmentation_plots
+
+  Train simulations (before): 28
+  Train simulations (after) : 84
+
+Saved pickle  experiments\mcmc-sampling\data\augmented\epidemic_data_age_adaptive_sobol_split_augmented.pkl
+CSV saved experiments\mcmc-sampling\data\augmented\epidemic_data_age_adaptive_sobol_split_augmented.csv  shape=(84, 4)
+
+Columns : ['tau', 'gamma', 'rho', 'R0']
+Total rows : 84
+Missing :
+tau      0
+gamma    0
+rho      0
+R0       0
+dtype: int64
+
+             tau      gamma        rho         R0
+count  84.000000  84.000000  84.000000  84.000000
+mean    0.009392   0.304036   0.006000   1.146680
+std     0.004867   0.118833   0.002755   0.667646
+min     0.001076   0.066373   0.001501   0.181483
+25%     0.005239   0.219271   0.003430   0.750929
+50%     0.009941   0.317337   0.006679   1.055665
+75%     0.012512   0.407407   0.008692   1.615326
+max     0.019677   0.491479   0.010000   3.426667
+
+R₀ > 1.2 :    29  (34.5%)
+0.5 ≤ R₀ ≤ 1.5 :    47  (56.0%)
+R₀ < 0.8 :    25  (29.8%)
+Unique tau values (3dp): 44
+Total simulations: 84
+Unique gamma values (3dp): 55
+Total simulations: 84
+Saved: experiments\mcmc-sampling\out\plots\augmentation_plots\tau_gamma_scatter_augmented.png
+
+  Data  → C:\Users\gmm71\OneDrive - University of Cambridge\Documents\Emulation models\abm-epidemic-emulator\experiments\mcmc-sampling\data\augmented
+  Plots → C:\Users\gmm71\OneDrive - University of Cambridge\Documents\Emulation models\abm-epidemic-emulator\experiments\mcmc-sampling\out\plots\augmentation_plots
+
+Done.

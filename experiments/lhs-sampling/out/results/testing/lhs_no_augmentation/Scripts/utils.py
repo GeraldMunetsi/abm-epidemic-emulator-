@@ -12,8 +12,9 @@ from torch.utils.data import Dataset, DataLoader
 
 
 # NORMALISATION CONSTANTS  
-PARAM_MINS = np.array([0.0005, 0.007,  0.001], dtype=np.float32)   # [tau, gamma, rho]
-PARAM_MAXS = np.array([0.024,  0.5,  0.010], dtype=np.float32)
+PARAM_MINS = np.array([0.0003, 0.03,  0.001], dtype=np.float32)   # [tau, gamma, rho]
+PARAM_MAXS = np.array([0.02,  1.0,  0.01], dtype=np.float32)
+
 
 
 def normalise_params(params_raw: np.ndarray) -> np.ndarray:
@@ -92,8 +93,8 @@ class BatchWrapper:
 
     def to(self, device):
         self.params_norm = self.params_norm.to(device)
-        self.rho_raw     = self.rho_raw.to(device)
-        self.y           = self.y.to(device)
+        self.rho_raw = self.rho_raw.to(device)
+        self.y = self.y.to(device)
         return self
 
 

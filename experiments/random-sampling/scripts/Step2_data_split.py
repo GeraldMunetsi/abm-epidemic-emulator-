@@ -102,7 +102,6 @@ def split_dataset(dataset,train_ratio=0.70,val_ratio=0.15,test_ratio=0.15,seed=4
     if len(leak_tr_te) or len(leak_tr_va) or len(leak_va_te):
         raise RuntimeError("Parameter leakage detected!")
 
-    print("Zero leakage confirmed")
 
    
     # Step 5: Print split summary
@@ -206,7 +205,7 @@ if __name__ == "__main__":
 
     parser.add_argument('--input',
                         type=str,
-                        default="epidemic_data_age_adaptive_sobol.pkl")
+                        default="abm-data.pkl")
     parser.add_argument('--output',type=str,default=None)
     parser.add_argument('--output_csv',type=str,default=None)
     parser.add_argument('--train_ratio',type=float,default=0.70)
@@ -239,7 +238,7 @@ if __name__ == "__main__":
     with open(out_path, 'wb') as f:
         pickle.dump(split_data, f, protocol=pickle.HIGHEST_PROTOCOL)
 
-    print(f"\nSaved split dataset → {out_path.resolve()}")
+    print(f"\nSaved split dataset : {out_path.resolve()}")
 
     #  CSV: also write to split/ 
     csv_path = SPLIT_DATA_DIR / args.output_csv if args.output_csv else \
@@ -247,4 +246,4 @@ if __name__ == "__main__":
 
     export_training_csv(split_data, csv_path)
 
-    print("\nDone.")
+  

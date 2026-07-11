@@ -5,9 +5,10 @@ import warnings
 warnings.filterwarnings('ignore')
 from torch.utils.data import Dataset, DataLoader
 
-# NORMALISATION CONSTANTS 
-PARAM_MINS = np.array([0.0005, 0.007,  0.001], dtype=np.float32)   # [tau, gamma, rho]
-PARAM_MAXS = np.array([0.024,  0.5,  0.010], dtype=np.float32)
+
+PARAM_MINS = np.array([0.0003, 0.03,  0.001], dtype=np.float32)  # [tau, gamma, rho]
+PARAM_MAXS = np.array([0.02,   1.0,   0.01 ], dtype=np.float32)
+
 
 def normalise_params(params_raw: np.ndarray) -> np.ndarray:
     """
@@ -20,17 +21,19 @@ def normalise_params(params_raw: np.ndarray) -> np.ndarray:
     """
     return (params_raw - PARAM_MINS) / (PARAM_MAXS - PARAM_MINS + 1e-8)
 
-# DATASET
+
+# ── DATASET ───────────────────────────────────────────────────────────────────
 class EpidemicDatasetSIR(Dataset):
     """
     PyTorch Dataset for the 3-parameter SIR emulator.
 
     Each item returns a dict with:
-        params_norm : (3,)    normalised [tau, gamma, rho] in [0,1]
-                              fed into the Fourier encoder
+        params_norm : (3,)    normalised [tau, gamma, rho] in [0, 1]
+                              fed into the RFF encoder
         rho_raw     : scalar  raw (un-normalised) rho in [0.001, 0.010]
-                              used by decoder to pin S(0)=N(1-rho), I(0)=N*rho
-        y           : (T, 3)  target [S(t), I(t), R(t)] trajectories
+                              used by B-spline decoder to pin
+                              S(0) = N(1-rho) and I(0) = N×rho exactly
+        y           : (T, 3)  target trajectories [S(t), I(t), R(t)]
     """
 
     def __init__(self, simulations: list, n_timepoints: int):
@@ -44,24 +47,24 @@ class EpidemicDatasetSIR(Dataset):
     def __getitem__(self, idx: int) -> dict:
         sim = self.simulations[idx]
 
-        #  Raw parameters 
+        # Raw parameters
         params_raw = np.array([
             sim['params']['tau'],
             sim['params']['gamma'],
             sim['params']['rho'],
-        ], dtype=np.float32)                                   # (3,)
-        params_norm = normalise_params(params_raw)             # (3,) in [0, 1]
+        ], dtype=np.float32)                                    # (3,)
+        params_norm = normalise_params(params_raw)              # (3,) in [0, 1]
 
-        # Raw rho for decoder initial conditions 
-        # S(0) = N*(1-rho) and I(0) = N*rho are hard constraints, not predictions.
-        # The decoder needs RAW rho to compute actual counts in people.
-        rho_raw = params_raw[2]                                # scalar float32
+        # Raw rho for decoder initial conditions.
+        # S(0) = N*(1-rho) and I(0) = N*rho are architectural guarantees,
+        # not learned outputs. The decoder requires raw rho to compute counts.
+        rho_raw = params_raw[2]                                 # scalar float32
 
-        # SIR trajectories 
+        # SIR trajectories
         S = sim['output']['S']
         I = sim['output']['I']
         R = sim['output']['R']
-        y = np.stack([S, I, R], axis=1).astype(np.float32)    # (T, 3)
+        y = np.stack([S, I, R], axis=1).astype(np.float32)     # (T, 3)
 
         return {
             'params_norm': params_norm,
@@ -70,14 +73,13 @@ class EpidemicDatasetSIR(Dataset):
         }
 
 
-
-# BATCH WRAPPER
+# ── BATCH WRAPPER ─────────────────────────────────────────────────────────────
 class BatchWrapper:
     """
-    Thin wrapper for attribute-style batch access.
+    Thin wrapper providing attribute-style access to batched tensors.
 
     Attributes:
-        params_norm : (B, 3)    normalised params  → Fourier encoder
+        params_norm : (B, 3)    normalised params  → RFF encoder
         rho_raw     : (B,)      raw rho            → decoder initial conditions
         y           : (B, T, 3) target trajectories
     """
@@ -93,7 +95,8 @@ class BatchWrapper:
         self.y           = self.y.to(device)
         return self
 
-# COLLATE FUNCTION
+
+# ── COLLATE FUNCTION ──────────────────────────────────────────────────────────
 def collate_sir(batch_list: list) -> BatchWrapper:
     """
     Custom collate: stacks dicts from EpidemicDatasetSIR into a BatchWrapper.
@@ -101,39 +104,37 @@ def collate_sir(batch_list: list) -> BatchWrapper:
     Args:
         batch_list : list of dicts (one per sample)
     Returns:
-        BatchWrapper
+        BatchWrapper with stacked tensors
     """
     params_norm = torch.FloatTensor(
         np.stack([item['params_norm'] for item in batch_list])  # (B, 3)
     )
     rho_raw = torch.FloatTensor(
-        np.array([item['rho_raw'] for item in batch_list])       # (B,)
+        np.array([item['rho_raw'] for item in batch_list])      # (B,)
     )
     y = torch.FloatTensor(
-        np.stack([item['y'] for item in batch_list])             # (B, T, 3)
+        np.stack([item['y'] for item in batch_list])            # (B, T, 3)
     )
     return BatchWrapper(params_norm, rho_raw, y)
 
 
-
-# DATA LOADERS
+# ── DATA LOADERS ──────────────────────────────────────────────────────────────
 def create_dataloaders(dataset_path: str, batch_size: int = 32,
                        num_workers: int = 0) -> dict:
     """
     Load the SIR dataset pickle and return train/val/test DataLoaders.
 
-    Expected pickle structure
-    
-    {
-      'train'   : {'simulations': [...]},
-      'val'     : {'simulations': [...]},
-      'test'    : {'simulations': [...]},
-      'metadata': {'n_timepoints': int, ...}
-    }
+    Expected pickle structure:
+        {
+          'train'   : {'simulations': [...]},
+          'val'     : {'simulations': [...]},
+          'test'    : {'simulations': [...]},
+          'metadata': {'n_timepoints': int, ...}
+        }
 
     Each simulation dict must contain:
-      sim['params']  → {'tau': float, 'gamma': float, 'rho': float}
-      sim['output']  → {'t': array, 'S': array, 'I': array, 'R': array}
+        sim['params']  → {'tau': float, 'gamma': float, 'rho': float}
+        sim['output']  → {'t': array, 'S': array, 'I': array, 'R': array}
 
     Args:
         dataset_path : path to .pkl file
@@ -148,41 +149,41 @@ def create_dataloaders(dataset_path: str, batch_size: int = 32,
     with open(dataset_path, 'rb') as f:
         data = pickle.load(f)
 
-    # Infer number of time points from first simulation 
+    # Infer number of time points from first simulation
     first_sim    = data['train']['simulations'][0]
     n_timepoints = len(first_sim['output']['t'])
-    print(f"  n_timepoints  : {n_timepoints}")
+    print(f"  n_timepoints : {n_timepoints}")
 
-    #  Build datasets 
+    # Build datasets
     train_dataset = EpidemicDatasetSIR(data['train']['simulations'], n_timepoints)
     val_dataset   = EpidemicDatasetSIR(data['val']['simulations'],   n_timepoints)
     test_dataset  = EpidemicDatasetSIR(data['test']['simulations'],  n_timepoints)
-
-    print(f"  Train={len(train_dataset)}, Val={len(val_dataset)}, Test={len(test_dataset)}")
+    print(f"  Train={len(train_dataset)}, Val={len(val_dataset)}, "
+          f"Test={len(test_dataset)}")
 
     train_loader = DataLoader(
         train_dataset,
-        batch_size= batch_size,
-        shuffle = True,
-        drop_last = True,          # prevents BatchNorm crash on 1-sample tail batch
+        batch_size  = batch_size,
+        shuffle     = True,
+        drop_last   = True,       # prevents BatchNorm crash on 1-sample tail batch
         num_workers = num_workers,
-        collate_fn = collate_sir,
+        collate_fn  = collate_sir,
     )
     val_loader = DataLoader(
         val_dataset,
-        batch_size = batch_size,
-        shuffle = False,
-        drop_last= False,
-        num_workers= num_workers,
-        collate_fn=collate_sir,
+        batch_size  = batch_size,
+        shuffle     = False,
+        drop_last   = False,
+        num_workers = num_workers,
+        collate_fn  = collate_sir,
     )
     test_loader = DataLoader(
         test_dataset,
         batch_size  = batch_size,
-        shuffle= False,
-        drop_last= False,
-        num_workers=num_workers,
-        collate_fn=collate_sir,
+        shuffle     = False,
+        drop_last   = False,
+        num_workers = num_workers,
+        collate_fn  = collate_sir,
     )
 
     metadata = data.get('metadata', {})
@@ -197,17 +198,34 @@ def create_dataloaders(dataset_path: str, batch_size: int = 32,
     }
 
 
-
-# METRICS
+# ── METRICS ───────────────────────────────────────────────────────────────────
 def compute_metrics(predictions, targets, prefix: str = '') -> dict:
     """
     Compute regression metrics for SIR trajectory predictions.
 
+    All samples are included — no peak threshold exclusion.
+
+    Rationale: with rho ∈ [0.001, 0.01] and N = 100,000,
+    the initial seeding I(0) = N × rho ∈ [100, 1,000] for every
+    parameter combination, so the true peak I_max ≥ I(0) ≥ 100.
+    The denominator of Rel-MAE_I is therefore always numerically
+    stable; near-extinction trajectories where I_max ≈ I(0) are
+    included and their elevated relative errors are reported
+    transparently as a known consequence of the B-spline decoder's
+    architectural guarantee I(t) > 0.
+
+    Removing the peak_threshold parameter also ensures that training,
+    validation, and test metrics are computed identically on the same
+    sample set, preventing any discrepancy between checkpoint selection
+    and final reported accuracy.
+
     Args:
-        predictions : (N, T, 3) tensor or array  — predicted [S, I, R]
-        targets     : (N, T, 3) tensor or array  — ground truth [S, I, R]
+        predictions : (N, T, 3) tensor or array — predicted [S, I, R]
+        targets     : (N, T, 3) tensor or array — ground truth [S, I, R]
+        prefix      : optional string prefix for metric keys (default '')
+
     Returns:
-        dict of floats 
+        dict of scalar floats
     """
     if torch.is_tensor(predictions):
         predictions = predictions.detach().cpu().numpy()
@@ -215,39 +233,47 @@ def compute_metrics(predictions, targets, prefix: str = '') -> dict:
         targets = targets.detach().cpu().numpy()
 
     def _r2(pred, true):
-        ss_r = np.sum((true - pred) ** 2)
-        ss_t = np.sum((true - true.mean()) ** 2)
-        return float(1.0 - ss_r / (ss_t + 1e-8))
-    
-    #Global MAE -MeasureS total emulator quality over full trajectory tensor.
+        """Pooled R² over all (sample, timestep) pairs."""
+        ss_res = np.sum((true - pred) ** 2)
+        ss_tot = np.sum((true - true.mean()) ** 2)
+        return float(1.0 - ss_res / (ss_tot + 1e-8))
+
+    # ── Global metrics — all compartments, all samples ────────────────────────
+    # Measures total emulator quality across the full trajectory tensor
     mae  = float(np.abs(predictions - targets).mean())
-    #Global MSE
     mse  = float(((predictions - targets) ** 2).mean())
-    #Global RMSE-
     rmse = float(np.sqrt(mse))
-    #Global R2-measures how much of the total variation in all true outputs is explained by the emulator predictions across every sample, every time point, and every compartment combined.
     r2   = _r2(predictions, targets)
 
+    # ── Per-compartment MAE ───────────────────────────────────────────────────
     mae_s = float(np.abs(predictions[:, :, 0] - targets[:, :, 0]).mean())
     mae_i = float(np.abs(predictions[:, :, 1] - targets[:, :, 1]).mean())
     mae_r = float(np.abs(predictions[:, :, 2] - targets[:, :, 2]).mean())
 
-    #Compartmebtal R2-
-    r2_s = _r2(predictions[:, :, 0], targets[:, :, 0]) # Does model capture susceptible depletion?
-    r2_i = _r2(predictions[:, :, 1], targets[:, :, 1]) #Does model capture infected peaks? (usually hardest)
-    r2_r = _r2(predictions[:, :, 2], targets[:, :, 2]) #Does model capture recovery accumulation?
+    # ── Per-compartment R² ────────────────────────────────────────────────────
+    # R²_S: does the model capture susceptible depletion?
+    # R²_I: does the model capture infected peak magnitude and timing?
+    # R²_R: does the model capture recovery accumulation?
+    r2_s = _r2(predictions[:, :, 0], targets[:, :, 0])
+    r2_i = _r2(predictions[:, :, 1], targets[:, :, 1])
+    r2_r = _r2(predictions[:, :, 2], targets[:, :, 2])
 
     p = prefix
     return {
-        f'{p}MAE'  : mae,   f'{p}MSE'  : mse,   f'{p}RMSE' : rmse,
+        f'{p}MAE'  : mae,
+        f'{p}MSE'  : mse,
+        f'{p}RMSE' : rmse,
         f'{p}R2'   : r2,
-        f'{p}MAE_S': mae_s, f'{p}MAE_I': mae_i,  f'{p}MAE_R': mae_r,
-        f'{p}R2_S' : r2_s,  f'{p}R2_I' : r2_i,   f'{p}R2_R' : r2_r,
+        f'{p}MAE_S': mae_s,
+        f'{p}MAE_I': mae_i,
+        f'{p}MAE_R': mae_r,
+        f'{p}R2_S' : r2_s,
+        f'{p}R2_I' : r2_i,
+        f'{p}R2_R' : r2_r,
     }
 
 
-
-# DEVICE HELPER
+# ── DEVICE HELPER ─────────────────────────────────────────────────────────────
 def get_device() -> torch.device:
     """Return CUDA GPU if available, otherwise CPU."""
     if torch.cuda.is_available():
@@ -255,45 +281,41 @@ def get_device() -> torch.device:
         print(f"\nUsing GPU : {torch.cuda.get_device_name(0)}")
     else:
         device = torch.device('cpu')
-        print("\n Using CPU")
+        print("\nUsing CPU")
     return device
 
 
-
-# EARLY STOPPING
+# ── EARLY STOPPING ────────────────────────────────────────────────────────────
 class EarlyStopping:
     """
     Stop training when a monitored metric stops improving.
 
     Correct usage — monitor val R², stop when it plateaus:
 
-        stopper = EarlyStopping(patience=15, min_delta=1e-4, mode='max')
+        stopper = EarlyStopping(patience=35, min_delta=1e-4, mode='min')
 
         for epoch in range(max_epochs):
-            train_one_epoch(...)
-            val_metrics = evaluate(model, val_loader)
+            train_loss, train_metrics = train_epoch(...)
+            val_loss,   val_metrics   = validate(...)
 
-            # Save checkpoint if this is the best epoch
-            if val_metrics['r2'] > best_r2:
-                best_r2 = val_metrics['r2']
+            if val_metrics['R2'] > best_r2:
+                best_r2 = val_metrics['R2']
                 torch.save(model.state_dict(), 'best_model.pt')
 
-            # Check stopping criterion
-            if stopper(val_metrics['r2']):
+            if stopper(val_loss):
                 print(f"Early stopping at epoch {epoch}")
                 break
 
     Args:
         patience  : epochs to wait after last improvement before stopping
-                    15 is appropriate for this model (converges ~20-40 epochs)
-        min_delta : minimum absolute improvement to reset the counter
+        min_delta : minimum absolute improvement to reset the patience counter
                     1e-4 prevents stopping on numerical noise in R²
         mode      : 'max' for R² (higher is better)
                     'min' for loss (lower is better)
     """
 
-    def __init__(self, patience: int = 15, min_delta: float = 1e-4,
-                 mode: str = 'max'):
+    def __init__(self, patience: int = 35, min_delta: float = 1e-4,
+                 mode: str = 'min'):
         assert mode in ('min', 'max'), "mode must be 'min' or 'max'"
         self.patience   = patience
         self.min_delta  = min_delta
@@ -305,7 +327,7 @@ class EarlyStopping:
     def __call__(self, score: float) -> bool:
         """
         Args:
-            score : current epoch's monitored metric (e.g. val_metrics['r2'])
+            score : current epoch's monitored metric
         Returns:
             True if training should stop, False otherwise
         """

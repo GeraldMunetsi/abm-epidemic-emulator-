@@ -1,3 +1,8 @@
+import sys
+if sys.platform == "win32":
+    sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+    sys.stderr.reconfigure(encoding="utf-8", errors="replace")
+
 import torch
 import numpy as np
 import matplotlib.pyplot as plt
@@ -12,7 +17,7 @@ from utils import create_dataloaders, compute_metrics, get_device, PARAM_MINS, P
 
 n_timepoints = 250
 N=100000
-knots=7
+knots=8
 
 
 DATA_DIR=Path("experiments/random-sampling/out/trained models")
@@ -227,113 +232,80 @@ def load_training_histories(models_dir):
 
     return histories
 
-#Training curves for all replicate models."""
-def plot_training_curves(results_list, models_dir, output_dir):
-    output_dir= Path(output_dir)
-    histories = load_training_histories(models_dir)    
-    fig,axes = plt.subplots(1, 3, figsize=(20, 6))
-    fig.suptitle('TRAINING CURVES (All Replicate Models)',fontsize=20, fontweight='bold')
+def plot_training_summary(results_list, models_dir, output_dir):
+    """4-panel training summary: loss curves, R²_I, relative MAE_I, convergence."""
+    output_dir = Path(output_dir)
+    histories = load_training_histories(models_dir)
+    if histories is None or all(h is None for h in histories):
+        print("No training histories found — skipping summary plot.")
+        return
+
     n_replicates = len(results_list)
     colors = plt.cm.tab10(np.linspace(0, 1, n_replicates))
-    
-    # MAE_S 
-    for i, (result, history) in enumerate(zip(results_list, histories)):
-        if history is not None and 'val_mae_s' in history:
-            axes[0].plot(range(1, len(history['val_mae_s']) + 1), history['val_mae_s'],
-                     color=colors[i], alpha=0.7, linewidth=1)
-    axes[0].set_xlabel('Epoch', fontweight='bold')
-    axes[0].set_ylabel('Validation MAE_S', fontweight='bold')
-    axes[0].set_title('Susceptible (S) Error Evolution')
-    axes[0].grid(True, alpha=0.3)
 
-    # MAE_R 
-    for i, (result, history) in enumerate(zip(results_list, histories)):
-        if history is not None and 'val_mae_r' in history:
-            axes[1].plot(range(1, len(history['val_mae_r']) + 1), history['val_mae_r'],
-                     color=colors[i], alpha=0.7, linewidth=1)
-    axes[1].set_xlabel('Epoch', fontweight='bold')
-    axes[1].set_ylabel('Validation MAE_R', fontweight='bold')
-    axes[1].set_title('Recovered (R) Error')
-    axes[1].grid(True, alpha=0.3)
+    fig, axes = plt.subplots(2, 2, figsize=(14, 10))
+    fig.suptitle('Training Summary', fontsize=16, fontweight='bold')
+    ax_loss, ax_r2, ax_mae, ax_conv = axes[0, 0], axes[0, 1], axes[1, 0], axes[1, 1]
 
-    # Convergence last 10 epochs 
     for i, (result, history) in enumerate(zip(results_list, histories)):
-        if history is not None and 'val_r2' in history:
-            last_10 = history['val_r2'][-10:]
-            epochs_last = range(len(history['val_r2'])-9,len(history['val_r2']) + 1)
-            axes[2].plot(epochs_last, last_10,color=colors[i], alpha=0.7, linewidth=1, marker='o')
-    axes[2].set_xlabel('Epoch', fontweight='bold')
-    axes[2].set_ylabel('Validation R²', fontweight='bold')
-    axes[2].set_title('Convergence (Last 10 Epochs)')
-    axes[2].grid(True, alpha=0.3)
-    out_path = output_dir / 'training_curves_all_replicates.png'
+        if history is None:
+            continue
+        color = colors[i]
+        label = f"Model {result['replicate_id']}"
+
+        if 'train_loss' in history and 'val_loss' in history:
+            epochs = range(1, len(history['train_loss']) + 1)
+            ax_loss.plot(epochs, history['train_loss'], color=color, alpha=0.4,
+                         linewidth=1, linestyle='--')
+            ax_loss.plot(epochs, history['val_loss'], color=color, alpha=0.7,
+                         linewidth=1, label=label)
+
+        if 'val_r2_I' in history:
+            ax_r2.plot(range(1, len(history['val_r2_I']) + 1), history['val_r2_I'],
+                       color=color, alpha=0.7, linewidth=1, label=label)
+
+        if 'val_mae_i' in history:
+            rel_mae = np.array(history['val_mae_i']) / N * 100
+            ax_mae.plot(range(1, len(rel_mae) + 1), rel_mae,
+                        color=color, alpha=0.7, linewidth=1, label=label)
+
+        if 'val_loss' in history:
+            n_tail = min(20, len(history['val_loss']))
+            tail = history['val_loss'][-n_tail:]
+            start_epoch = len(history['val_loss']) - n_tail + 1
+            ax_conv.plot(range(start_epoch, start_epoch + n_tail), tail,
+                         color=color, alpha=0.7, linewidth=1.2,
+                         marker='o', markersize=3, label=label)
+
+    ax_loss.set_xlabel('Epoch', fontweight='bold')
+    ax_loss.set_ylabel('Loss (log scale)', fontweight='bold')
+    ax_loss.set_title('Training (- -) vs Validation (—) Loss')
+    ax_loss.set_yscale('log')
+    ax_loss.legend(fontsize=7, ncol=2, loc='upper right')
+    ax_loss.grid(True, alpha=0.3)
+
+    ax_r2.set_xlabel('Epoch', fontweight='bold')
+    ax_r2.set_ylabel('R²', fontweight='bold')
+    ax_r2.set_title('R² of I Compartment Evolution')
+    ax_r2.legend(fontsize=7, ncol=2, loc='lower right')
+    ax_r2.grid(True, alpha=0.3)
+
+    ax_mae.set_xlabel('Epoch', fontweight='bold')
+    ax_mae.set_ylabel('Relative MAE_I (% of N)', fontweight='bold')
+    ax_mae.set_title('Relative MAE_I Evolution')
+    ax_mae.legend(fontsize=7, ncol=2, loc='upper right')
+    ax_mae.grid(True, alpha=0.3)
+
+    ax_conv.set_xlabel('Epoch', fontweight='bold')
+    ax_conv.set_ylabel('Validation Loss', fontweight='bold')
+    ax_conv.set_title('Convergence (Last 20 Epochs)')
+    ax_conv.legend(fontsize=7, ncol=2, loc='upper right')
+    ax_conv.grid(True, alpha=0.3)
+
+    plt.tight_layout()
+    out_path = output_dir / 'training_summary.png'
     plt.savefig(out_path, dpi=200, bbox_inches='tight')
     plt.close()
-    print(f" Saved: {out_path}")
-
-
-#Training vs validation loss + MAE_I and R² evolution for all replicates
-    fig,axes = plt.subplots(1, 3, figsize=(20, 6))
-    fig.suptitle('TRAINING CURVES (All Replicate Models)',fontsize=20, fontweight='bold')
-    n_replicates = len(results_list)
-    colors = plt.cm.tab10(np.linspace(0, 1, n_replicates))
-    
-    # Training vs Validation Loss
-    for i, (result, history) in enumerate(zip(results_list, histories)):
-        if history is not None and 'train_loss' in history and 'val_loss' in history:
-            epochs= range(1, len(history['train_loss']) + 1)
-            axes[0].plot(epochs, history['train_loss'],
-                     color=colors[i], alpha=0.3, linewidth=1, linestyle='--')
-            axes[0].plot(epochs, history['val_loss'],
-                     color=colors[i], alpha=0.3, linewidth=1)
-    axes[0].set_xlabel('Epoch',fontweight='bold')
-    axes[0].set_ylabel('Loss', fontweight='bold')
-    axes[0].set_title('Training (dashed) vs Validation (solid) Loss')
-    axes[0].grid(True, alpha=0.3)
-    #axes[0].set_yscale('log')
-
-    # Validation MAE_I
-    for i, (result, history) in enumerate(zip(results_list, histories)):
-        if history is not None and 'val_mae_i' in history:
-            axes[1].plot(range(1, len(history['val_mae_i']) + 1), history['val_mae_i'],
-                     color=colors[i], alpha=0.7, linewidth=1)
-    axes[1].set_xlabel('Epoch', fontweight='bold')
-    axes[1].set_ylabel('Validation MAE_I', fontweight='bold')
-    axes[1].set_title('MAE_I Evolution')
-    axes[1].grid(True, alpha=0.3)
-
-    # Validation R²
-    for i, (result, history) in enumerate(zip(results_list, histories)):
-        if history is not None and 'val_r2' in history:
-            axes[2].plot(range(1, len(history['val_r2']) + 1), history['val_r2'],
-                     color=colors[i], alpha=0.7, linewidth=1,
-                     label=f"Model {result['replicate_id']}")
-    axes[2].set_xlabel('Epoch', fontweight='bold')
-    axes[2].set_ylabel('Validation R²', fontweight='bold')
-    axes[2].set_title('R² Evolution')
-    axes[2].legend(fontsize=8, ncol=2, loc='lower right')
-    axes[2].grid(True, alpha=0.3)
-    out_path = output_dir/'training_curves.png'
-    plt.savefig(out_path, dpi=200, bbox_inches='tight')
-    #plt.show()
-    print(f"Saved: {out_path}")
-
-    #Training vs Validation Loss single plot
-    for i, (result, history) in enumerate(zip(results_list, histories)):
-        if history is not None and 'train_loss' in history and 'val_loss' in history:
-            epochs= range(1, len(history['train_loss']) + 1)
-            plt.plot(epochs, history['train_loss'],
-                     color=colors[i], alpha=0.3, linewidth=1, linestyle='--')
-            plt.plot(epochs, history['val_loss'],
-                     color=colors[i], alpha=0.3, linewidth=1)
-    plt.xlabel('Epoch',fontweight='bold')
-    plt.ylabel('log(Loss)', fontweight='bold')
-    plt.title('Training (dashed) vs Validation (solid) Loss')
-    plt.grid(True, alpha=0.3)
-    plt.yscale('log')
-    out_path = output_dir/'training_curve_only.png'
-    plt.savefig(out_path, dpi=200, bbox_inches='tight')
-    #plt.show()
     print(f"Saved: {out_path}")
     
 
@@ -573,25 +545,15 @@ def save_results(results_list, stats_dict, output_dir):
 # ENTRY POINT
 if __name__ == "__main__":
     # Default filename 
-    DATA_FILENAME = 'epidemic_data_age_adaptive_sobol_split.pkl'
-    parser = argparse.ArgumentParser(
-        description="Validate replicate models"
-    )
-    parser.add_argument('--models_dir',
-                        type=str,
-                        default=str(DATA_DIR),
+    DATA_FILENAME = 'abm-data_split.pkl'
+    parser = argparse.ArgumentParser(description="Validate replicate models")
+    parser.add_argument('--models_dir',type=str,default=str(DATA_DIR),
                         help='Directory containing trained replicate models')
-    parser.add_argument('--data',
-                        type=str,
-                        default=str(SPLIT_DATA_DIR / DATA_FILENAME),  
+    parser.add_argument('--data',type=str,default=str(SPLIT_DATA_DIR / DATA_FILENAME),  
                         help='Full path to split dataset .pkl file')
-    parser.add_argument('--output_dir',
-                        type=str,
-                        default=str(MODEL_DIR),
+    parser.add_argument('--output_dir',type=str,default=str(MODEL_DIR),
                         help='Output directory for results (JSON, CSV, report)')
-    parser.add_argument('--plots_dir',
-                        type=str,
-                        default=str(PLOTS_DIR),
+    parser.add_argument('--plots_dir',type=str,default=str(PLOTS_DIR),
                         help='Output directory for plots')
     args = parser.parse_args()
 
@@ -633,7 +595,7 @@ if __name__ == "__main__":
     print(f"CV (MAE_I): {stats_dict['MAE_I']['cv']:.2f}%")
 
     #  Visualisations 
-    plot_training_curves(results_list, models_dir, plots_dir)
+    plot_training_summary(results_list, models_dir, plots_dir)
     plot_prediction_samples(results_list, targets, params, plots_dir, n_samples=6)
    
 

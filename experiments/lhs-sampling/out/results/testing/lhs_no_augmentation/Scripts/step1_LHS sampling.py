@@ -1,14 +1,4 @@
 # LHS SAMPLING
-
-#random coordinated descent optimization to improve space-filling properties of the samples. The "random-cd" option performs random coordinate descent optimization, which iteratively swaps coordinates of sample points to reduce the discrepancy of the sample set, leading to a more uniform distribution of samples across the parameter space.
-#The idea is borrowed from optimization theory.
-# The algorithm tries to improve sample layout by:
-# Selecting two sample points
-# Swapping coordinates along one dimension
-# Checking whether space uniformity improves
-# Keeping the swap if it reduces discrepancy
-# This is repeated iteratively.
-
 import numpy as np
 import networkx as nx
 import EoN
@@ -31,10 +21,11 @@ n_timepoints = 250
 tmax = 250
 n_replicates = 1
 n_samples = 4000
+ratio=58
 PARAM_NAMES = ['tau','gamma','rho']
 PARAM_RANGES = {
-    'tau':(0.0005,0.024),
-    'gamma':(0.01,0.5),
+   'tau':(0.00025,0.17),
+    'gamma':(0.03,1),
     'rho':(0.001,0.01)
 }
 
@@ -43,7 +34,7 @@ seed = 4849
 _NETWORK_STATS_CACHE = {
     "k_avg": 10.0,
     "k2_avg": 272.6,
-    "ratio": 34.0,
+    "ratio": ratio,
     "k_std": 9.49,
     "k_max": 734
 }
@@ -58,27 +49,18 @@ def latin_hypercube_sampling(n_samples, param_ranges, seed=None):
     samples = qmc.scale(unit_samples, lower, upper)
     return samples
     
-# NETWORK GENERATION
-_NETWORK_STATS_CACHE = {
-    'k_avg': 10,
-    'k2_avg': 340,
-    'ratio': 34,
-    'k_std': 9.49,
-    'k_max': 30
-}
 
 def generate_network(N=N, m=m, seed=42):
     print(f"\nBuilding BA network (N={N:,}, m={m})")
     G = nx.barabasi_albert_graph(N, m, seed=seed)
-    print(f"{G.number_of_nodes():,} nodes")
-    print(f"{G.number_of_edges():,} edges")
     stats = _NETWORK_STATS_CACHE
+
     print("\nUsing cached network statistics")
-    print(f"<k>       = {stats['k_avg']:.2f}")
-    print(f"<k²>      = {stats['k2_avg']:.2f}")
-    print(f"<k²>/<k>  = {stats['ratio']:.2f}")
-    print(f"k_std     = {stats['k_std']:.2f}")
-    print(f"k_max     = {stats['k_max']}")
+    print(f"first moment = {stats['k_avg']:.2f}")
+    print(f"second moment = {stats['k2_avg']:.2f}")
+    print(f"ratio = {stats['ratio']:.2f}")
+    print(f"first moment_std = {stats['k_std']:.2f}")
+    print(f"first_moment_max = {stats['k_max']}")
 
     return G, stats
 
@@ -247,13 +229,13 @@ if __name__=="__main__":
 
     dataset = generate_dataset()
 
-    save_dataset(dataset,DATA_DIR/"epidemic_data_age_adaptive_sobol.pkl")
+    save_dataset(dataset,DATA_DIR/"abm-data.pkl")
 
-    save_csv(dataset,DATA_DIR/"epidemic_data_age_adaptive_sobol.csv")
+    save_csv(dataset,DATA_DIR/"abm-data.csv")
 
 
 
-latin_hypercube_sampling_data=pd.read_csv(DATA_DIR/"epidemic_data_age_adaptive_sobol.csv")
+latin_hypercube_sampling_data=pd.read_csv(DATA_DIR/"abm-data.csv")
 print(latin_hypercube_sampling_data.head(10))
 print(latin_hypercube_sampling_data.columns)
 print(len(latin_hypercube_sampling_data))

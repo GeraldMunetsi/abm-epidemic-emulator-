@@ -1,0 +1,55 @@
+----------------------------------------------------------------------
+REPORT
+Parameters: tau, gamma, rho
+
+Number of replicates: 10
+Model pattern: best_balanced_mlp_model_*.pt
+
+----------------------------------------------------------------------
+AGGREGATE STATISTICS
+
+PRIMARY METRICS:
+
+R2:
+ Mean:0.9989
+Std: 0.0003
+95% CI: [0.9986,  0.9991]
+ CV: 0.03%
+Range : [0.9981,  0.9992]
+
+MAE_I:
+ Mean:69.46
+Std: 3.70
+95% CI: [66.81,  72.11]
+ CV: 5.33%
+Range : [63.73,  76.88]
+
+
+PER-COMPARTMENT MAE:
+----------------------------------------------------------------------
+  MAE_S:  840.24 ± 100.86  (95% CI: [768.10, 912.39])
+  MAE_I:   69.46 ±  3.70  (95% CI: [66.81, 72.11])
+  MAE_R:  875.51 ± 105.31  (95% CI: [800.18, 950.84])
+
+
+INDIVIDUAL REPLICATE RESULTS:
+----------------------------------------------------------------------
+ ID   Seed       R²    MAE_I  Model File                              
+----------------------------------------------------------------------
+  1     42   0.9990    72.58  best_balanced_mlp_model_1.pt            
+  2    123   0.9990    66.59  best_balanced_mlp_model_2.pt            
+  3    456   0.9990    68.11  best_balanced_mlp_model_3.pt            
+  4    789   0.9989    67.75  best_balanced_mlp_model_4.pt            
+  5   1011   0.9988    67.90  best_balanced_mlp_model_5.pt            
+  6   1213   0.9990    70.83  best_balanced_mlp_model_6.pt            
+  7   1415   0.9988    68.18  best_balanced_mlp_model_7.pt            
+  8   1617   0.9988    72.06  best_balanced_mlp_model_8.pt            
+  9   1819   0.9992    63.73  best_balanced_mlp_model_9.pt            
+ 10   2021   0.9981    76.88  best_balanced_mlp_model_10.pt           
+
+INTERPRETATION
+
+Model Consistency (CV) : GOOD
+Overall Performance    : EXCEPTIONAL
+
+----------------------------------------------------------------------

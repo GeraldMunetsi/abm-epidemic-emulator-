@@ -15,580 +15,631 @@ from utils  import create_dataloaders, compute_metrics, get_device, \
 N=100000
 n_knots=7
 n_timepoints=250
+ratio=58
 
 #I/O PATHS 
 MODELS_DIR = Path("experiments/mcmc-sampling/out/results/testing/mcmc_no_augmentation/trained models")
 TEST_DATA_DIR= Path("experiments/random-sampling/data/split")
 RESULTS_DIR= Path("experiments/mcmc-sampling/out/results/testing/mcmc_no_augmentation/random_testing_no_aug")
 PLOTS_DIR= Path("experiments/mcmc-sampling/out/results/testing/mcmc_no_augmentation/random_testing_no_aug")
+REGRESSION_DATA_DIR = Path("experiments/Regression/data")
 
 TRAIN_STRATEGY = 'MCMC'  
 TEST_STRATEGY= 'UNIFORM_RANDOM'  
 AUGMENTATION= 0       
 N_TRAIN_SIMULATIONS = 2800 
 
-# MODEL LOADING
+#1. MODEL LOADING
 def load_replicate_model(model_path: Path, device: torch.device):
-    """
-    Load a single replicate checkpoint.
-    Handles minor architecture mismatches (e.g. knot count off-by-one).
-    """
-    checkpoint = torch.load(model_path, map_location=device, weights_only=False)
-
-    config = checkpoint.get('config', {
-        'n_params':3,
-        'n_fourier':64,
-        'sigma': 1.0,
-        'fusion_hidden':128,
-        'latent_dim':64,
-        'decoder_hidden':64,
-        'dropout': 0.3,
-        'n_knots':n_knots,
-        'n_timepoints':n_timepoints,
+    """Load one replicate checkpoint and return (model, checkpoint)."""
+    ckpt   = torch.load(model_path, map_location=device, weights_only=False)
+    config = ckpt.get('config', {
+        'n_params' : 3,
+        'n_fourier': 64,
+        'sigma' : 1.0,
+        'fusion_hidden' : 128,
+        'latent_dim': 64,
+        'decoder_hidden': 64,
+        'dropout' : 0.3,
+        'n_knots' : 8,
+        'n_timepoints': N_TIMEPOINTS,
         'total_population': N,
     })
-
-    state_dict = checkpoint['model_state_dict']
-    state_dict.pop('temporal_decoder.t_grid', None)   # backward compat
+    state = ckpt['model_state_dict']
+    state.pop('temporal_decoder.t_grid', None)  # remove legacy buffer if present
     model = create_hybrid_mlp_model(config)
-    model.load_state_dict(state_dict, strict=True)
+    model.load_state_dict(state, strict=True)
     model.to(device).eval()
 
-    N_ckpt = config.get('total_population')
-    R2_val = checkpoint.get('val_metrics', {}).get('R2', float('nan'))
-    print(f"  {model_path.name}  "f"epoch={checkpoint.get('epoch')}  "f"val R²={R2_val:.4f}  N={N_ckpt:,}")
+    val_r2 = ckpt.get('val_metrics', {}).get('R2', float('nan'))
+    print(f"  Loaded {model_path.name}  "
+          f"epoch={ckpt.get('epoch')}  val R²={val_r2:.4f}")
+    return model, ckpt
 
-    return model, checkpoint
 
-# INFERENCE
-def evaluate_model(model, test_loader, device, n_timesteps):
+
+#  2. INFERENCE
+def evaluate_model(model, test_loader, device):
     """
     Run inference on the full test set.
 
     Returns
-    predictions : (n_test, T, 3)
-    targets: (n_test, T, 3)
-    params: (n_test, 3)   raw (tau, gamma, rho)
-    metrics: dict
+    -------
+    predictions : (n_test, T, 3)  — emulator output
+    targets     : (n_test, T, 3)  — ground truth
+    params      : (n_test, 3)     — raw (un-normalised) parameters
+    metrics     : dict            — scalar accuracy metrics (all samples)
     """
     model.eval()
-    all_preds, all_targets, all_params = [], [], []
     param_mins = torch.tensor(PARAM_MINS)
     param_maxs = torch.tensor(PARAM_MAXS)
 
+    all_preds, all_targets, all_params = [], [], []
+
     with torch.no_grad():
         for batch in test_loader:
-            batch = batch.to(device)
-            predictions = model(batch, n_timesteps=n_timesteps)
+            batch       = batch.to(device)
+            predictions = model(batch, n_timesteps=N_TIMEPOINTS)
             all_preds.append(predictions.cpu())
             all_targets.append(batch.y.cpu())
-
-            # Denormalise [0,1] 
-            raw = batch.params_norm.cpu() * (param_maxs - param_mins) + param_mins
+            raw = (batch.params_norm.cpu()
+                   * (param_maxs - param_mins) + param_mins)
             all_params.append(raw)
 
-    predictions = torch.cat(all_preds,   dim=0)   # (n, T, 3)
-    targets = torch.cat(all_targets, dim=0)   # (n, T, 3)
-    params = torch.cat(all_params,  dim=0)   # (n, 3)
-    metrics= compute_metrics(predictions, targets)
+    predictions = torch.cat(all_preds,   dim=0)   # (n_test, T, 3)
+    targets     = torch.cat(all_targets, dim=0)
+    params      = torch.cat(all_params,  dim=0)   # (n_test, 3)
 
+    
+    metrics = compute_metrics(predictions, targets)
     return predictions, targets, params, metrics
 
 
-def evaluate_all_replicates(models_dir, test_loader, device, n_timesteps):
-    """Evaluate every replicate checkpoint on the test set."""
+def evaluate_all_replicates(models_dir, test_loader, device):
+    """Evaluate every replicate checkpoint and return results_list."""
     model_paths = sorted(
         Path(models_dir).glob("best_balanced_mlp_model_*.pt"),
         key=lambda p: int(p.stem.split('_')[-1])
     )
+    if not model_paths:
+        raise FileNotFoundError(f"No model files found in {models_dir}")
 
-    print(f"\n{'-'*70}")
-    print(f"TEST EVALUATION·{len(model_paths)} REPLICATE(S)")
-    results_list = []
-    shared_targets= None
-    shared_params= None
+    print(f"\n{'─'*70}")
+    print(f"EVALUATING {len(model_paths)} REPLICATE(S)")
+
+    results_list   = []
+    shared_targets = None
+    shared_params  = None
 
     for idx, path in enumerate(model_paths, 1):
-        print(f"Replicate {idx}/{len(model_paths)} : {path.name}")
-
-        model, checkpoint = load_replicate_model(path, device)
-        predictions, targets, params, metrics = evaluate_model(
-            model, test_loader, device, n_timesteps
+        print(f"\n  Replicate {idx}/{len(model_paths)} — {path.name}")
+        model, ckpt = load_replicate_model(path, device)
+        preds, targets, params, metrics = evaluate_model(
+            model, test_loader, device
         )
-
         if shared_targets is None:
-            shared_targets= targets
-            shared_params= params
+            shared_targets = targets
+            shared_params  = params
+
+        print(f"    R²_I  : {metrics['R2_I']:.4f}")
+        print(f"    MAE_I : {metrics['MAE_I']:.2f}")
 
         results_list.append({
-            'replicate_id': idx,
-            'model_path': str(path),
-            'predictions': predictions,
-            'metrics' : metrics,
+            'replicate_id'   : idx,
+            'model_path'     : str(path),
+            'predictions'    : preds,
+            'metrics'        : metrics,
             'checkpoint_info': {
-                'epoch': checkpoint.get('epoch'),
-                'val_metrics': checkpoint.get('val_metrics', {}),
-                'param_names': checkpoint.get('param_names', ['tau','gamma','rho']),
+                'epoch'      : ckpt.get('epoch'),
+                'val_metrics': ckpt.get('val_metrics', {}),
             },
         })
 
-        print(f"  MAE_I :{metrics['MAE_I']:.2f}:key metric")
-        print(f"  R²_I:{metrics['R2_I']:.4f}\n")
-        print(f"Evaluated {len(results_list)} replicate(s)")
-
     return results_list, shared_targets, shared_params
 
-# RELATIVE MAE — per-sample then averaged 
+
+
+#  3. RELATIVE MAE_I
 def compute_relative_mae_i(predictions, targets):
-    # MAE per sample on I compartment
-    mae_per_sample  = (predictions[:, :, 1] - targets[:, :, 1]).abs().mean(dim=1)  # (n,)
-    peak_per_sample = targets[:, :, 1].max(dim=1)[0]                               # (n,)
+    """
+    Relative MAE_I (per-sample then averaged).
 
-    # Exclude near-zero peaks (sub-critical extinction)
-    valid = peak_per_sample >= 1.0
-    if valid.sum() == 0:
-        return float('nan'), float('nan'), np.array([]), float('nan')
+    Formula
+    -------
+    Rel-MAE_I_i = (1/T  Σ_t |Î_i(t) − I_i(t)|) / max_t I_i(t)  × 100%
+    Rel-MAE_I   = (1/n) Σ_i  Rel-MAE_I_i
 
-    rel = (mae_per_sample[valid]/peak_per_sample[valid] * 100).numpy()
+    With rho ∈ [0.001, 0.01] and N = 100,000:
+      I(0) = N × rho ∈ [100, 1000]  →  peak I ≥ 100 always.
+    The denominator is therefore numerically stable for every sample.
+    Near-extinction trajectories (peak ≈ I(0)) contribute higher
+    relative errors due to the B-spline decoder's I(t) > 0 guarantee;
+    this is reported transparently rather than masked by exclusion.
 
-    return float(rel.mean()), float(rel.std(ddof=1) if len(rel) > 1 else 0.0), \
-           rel, float(peak_per_sample[valid].mean().item()) # rel.mean()-average relative accross valid test outbreaks
+    Returns
+    -------
+    mean_rel      : float  — mean Rel-MAE_I (%) across all n samples
+    std_rel       : float  — sample SD (ddof=1) across samples
+    per_sample    : array  — (n,) per-sample values
+    mean_peak     : float  — mean of true I_max across samples
+    """
+    mae_per_sample  = (predictions[:, :, 1] - targets[:, :, 1]).abs().mean(dim=1)
+    peak_per_sample = targets[:, :, 1].max(dim=1)[0]
 
-    # PER-REPLICATE DATAFRAME — for regression joining 
+    rel       = (mae_per_sample / peak_per_sample * 100).numpy()  # (n,)
+    mean_peak = float(peak_per_sample.mean().item())
+
+    return (float(rel.mean()),
+            float(rel.std(ddof=1) if len(rel) > 1 else 0.0),
+            rel,
+            mean_peak)
+
+
+
+#  4. PER-REPLICATE DATAFRAME
 def build_replicate_dataframe(results_list, targets,
                                train_strategy, test_strategy,
                                augmentation, n_train_simulations):
     """
-    One row per replicate. CSV can be concatenated with files from
-    other conditions (LHS, Random, aug/no-aug, OOD) into a master
-    dataframe for regression:
- 
-        relative_MAE_I ~ train_strategy + test_strategy
-                       + augmentation + in_domain
-                       + n_train_simulations
-                       + train_strategy:augmentation
-                       + train_strategy:in_domain
+    Build one-row-per-replicate DataFrame for the master regression CSV.
+
+    All metrics are computed on the complete test set (no exclusion).
+    in_domain is derived from strategy strings, never hardcoded.
     """
     rows = []
     for r in results_list:
-        mean_rel, std_rel, per_sample, mean_peak = compute_relative_mae_i(
-            r['predictions'], targets)
+        mean_rel, std_rel, _, mean_peak = compute_relative_mae_i(
+            r['predictions'], targets
+        )
         m = r['metrics']
+
         rows.append({
-            # Join keys — identical structure across all condition CSVs
+            # join / grouping keys 
             'replicate_id'        : int(r['replicate_id']),
             'train_strategy'      : train_strategy,
             'test_strategy'       : test_strategy,
             'augmentation'        : int(augmentation),
             'in_domain'           : 1,
             'n_train_simulations' : int(n_train_simulations),
-            # Primary outcome
+
+            # primary accuracy metrics 
             'relative_MAE_I'      : round(mean_rel, 4),
-            # Secondary metrics
-            'absolute_MAE_I'      : round(m['MAE_I'], 4),
             'R2_I'                : round(m['R2_I'],  6),
+            'MAE_I'               : round(m['MAE_I'], 4),
+
+            # secondary / other compartments 
             'R2_S'                : round(m['R2_S'],  6),
             'R2_R'                : round(m['R2_R'],  6),
             'R2_overall'          : round(m['R2'],    6),
             'MAE_S'               : round(m['MAE_S'], 4),
             'MAE_R'               : round(m['MAE_R'], 4),
             'RMSE'                : round(m['RMSE'],  4),
-            # Metadata
+            'MSE'                 : round(m['MSE'],   4),
+
+            # metadata 
             'mean_peak_I'         : round(mean_peak, 2),
-            'n_valid_samples'     : int((targets[:,:,1].max(dim=1)[0]>=1).sum()),
             'n_test_samples'      : int(len(targets)),
             'model_path'          : r['model_path'],
             'training_epoch'      : r['checkpoint_info']['epoch'],
         })
+
     df = pd.DataFrame(rows)
-    print(f"\n  Replicate dataframe: {len(df)} rows × {len(df.columns)} columns")
-    preview = ['replicate_id','train_strategy','test_strategy',
-               'augmentation','in_domain','n_train_simulations',
-               'relative_MAE_I','absolute_MAE_I','R2_I']
-    print(df[preview].to_string(index=False))
+    print(f"\n  Replicate dataframe: {len(df)} rows × {len(df.columns)} cols")
+    cols = ['replicate_id','train_strategy','test_strategy',
+            'augmentation','in_domain','relative_MAE_I','R2_I']
+    print(df[cols].to_string(index=False))
     return df
- 
- 
 
 
-# AGGREGATE STATISTICS
+ 
+#  5. AGGREGATE STATISTICS
 def compute_aggregate_statistics(results_list, targets):
     """
-    Compute mean, std, CV, 95% CI across replicates for all metrics.
-    Includes both absolute and relative MAE_I.
+    Summary statistics across k replicates.
 
-    Parameters
-    results_list : list of per-replicate result dicts
-    targets: (n_test, T, 3) ground-truth tensor
+    Uses sample SD (ddof=1) and t-distribution CI (df = k-1)
+    throughout — the k replicates are a sample, not a population.
     """
-    n = len(results_list)
-    metric_keys= ['MAE', 'MAE_S', 'MAE_I', 'MAE_R', 'R2', 'RMSE', 'MSE','R2_S','R2_I','R2_R' ]
-    stats_dict = {'n_replicates': n}
+    k = len(results_list)
+
+    metric_keys = [
+        'MAE', 'MAE_S', 'MAE_I', 'MAE_R',
+        'R2',  'R2_S',  'R2_I',  'R2_R',
+        'RMSE', 'MSE',
+    ]
+    stats_dict = {'n_replicates': k}
 
     for key in metric_keys:
-        arr= np.array([r['metrics'][key] for r in results_list])
-        sem= arr.std() / np.sqrt(n)
-        ci= stats.t.interval(0.95, n-1, loc=arr.mean(), scale=sem) \
-              if n > 1 else (arr.mean(), arr.mean())
+        arr = np.array([r['metrics'][key] for r in results_list])
+
+        # sample SD — ddof=1 because k replicates are a SAMPLE
+        std = float(arr.std(ddof=1)) if k > 1 else 0.
+        sem = std / np.sqrt(k)       if k > 1 else 0.
+
+        # t-distribution: k < 30, so normal approximation is inappropriate
+        ci = (stats.t.interval(0.95, df=k-1, loc=arr.mean(), scale=sem)
+              if k > 1 else (arr.mean(), arr.mean()))
+
         stats_dict[key] = {
-            'mean': float(arr.mean()),
-            'std': float(arr.std(ddof=1) if n > 1 else 0.),
-            'sem' : float(sem),
-            'ci_95': [float(ci[0]), float(ci[1])],
-            'cv': float(arr.std() / arr.mean() * 100) if arr.mean() != 0 else 0.,
+            'mean'  : float(arr.mean()),
+            'median': float(np.median(arr)),
+            'std'   : std,                           # sample SD (ddof=1)
+            'sem'   : sem,                           # SEM from sample SD
+            'ci_95' : [float(ci[0]), float(ci[1])],
+            'cv'    : float(std / arr.mean() * 100) if arr.mean() != 0 else 0.,
+            'min'   : float(arr.min()),
+            'max'   : float(arr.max()),
         }
 
-    # Relative MAE_I (per-sample then averaged) 
-    rel_means, rel_stds = [], []
+    # Relative MAE_I across replicates 
+    rel_means = []
     for r in results_list:
-        mean_rel, std_rel, _, mean_peak = compute_relative_mae_i(
+        mean_rel, _, _, mean_peak = compute_relative_mae_i(
             r['predictions'], targets
         )
         rel_means.append(mean_rel)
-        rel_stds.append(std_rel)
 
     rel_arr = np.array(rel_means)
-    rel_sem = rel_arr.std() / np.sqrt(n)
-    rel_ci  = stats.t.interval(0.95, n-1, loc=rel_arr.mean(), scale=rel_sem) \
-              if n > 1 else (rel_arr.mean(), rel_arr.mean())
+    rel_std = float(rel_arr.std(ddof=1)) if k > 1 else 0.
+    rel_sem = rel_std / np.sqrt(k)
+    rel_ci  = (stats.t.interval(0.95, df=k-1,
+                                 loc=rel_arr.mean(), scale=rel_sem)
+               if k > 1 else (rel_arr.mean(), rel_arr.mean()))
 
     stats_dict['relative_MAE_I_%'] = {
-        'mean': float(rel_arr.mean()),
-        'std': float(rel_arr.std(ddof=1) if n > 1 else 0.),
-        'ci_95': [float(rel_ci[0]), float(rel_ci[1])],
-        'note': 'per-sample MAE_I / peak_I, averaged — excludes peak_I < 1',
+        'mean'  : float(rel_arr.mean()),
+        'median': float(np.median(rel_arr)),
+        'std'   : rel_std,
+        'sem'   : rel_sem,
+        'ci_95' : [float(rel_ci[0]), float(rel_ci[1])],
+        'cv'    : float(rel_std / rel_arr.mean() * 100)
+                  if rel_arr.mean() != 0 else 0.,
+        'note'  : 'per-sample MAE_I / peak_I — all samples included',
     }
     stats_dict['mean_peak_I_ground_truth'] = mean_peak
 
-    print(f"\n  Mean peak I (ground truth) : {mean_peak:,.1f}")
-    print(f"  Absolute MAE_I: {stats_dict['MAE_I']['mean']:.2f} "
-          f"± {stats_dict['MAE_I']['std']:.2f}")
-    print(f"  Relative MAE_I: {rel_arr.mean():.2f}% "
-          f"± {rel_arr.std(ddof=1) if n>1 else 0.:.2f}%  "
-          f"(per-sample, then averaged)")
+    # Console summary 
+    print(f"\n{'─'*70}")
+    print(f"AGGREGATE RESULTS  (k={k} replicates, sample SD ddof=1)")
+    print(f"  Mean peak I (ground truth) : {mean_peak:,.1f}")
+    print(f"  R²_I    : {stats_dict['R2_I']['mean']:.4f}"
+          f" ± {stats_dict['R2_I']['std']:.4f}"
+          f"  95% CI [{stats_dict['R2_I']['ci_95'][0]:.4f},"
+          f" {stats_dict['R2_I']['ci_95'][1]:.4f}]")
+    print(f"  MAE_I   : {stats_dict['MAE_I']['mean']:.2f}"
+          f" ± {stats_dict['MAE_I']['std']:.2f}")
+    print(f"  Rel-MAE_I: {rel_arr.mean():.2f}%"
+          f" ± {rel_std:.2f}%"
+          f"  95% CI [{rel_ci[0]:.2f}%, {rel_ci[1]:.2f}%]"
+          f"  (t-dist df={k-1})")
 
     return stats_dict
 
 
-# VISUALISATION
-def plot_all_compartments(results_list, targets, plots_dir, n_samples=8):
-    """S, I, R trajectories for a sample of test cases."""
-    plots_dir = Path(plots_dir)
-    targets_np = targets.numpy()
-    n_total = len(targets_np)
-    indices= np.linspace(0, n_total-1, n_samples, dtype=int)
 
-    compartments = ['Susceptible (S)', 'Infected (I)', 'Recovered (R)']
-    gt_colors= ['lightblue', 'lightcoral', 'lightgreen']
-    n_reps = len(results_list)
-    pred_colors= plt.cm.tab10(np.linspace(0, 1, n_reps))
+#  6. VISUALISATION
 
-    fig= plt.figure(figsize=(18, 3 * n_samples))
-    gs= GridSpec(n_samples, 3, figure=fig, hspace=0.35, wspace=0.30)
-    fig.suptitle('Test Set Predictions (All Replicates)',fontsize=14, fontweight='bold')
+def _r0_label(params, idx):
+    """Return a parameter string for subplot titles."""
+    if params is None:
+        return ""
+    tau, gam, rho = (params[idx, 0].item(),
+                     params[idx, 1].item(),
+                     params[idx, 2].item())
+    return (f"τ={tau:.3f}  γ={gam:.3f}  "
+            f"ρ={rho:.4f}  R₀={tau/gam*ratio:.2f}")
 
+
+def plot_uncertainty_band(results_list, targets, plots_dir,
+                          params=None, n_samples=8):
+    """
+    Mean ± 2σ band across k replicates — all three compartments.
+
+    The ±2σ band shows EPISTEMIC UNCERTAINTY from weight initialisation:
+    how much the k trained models disagree at each timestep.
+    σ uses sample SD (ddof=1) because the k replicates are a sample.
+
+    This is NOT a confidence interval for the mean — that would be
+    mean ± t × (σ/√k) and would be ~2.8× narrower.
+    The ±2σ band answers "where might the trajectory be?",
+    not "how well have we estimated the mean?".
+    """
+    plots_dir  = Path(plots_dir)
+    targets_np = targets.detach().cpu().numpy()
+    n_total    = len(targets_np)
+    indices    = np.unique(np.linspace(0, n_total-1, n_samples, dtype=int))
+
+    all_preds = np.stack(
+        [r['predictions'].detach().cpu().numpy() for r in results_list],
+        axis=0
+    )                                        # (k, n_test, T, 3)
+    mean_pred = all_preds.mean(axis=0)       # (n_test, T, 3)
+    std_pred  = all_preds.std(axis=0, ddof=1)  # sample SD — ddof=1
+
+    compartments = ['Susceptible S(t)', 'Infected I(t)', 'Recovered R(t)']
+    gt_colors    = ['steelblue',     'firebrick',  'forestgreen']
+    band_colors  = ['cornflowerblue','salmon',     'mediumseagreen']
+
+    n_rows = len(indices)
+    fig, axes = plt.subplots(n_rows, 3, figsize=(18, 3.2 * n_rows))
+    if n_rows == 1:
+        axes = axes[np.newaxis, :]
+
+    k = len(results_list)
+    fig.suptitle(
+        f'Prediction uncertainty — mean ± 2σ  '
+        f'(σ = sample SD, ddof=1, k={k} replicates)\n'
+        f'Train: {TRAIN_STRATEGY}  →  Test: {TEST_STRATEGY}  '
+        f'aug={AUGMENTATION}',
+        fontsize=12, fontweight='bold'
+    )
+
+    panel_idx = 0
     for row, idx in enumerate(indices):
-        target = targets_np[idx]
+        target    = targets_np[idx]
+        mu        = mean_pred[idx]
+        sigma     = std_pred[idx]
+        t         = np.arange(mu.shape[0])
+        param_str = _r0_label(params, idx)
+
         for col in range(3):
-            ax = fig.add_subplot(gs[row, col])
-            ax.plot(target[:, col], 'o', color=gt_colors[col],alpha=0.6, markersize=4, markeredgewidth=0,
-                    label='Ground Truth', zorder=10)
-            for rep_i, result in enumerate(results_list):
-                pred = result['predictions'][idx].numpy()
-                ax.plot(pred[:, col], '-',color=pred_colors[rep_i], linewidth=1.5, alpha=0.7,
-                        label=f"M{result['replicate_id']}" if col == 1 else "")
+            ax = axes[row, col]
+            lo = mu[:, col] - 2 * sigma[:, col]
+            hi = mu[:, col] + 2 * sigma[:, col]
+
+            ax.fill_between(t, lo, hi,
+                            color=band_colors[col], alpha=0.35,
+                            label='Mean ± 2σ')
+            ax.plot(t, mu[:, col], '-',
+                    color=gt_colors[col], lw=1.8, label='Mean pred')
+            ax.plot(t, target[:, col], 'o',
+                    color='black', alpha=0.5, ms=3, mew=0,
+                    label='Ground truth')
+
+            ax.text(0.02, 0.97, f"({chr(ord('a') + panel_idx)})",
+                    transform=ax.transAxes, fontsize=9,
+                    fontweight='bold', va='top', ha='left')
+
             if row == 0:
                 ax.set_title(compartments[col], fontsize=11, fontweight='bold')
-            ax.set_xlabel('Time step', fontsize=8)
-            ax.set_ylabel('Count', fontsize=8)
-            if col == 1:
-                ax.legend(loc='best', fontsize=7, ncol=2)
+            if col == 0 and param_str:
+                ax.annotate(param_str, xy=(0.5, 1.02),
+                            xycoords='axes fraction',
+                            fontsize=9, ha='center', va='bottom')
+
+            ax.set_xlabel('Timestep', fontsize=8)
+            ax.set_ylabel('Count',    fontsize=8)
             ax.grid(True, alpha=0.3, linestyle='--')
+            if row == 0 and col == 1:
+                ax.legend(loc='best', fontsize=7)
+            panel_idx += 1
 
-    out = plots_dir / 'test_comparison_plots.png'
+    plt.tight_layout(rect=[0, 0, 1, 0.96])
+    out = plots_dir / 'uncertainty_band.png'
     plt.savefig(out, dpi=200, bbox_inches='tight')
     plt.close()
-    print(f"Saved: {out}")
+    print(f"  Saved: {out}")
 
 
-def plot_infected_only(results_list, targets, plots_dir, n_samples=8):
-    plots_dir = Path(plots_dir)
-    targets_np = targets.detach().cpu().numpy()
-    n_total = len(targets_np)
-    print(f"Total test samples: {n_total}")
-    indices = np.unique(np.linspace(0, n_total - 1, n_samples, dtype=int))
-    n_reps = len(results_list)
-    pred_colors = plt.cm.tab10(np.linspace(0, 1, n_reps))
-
-    fig, axes = plt.subplots(4, 4,figsize=(16, 18))
-    axes = axes.flatten()
-    fig.suptitle('MCMC MODEL ON MCMC TEST SET — INFECTED (I) COMPARTMENT',
-        fontsize=14,
-        fontweight='bold'
+def plot_relative_mae_vs_peak(results_list, targets, params, plots_dir):
+    """
+    Scatter: per-sample Rel-MAE_I vs true epidemic peak I_max.
+    Coloured by R₀ zone. Shows WHERE the emulator struggles.
+    """
+    plots_dir  = Path(plots_dir)
+    _, _, per_sample, _ = compute_relative_mae_i(
+        results_list[0]['predictions'], targets
     )
+    peak  = targets[:, :, 1].max(dim=1)[0].numpy()
 
-    for row, idx in enumerate(indices):
+    if params is not None:
+        tau = params[:, 0].numpy()
+        gam = params[:, 1].numpy()
+        R0  = (tau / gam) * ratio
+        colours = np.where(R0 < 0.8, 'blue',
+                  np.where(R0 <= 1.2, 'red', 'green'))
+    else:
+        colours = 'gray'
 
-        ax = axes[row]
-        target = targets_np[idx]
-        ax.plot(target[:, 1],'o',color='steelblue',alpha=0.7,markersize=4,label='Ground Truth',zorder=10 )
-
-        for rep_i, result in enumerate(results_list):
-            pred = result['predictions'][idx].detach().cpu().numpy()
-            ax.plot(pred[:, 1],'-',color=pred_colors[rep_i],linewidth=1.5,alpha=0.7,label=f"M{result['replicate_id']}")
-
-        ax.set_xlabel('Time step')
-        ax.set_ylabel('Infected count')
-        ax.grid(True, alpha=0.3, linestyle='--')
-
-        if row == 0:
-            ax.legend(loc='best',fontsize=8,ncol=2)
-    
-    plt.tight_layout(rect=[0, 0, 1, 0.97])
-    out= plots_dir/'test_infected_predictions.png'
-    plt.savefig( out,dpi=200,bbox_inches='tight')
-    plt.close()
-    print(f"Saved: {out}")
-
-def plot_relative_mae_distribution(results_list, targets, plots_dir):
-    plots_dir = Path(plots_dir)
-    colors = plt.cm.tab10(np.linspace(0, 1, len(results_list)))
-    all_rel = []
-    for rep_i, result in enumerate(results_list):
-        _, _, per_sample, _ = compute_relative_mae_i(result['predictions'], targets)
-        all_rel.append(per_sample)
-    
-    if len(results_list[0]['predictions']) > 0:
-        _, _, per_sample_r1, _ = compute_relative_mae_i(
-            results_list[0]['predictions'], targets)
-        peak_per_sample = targets[:, :, 1].max(dim=1)[0].numpy()
-        valid = peak_per_sample >= 1.0 #Samples with peak I < 1 are excluded to avoid distortion from near-zero denominators.
-        plt.scatter(peak_per_sample[valid], per_sample_r1,alpha=0.4, s=12, color=colors[0])
-        plt.xlabel('Ground-truth peak I (per sample)')
-        plt.ylabel('Relative MAE(I) (%)')
-        plt.title('Relative MAE(I) vs Epidemic size\n')
-        plt.grid(True, alpha=0.3)
-
+    fig, ax = plt.subplots(figsize=(8, 5))
+    ax.scatter(peak, per_sample,
+               c=colours, alpha=0.45, s=14, edgecolors='none')
+    ax.set_xlabel('True peak $I_{\\max}$ (individuals)', fontsize=11)
+    ax.set_ylabel('Relative MAE$_I$ (%)',               fontsize=11)
+    ax.set_title('Emulator error vs epidemic size\n'
+                 '(blue=sub-critical, red=threshold, green=super-critical)',
+                 fontsize=11, fontweight='bold')
+    ax.grid(True, alpha=0.3, linestyle='--')
+    ax.set_xscale('log')
     plt.tight_layout()
-    out= plots_dir/'test_relative_mae_distribution.png'
+    out = plots_dir / 'rel_mae_vs_peak.png'
     plt.savefig(out, dpi=200, bbox_inches='tight')
     plt.close()
-    print(f"Saved: {out}")
+    print(f"  Saved: {out}")
 
-# SAVE RESULTS
+
+def plot_infected_predictions(results_list, targets, params, plots_dir,
+                               n_samples=16):
+    """
+    All-replicates overlay for the infected compartment I(t).
+    One panel per randomly-selected test sample.
+    """
+    plots_dir   = Path(plots_dir)
+    targets_np  = targets.detach().cpu().numpy()
+    n_total     = len(targets_np)
+    indices     = np.unique(np.linspace(0, n_total-1, n_samples, dtype=int))
+    rep_colors  = plt.cm.tab10(np.linspace(0, 1, len(results_list)))
+
+    n_cols = 4
+    n_rows = int(np.ceil(len(indices) / n_cols))
+    fig, axes = plt.subplots(n_rows, n_cols, figsize=(16, 4 * n_rows))
+    axes = axes.flatten()
+    fig.suptitle(
+        f'Infected I(t) — all {len(results_list)} replicates overlaid\n'
+        f'Train: {TRAIN_STRATEGY}  :  Test: {TEST_STRATEGY}',
+        fontsize=12, fontweight='bold'
+    )
+
+    for panel_idx, idx in enumerate(indices):
+        ax = axes[panel_idx]
+        ax.plot(targets_np[idx, :, 1], 'o',
+                color='steelblue', alpha=0.7, ms=4, mew=0,
+                label='Ground truth', zorder=10)
+        for rep_i, r in enumerate(results_list):
+            pred = r['predictions'][idx].detach().cpu().numpy()
+            ax.plot(pred[:, 1], '-',
+                    color=rep_colors[rep_i], lw=1.5, alpha=0.7,
+                    label=f"M{r['replicate_id']}")
+        ax.text(0.02, 0.97, f"({chr(ord('a') + panel_idx)})",
+                transform=ax.transAxes, fontsize=9,
+                fontweight='bold', va='top', ha='left')
+        ax.set_title(_r0_label(params, idx), fontsize=9, pad=3)
+        ax.set_xlabel('Timestep')
+        ax.set_ylabel('Infected')
+        ax.grid(True, alpha=0.3, linestyle='--')
+        if panel_idx == 0:
+            ax.legend(fontsize=7, ncol=2)
+
+    for ax in axes[len(indices):]:
+        ax.set_visible(False)
+
+    plt.tight_layout(rect=[0, 0, 1, 0.96])
+    out = plots_dir / 'infected_predictions.png'
+    plt.savefig(out, dpi=200, bbox_inches='tight')
+    plt.close()
+    print(f"  Saved: {out}")
+
+
+
+#  7. SAVE RESULTS
 def save_results(results_list, stats_dict, output_dir):
-    """Save CSV, JSON, and report."""
-    # CSV 
-    rows = [{'replicate_id': r['replicate_id'],'model_path': r['model_path'],**r['metrics'],
-        'training_epoch': r['checkpoint_info']['epoch'],
-    } for r in results_list]
-    pd.DataFrame(rows).to_csv(output_dir/ 'test_replicate_results.csv', index=False)
-    print(f"Saved: {output_dir / 'test_replicate_results.csv'}")
+    """Save JSON stats, per-replicate CSV, and plain-text report."""
+    output_dir = Path(output_dir)
 
-    # JSON 
-    with open(output_dir / 'test_final_statistics.json', 'w', encoding='utf-8') as f:
+    # JSON
+    with open(output_dir / 'test_statistics.json', 'w') as f:
         json.dump(stats_dict, f, indent=2)
-    print(f"Saved: {output_dir / 'test_final_statistics.json'}")
 
-    #Plain-text report 
-    mae_i_mean= stats_dict['MAE_I']['mean']
-    mae_i_ci= stats_dict['MAI']['ci_95'] if 'MAI' in stats_dict \
-                 else stats_dict['MAE_I']['ci_95']
-    mae_i_ci= stats_dict['MAE_I']['ci_95']
-    r2_mean= stats_dict['R2']['mean']
-    r2_ci= stats_dict['R2']['ci_95']
-    cv= stats_dict['MAE_I']['cv']
-    rel_mean= stats_dict['relative_MAE_I_%']['mean']
-    rel_std= stats_dict['relative_MAE_I_%']['std']
-    rel_ci= stats_dict['relative_MAE_I_%']['ci_95']
-    mean_peak= stats_dict['mean_peak_I_ground_truth']
-    n_test= len(results_list[0]['predictions'])
-    r2_s_mean = stats_dict['R2_S']['mean']
-    r2_s_ci = stats_dict['R2_S']['ci_95']
-    r2_i_mean = stats_dict['R2_I']['mean']
-    r2_i_ci = stats_dict['R2_I']['ci_95']
-    r2_r_mean = stats_dict['R2_R']['mean']
-    r2_r_ci = stats_dict['R2_R']['ci_95']
-
-    print(f"  Rel_MAE_I:{stats_dict['relative_MAE_I_%']['mean']:.4f}\n")
-    performance = (
-        "EXCEPTIONAL"if rel_mean < 5 else
-        "EXCELLENT"if rel_mean < 10  else
-        "GOOD"if rel_mean < 20  else
-        "ACCEPTABLE"if rel_mean < 35  else
-        "NEEDS IMPROVEMENT"
-    )
-    consistency = (
-        "EXCELLENT (CV < 5%)"if cv < 5  else
-        "GOOD (CV < 10%)" if cv < 10 else
-        "ACCEPTABLE (CV < 15%)"if cv < 15 else
-        f"HIGH VARIABILITY (CV={cv:.1f}%)"
+    # Per-replicate CSV
+    rows = [{'replicate_id': r['replicate_id'],
+             'model_path'  : r['model_path'],
+             **r['metrics'],
+             'epoch'       : r['checkpoint_info']['epoch']}
+            for r in results_list]
+    pd.DataFrame(rows).to_csv(
+        output_dir / 'test_replicate_metrics.csv', index=False
     )
 
-    lines = [
-        "-" * 70,
-        "FINAL TEST RESULTS",
-        "",
-        f"  Replicates : {stats_dict['n_replicates']}",
-        f"  Test samples : {n_test}",
-        f"  Mean peak I  : {mean_peak:,.1f} counts (ground truth)",
-        "",
-        "-" * 70,
-        "OVERALL PERFORMANCE",
-        "",
-        f"  R²: {r2_mean:.4f} ± {stats_dict['R2']['std']:.4f}",
-        f"  95%CI: [{r2_ci[0]:.4f}, {r2_ci[1]:.4f}]",
-        "",
-        f"  MAE: {stats_dict['MAE']['mean']:.2f} ± {stats_dict['MAE']['std']:.2f}",
-        f"  RMSE: {stats_dict['RMSE']['mean']:.2f} ± {stats_dict['RMSE']['std']:.2f}",
-        "",
-        "-" * 70,
-        "PER-COMPARTMENT MAE (absolute counts)",
-        "",
-        f"  MAE_S : {stats_dict['MAE_S']['mean']:.2f} ± {stats_dict['MAE_S']['std']:.2f}",
-        f"  MAE_I : {mae_i_mean:.2f} ± {stats_dict['MAE_I']['std']:.2f} : key metric",
-        f"  95% CI: [{mae_i_ci[0]:.2f}, {mae_i_ci[1]:.2f}]",
-        f"  CV   : {cv:.1f}%",
-        f"  MAE_R : {stats_dict['MAE_R']['mean']:.2f} ± {stats_dict['MAE_R']['std']:.2f}",
-        "",
-        "-" * 70,
-        "RELATIVE MAE_I  (per-sample MAE_I / peak_I, then averaged)",
-        "",
-        f"  Mean peak I  : {mean_peak:,.1f}  (ground truth, test set)",
-        f"  Relative MAE : {rel_mean:.2f}% ± {rel_std:.2f}%",
-        f"  95%CI        : [{rel_ci[0]:.2f}%, {rel_ci[1]:.2f}%]",
-        f"  Interpretation : for the average epidemic in the test set,",
-        f"  the emulator's I(t) prediction is {rel_mean:.1f}% away from",
-        f"  the true peak — regardless of epidemic size.",
-        "",
-        "-" * 70,
-        "PERFORMANCE ASSESSMENT",
-        "",
-        f"  Level: {performance}  (based on relative MAE_I = {rel_mean:.1f}%)",
-        f"  Consistency : {consistency}",
-        "",
-        "-" * 70,
-        "REPORT",
-        "",
-        f'"The SIR NNE achieved a test set MAE_I of {mae_i_mean:.0f} counts ({mae_i_ci[0]:.0f}-{mae_i_ci[1]:.0f},',
-        f'95% CI, n={stats_dict["n_replicates"]} replicates), corresponding to {rel_mean:.1f}% of the mean ground-truth peak infected count',
-        f'({mean_peak:,.0f} individuals)',
-        f"The R² of the Susceptibles, Infectious and Recovered is {np.round(r2_s_mean,3)}, {np.round(r2_i_mean,3)}, {np.round(r2_r_mean,3)} respectively",
-        f"There confidence intervals are {np.round(r2_s_ci,3)},{np.round(r2_i_ci,3)} and {np.round(r2_r_ci,3)} respectively.",
-        f'{stats_dict["R2"]["std"]:.4f}. Replicate consistency was {consistency.lower()},',
-        f'with coefficient of variation {cv:.1f}%',
-        f'across random initialisations. The relative MAE_I of {rel_mean:.1f}%',
-        f'(95% CI [{rel_ci[0]:.1f}%, {rel_ci[1]:.1f}%]) provides a scale-invariant',
-        f'measure of accuracy that is directly comparable across epidemic regimes',
-        f'with different outbreak sizes."',
-        "",
+    # Text report
+    rel   = stats_dict['relative_MAE_I_%']
+    r2i   = stats_dict['R2_I']
+    maei  = stats_dict['MAE_I']
+    peak  = stats_dict['mean_peak_I_ground_truth']
+    k     = stats_dict['n_replicates']
+    grade = ("EXCEPTIONAL" if rel['mean'] < 5  else
+             "EXCELLENT"   if rel['mean'] < 10 else
+             "GOOD"        if rel['mean'] < 20 else
+             "ACCEPTABLE"  if rel['mean'] < 35 else
+             "NEEDS IMPROVEMENT")
 
-    ]
+    report = "\n".join([
+        "═"*70,
+        f"FINAL TEST RESULTS",
+        f"  Train: {TRAIN_STRATEGY}  →  Test: {TEST_STRATEGY}"
+        f"  aug={AUGMENTATION}",
+        f"  k={k} replicates  |  mean peak I={peak:,.1f}",
+        "─"*70,
+        f"  R²_I      : {r2i['mean']:.4f} ± {r2i['std']:.4f}"
+        f"  95%CI [{r2i['ci_95'][0]:.4f}, {r2i['ci_95'][1]:.4f}]",
+        f"  MAE_I     : {maei['mean']:.2f} ± {maei['std']:.2f}",
+        f"  Rel-MAE_I : {rel['mean']:.2f}% ± {rel['std']:.2f}%"
+        f"  95%CI [{rel['ci_95'][0]:.2f}%, {rel['ci_95'][1]:.2f}%]",
+        f"  95%CI [{rel['ci_95'][0]:.2f}%, {rel['ci_95'][1]:.2f}%]"
+        f"  CV={rel['cv']:.2f}%",
+        "─"*70,
+        f"  Performance: {grade}",
+        "═"*70,
+    ])
 
-    report = "\n".join(lines)
     (output_dir / 'report.txt').write_text(report, encoding='utf-8')
-    print(f"Saved: {output_dir/'report.txt'}")
-    print("\n" + report)
+    print(f"\n{report}")
+    print(f"\n  Results saved → {output_dir.resolve()}")
 
-    # MASTER DATAFRAME 
-def build_master_dataframe(results_root):
-    """
-    After ALL condition scripts have been run, collect their CSVs
-    into one master dataframe for regression analysis.
-    """
-    csv_files = sorted(Path(results_root).rglob("test_replicate_results_*.csv"))
 
-    dfs = []
-    for f in csv_files:
-        df = pd.read_csv(f)
-        print(f"  {f.name} : {len(df)} rows")
-        dfs.append(df)
-    master = pd.concat(dfs, ignore_index=True)
-   
-    return master
+#  8. MAIN
 
-# ENTRY POINT
-if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Final test evaluation")
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser(description='SIR emulator test evaluation')
     parser.add_argument('--models_dir',type=str, default=str(MODELS_DIR))
-    parser.add_argument('--data',type=str,default=str(TEST_DATA_DIR /'epidemic_data_age_adaptive_sobol_split.pkl'))
-    parser.add_argument('--output_dir', type=str, default=str(RESULTS_DIR))
+    parser.add_argument('--data',  type=str, default=str(TEST_DATA_DIR / 'abm-data_split.pkl'))
+    parser.add_argument('--output_dir',type=str, default=str(RESULTS_DIR))
     parser.add_argument('--plots_dir',type=str, default=str(PLOTS_DIR))
-    parser.add_argument('--n_samples', type=int, default=16)
-    parser.add_argument('--train_strategy', type=str, default=TRAIN_STRATEGY,choices=['MCMC','LHS','Random'])
-    parser.add_argument('--test_strategy',type=str, default=TEST_STRATEGY,choices=['MCMC','LHS','Random'])
-    parser.add_argument('--augmentation',type=int, default=AUGMENTATION,choices=[0,1])
-    parser.add_argument('--n_train_sims',type=int, default=N_TRAIN_SIMULATIONS)
-    parser.add_argument('--build_master',action='store_true',help='Build master df from all saved CSVs and exit')
-    parser.add_argument('--batch_size', type=int, default=35)
+    parser.add_argument('--train_strategy', type=str, default=TRAIN_STRATEGY,
+                        choices=['MCMC', 'LHS', 'Random'])
+    parser.add_argument('--test_strategy',  type=str, default=TEST_STRATEGY,
+                        choices=['MCMC', 'LHS', 'Random'])
+    parser.add_argument('--augmentation',   type=int, default=AUGMENTATION,
+                        choices=[0, 1])
+    parser.add_argument('--n_train_sims',   type=int, default=N_TRAIN_SIMULATIONS)
+    parser.add_argument('--batch_size',     type=int, default=64)
+    parser.add_argument('--n_plot_samples', type=int, default=8)
     args = parser.parse_args()
 
-    TRAIN_STRATEGY= args.train_strategy
-    TEST_STRATEGY= args.test_strategy
-    AUGMENTATION= args.augmentation
+    TRAIN_STRATEGY = args.train_strategy
+    TEST_STRATEGY       = args.test_strategy
+    AUGMENTATION        = args.augmentation
     N_TRAIN_SIMULATIONS = args.n_train_sims
-    results_dir=Path(args.output_dir)
-    plots_dir= Path(args.plots_dir)
-    
-    if args.build_master:
-        master = build_master_dataframe(RESULTS_DIR)
-        mp = RESULTS_DIR/ 'master_replicate_results.csv'
-        master.to_csv(mp, index=False)
-        print(f"\nSaved master → {mp.resolve()}")
-        raise SystemExit(0)
-    
-    print("\n"+"-"*70)
-    print(f"STEP 5: TEST : {TRAIN_STRATEGY}→{TEST_STRATEGY}  aug={AUGMENTATION}")
-    print(f"\n  Models: {Path(args.models_dir).resolve()}")
-    print(f"Data : {args.data}")
-    print(f"Results : {results_dir.resolve()}")
-    print(f"Plots: {plots_dir.resolve()}")
+
+    results_dir = Path(args.output_dir)
+    plots_dir = Path(args.plots_dir)
+   
+
+    print(f"\n{'═'*70}")
+    print(f"STEP 5  TEST EVALUATION")
+    print(f"  Train: {TRAIN_STRATEGY}  : Test: {TEST_STRATEGY}  "
+          f"aug={AUGMENTATION}")
 
     device = get_device()
 
-   
-    # Load test set
-    print(f"\nLoading test data: {args.data}")
-    dataloaders = create_dataloaders(args.data, batch_size=args.batch_size)
-    test_loader = dataloaders['test']
-    n_timesteps = dataloaders['metadata']['n_timepoints']
-    N = dataloaders['metadata'].get('total_population', N)
-    print(f"Test samples : {len(test_loader.dataset):,}")
-    print(f"n_timepoints : {n_timesteps}")
-    print(f"N: {N:,}")
+    # Load data
+    loaders      = create_dataloaders(args.data, batch_size=args.batch_size)
+    test_loader  = loaders['test']
+    N_TIMEPOINTS = loaders['metadata']['n_timepoints']
+    N            = loaders['metadata'].get('total_population', N)
+    print(f"  Test samples : {len(test_loader.dataset):,}  "
+          f"T={N_TIMEPOINTS}  N={N:,}")
 
-    # Evaluate 
+    # Evaluate
     results_list, targets, params = evaluate_all_replicates(
-        args.models_dir, test_loader, device, n_timesteps
+        args.models_dir, test_loader, device
     )
 
-    # Statistics (pass targets for relative MAE) 
+    # Aggregate stats
     stats_dict = compute_aggregate_statistics(results_list, targets)
-    df_replicates = build_replicate_dataframe(results_list, targets,
-        TRAIN_STRATEGY, TEST_STRATEGY, AUGMENTATION, N_TRAIN_SIMULATIONS)
-    
-    replicate_csv = results_dir / (
-    f"test_replicate_results_"
-    f"{TRAIN_STRATEGY}_to_{TEST_STRATEGY}_"
-    f"aug{AUGMENTATION}.csv"
+
+    # Per-replicate DataFrame  to regression CSV
+    df = build_replicate_dataframe(
+        results_list, targets,
+        TRAIN_STRATEGY, TEST_STRATEGY, AUGMENTATION, N_TRAIN_SIMULATIONS
     )
+    tag    = f"{TRAIN_STRATEGY}_to_{TEST_STRATEGY}_aug{AUGMENTATION}"
+    df_out = results_dir / f"replicate_results_{tag}.csv"
+    df.to_csv(df_out, index=False)
+    print(f"\n  Replicate CSV : {df_out.resolve()}")
 
-    df_replicates.to_csv(replicate_csv, index=False)
+    # Also copy to regression data directory
+    REGRESSION_DATA_DIR.mkdir(parents=True, exist_ok=True)
+    df.to_csv(REGRESSION_DATA_DIR / df_out.name, index=False)
 
-    print(f"\nSaved replicate dataframe → {replicate_csv.resolve()}")
-    # Plots 
-    plot_all_compartments(results_list, targets, plots_dir, args.n_samples)
-    plot_infected_only(results_list, targets, plots_dir,args.n_samples)
-    plot_relative_mae_distribution(results_list, targets, plots_dir)
-  
-    #  Save 
+    # Plots
+    print("\nGenerating plots...")
+    plot_uncertainty_band(results_list, targets, plots_dir,
+                          params=params,
+                          n_samples=args.n_plot_samples)
+    plot_infected_predictions(results_list, targets, params, plots_dir,
+                               n_samples=min(16, len(targets)))
+    plot_relative_mae_vs_peak(results_list, targets, params, plots_dir)
+
+    # Save JSON + text report
     save_results(results_list, stats_dict, results_dir)
-    print(f"  R²_I: {stats_dict['R2_I']['mean']:.4f} "
-          f"± {stats_dict['R2_I']['std']:.4f}")
-    print(f"  Absolute MAE_I  : {stats_dict['MAE_I']['mean']:.2f} "
-          f"± {stats_dict['MAE_I']['std']:.2f}")
-    print(f"  Relative MAE_I  : {stats_dict['relative_MAE_I_%']['mean']:.2f}% "
-          f"± {stats_dict['relative_MAE_I_%']['std']:.2f}%")
     
-    
-   

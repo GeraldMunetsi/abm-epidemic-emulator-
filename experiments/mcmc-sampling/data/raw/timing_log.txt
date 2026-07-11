@@ -1,0 +1,9 @@
+Run timestamp          : 2026-06-25 10:11:17
+MCMC sampling time     : 165.15 s  (2.75 min)
+Total simulation time  : 432.60 s  (7.21 min)
+Number of simulations  : 4000
+Mean time / simulation : 0.1082 s
+Min  time / simulation : 0.0005 s
+Max  time / simulation : 1.0267 s
+--------------------------------------------------
+

@@ -1,55 +1,12 @@
-----------------------------------------------------------------------
+══════════════════════════════════════════════════════════════════════
 FINAL TEST RESULTS
-
-  Replicates : 10
-  Test samples : 600
-  Mean peak I  : 2,607.6 counts (ground truth)
-
-----------------------------------------------------------------------
-OVERALL PERFORMANCE
-
-  R²: 0.9957 ± 0.0002
-  95%CI: [0.9956, 0.9958]
-
-  MAE: 1259.89 ± 53.51
-  RMSE: 2594.25 ± 46.83
-
-----------------------------------------------------------------------
-PER-COMPARTMENT MAE (absolute counts)
-
-  MAE_S : 1815.21 ± 76.33
-  MAE_I : 129.25 ± 4.89 : key metric
-  95% CI: [125.92, 132.57]
-  CV   : 3.6%
-  MAE_R : 1835.21 ± 79.54
-
-----------------------------------------------------------------------
-RELATIVE MAE_I  (per-sample MAE_I / peak_I, then averaged)
-
-  Mean peak I  : 2,607.6  (ground truth, test set)
-  Relative MAE : 5.79% ± 0.27%
-  95%CI        : [5.61%, 5.97%]
-  Interpretation : for the average epidemic in the test set,
-  the emulator's I(t) prediction is 5.8% away from
-  the true peak — regardless of epidemic size.
-
-----------------------------------------------------------------------
-PERFORMANCE ASSESSMENT
-
-  Level: EXCELLENT  (based on relative MAE_I = 5.8%)
-  Consistency : EXCELLENT (CV < 5%)
-
-----------------------------------------------------------------------
-REPORT
-
-"The SIR NNE achieved a test set MAE_I of 129 counts (126-133,
-95% CI, n=10 replicates), corresponding to 5.8% of the mean ground-truth peak infected count
-(2,608 individuals)
-The R² of the Susceptibles, Infectious and Recovered is 0.953, 0.794, 0.947 respectively
-There confidence intervals are [0.952 0.954],[0.786 0.802] and [0.946 0.948] respectively.
-0.0002. Replicate consistency was excellent (cv < 5%),
-with coefficient of variation 3.6%
-across random initialisations. The relative MAE_I of 5.8%
-(95% CI [5.6%, 6.0%]) provides a scale-invariant
-measure of accuracy that is directly comparable across epidemic regimes
-with different outbreak sizes."
+  Train: MCMC  →  Test: MCMC  aug=0
+  k=10 replicates  |  mean peak I=1,230.1
+──────────────────────────────────────────────────────────────────────
+  R²_I      : 0.8565 ± 0.0059  95%CI [0.8522, 0.8607]
+  MAE_I     : 54.10 ± 1.40
+  Rel-MAE_I : 4.91% ± 0.25%  95%CI [4.73%, 5.09%]
+  95%CI [4.73%, 5.09%]  CV=5.09%
+──────────────────────────────────────────────────────────────────────
+  Performance: EXCEPTIONAL
+══════════════════════════════════════════════════════════════════════

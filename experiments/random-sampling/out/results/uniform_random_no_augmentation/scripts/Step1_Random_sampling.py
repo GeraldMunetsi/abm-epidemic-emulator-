@@ -16,17 +16,17 @@ import matplotlib.pyplot as plt
 DATA_DIR = Path("experiments/random-sampling/data/raw")
 N = 100000
 m = 10
-
-n_timepoints = 80
-tmax = 80
+ratio=58
+n_timepoints = 250
+tmax = 250
 n_replicates= 1
 n_samples = 4000
 
 PARAM_NAMES = ['tau','gamma','rho']
 
 PARAM_RANGES = {
-    'tau':(0.0005,0.024),
-    'gamma':(0.007,0.5),
+    'tau':(0.0003,0.02),
+    'gamma':(0.03,1),
     'rho':(0.001,0.01)
 }
 
@@ -37,7 +37,7 @@ seed = 4849
 _NETWORK_STATS_CACHE = {
     "k_avg": 10.0,
     "k2_avg": 272.6,
-    "ratio": 34.0,
+    "ratio": ratio,
     "k_std": 9.49,
     "k_max": 734
 }
@@ -60,15 +60,6 @@ def random_sampling(n_samples,param_ranges=PARAM_RANGES,seed=None):
     return samples
 
 # NETWORK GENERATION
-import networkx as nx
-
-_NETWORK_STATS_CACHE = {
-    'k_avg': 10,
-    'k2_avg': 340,
-    'ratio': 34,
-    'k_std': 9.49,
-    'k_max': 30
-}
 
 def generate_network(N=N, m=m, seed=42):
 
@@ -82,11 +73,11 @@ def generate_network(N=N, m=m, seed=42):
     stats = _NETWORK_STATS_CACHE
 
     print("\nUsing cached network statistics")
-    print(f"<k>       = {stats['k_avg']:.2f}")
-    print(f"<k²>      = {stats['k2_avg']:.2f}")
-    print(f"<k²>/<k>  = {stats['ratio']:.2f}")
-    print(f"k_std     = {stats['k_std']:.2f}")
-    print(f"k_max     = {stats['k_max']}")
+    print(f"first moment = {stats['k_avg']:.2f}")
+    print(f"second moment  = {stats['k2_avg']:.2f}")
+    print(f"ratio = {stats['ratio']:.2f}")
+    print(f"k_std = {stats['k_std']:.2f}")
+    print(f"k_max = {stats['k_max']}")
 
     return G, stats
 
@@ -278,11 +269,11 @@ if __name__=="__main__":
 
     dataset = generate_dataset()
 
-    save_dataset(dataset,DATA_DIR/"epidemic_data_age_adaptive_sobol.pkl")
+    save_dataset(dataset,DATA_DIR/"abm-data.pkl")
 
-    save_csv(dataset,DATA_DIR/"epidemic_data_age_adaptive_sobol.csv")
+    save_csv(dataset,DATA_DIR/"abm-data.csv")
 
-random_sampling_data=pd.read_csv(DATA_DIR / 'epidemic_data_age_adaptive_sobol.csv')
+random_sampling_data=pd.read_csv(DATA_DIR / 'abm-data.csv')
 
 print(random_sampling_data.columns)
 print(len(random_sampling_data))
@@ -320,7 +311,7 @@ plt.ylabel('tau')
 plt.title('Scatter plot of tau vs gamma')
 plt.legend()
 plt.grid(True)
-plt.show()
+#plt.show()
     
 
 

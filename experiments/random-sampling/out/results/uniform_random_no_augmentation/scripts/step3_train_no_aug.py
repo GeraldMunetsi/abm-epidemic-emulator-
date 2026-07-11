@@ -12,6 +12,7 @@ import json
 from tqdm import tqdm
 import pandas as pd
 from scipy import stats
+from datetime import datetime
 from step0_model import create_hybrid_mlp_model
 from utils import create_dataloaders, compute_metrics, get_device, EarlyStopping
 
@@ -20,7 +21,7 @@ MODEL_DIR = Path("experiments/random-sampling/out/results/uniform_random_no_augm
 
 n_timepoints=250    
 N =100000
-knots=7
+knots=8
 n_replicates=10
 
 def set_seed(seed):
@@ -321,7 +322,7 @@ def train_multiple_replicates(
     print(f"Total time:{overall_time/60:.2f} min")
     print(f"Mean time per replicate:{overall_time/n_replicates/60:.2f} min")
 
-    return all_results, all_histories
+    return all_results, all_histories, overall_time
 
 # STATISTICS & REPORTING
 def compute_replicate_statistics(all_results):
@@ -355,6 +356,40 @@ def compute_replicate_statistics(all_results):
         }
 
     return stats_dict
+
+def write_timing_log(all_results, overall_time, output_dir, config):
+    """Write per-replicate and total training times to a txt file."""
+    output_dir = Path(output_dir)
+    lines = [
+        "=" * 60,
+        "TRAINING TIMING LOG",
+        "=" * 60,
+        f"Date       : {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}",
+        f"Output dir : {output_dir}",
+        f"Epochs     : {config['epochs']}",
+        f"Batch size : {config['batch_size']}",
+        f"Replicates : {len(all_results)}",
+        "",
+        "-" * 60,
+        f"{'Rep':>4}  {'Seed':>6}  {'Best Epoch':>10}  {'Time (min)':>10}",
+        "-" * 60,
+    ]
+    for r in all_results:
+        lines.append(
+            f"{r['replicate_id']:4d}  {r['seed']:6d}  "
+            f"{r['best_epoch']:10d}  {r['training_time_minutes']:10.2f}"
+        )
+    lines += [
+        "-" * 60,
+        f"Total time           : {overall_time / 60:.2f} min",
+        f"Mean time/replicate  : {overall_time / 60 / len(all_results):.2f} min",
+        "=" * 60,
+    ]
+    log_path = output_dir / "training_timing_log.txt"
+    with open(log_path, "a", encoding="utf-8") as f:
+        f.write("\n".join(lines))
+    print(f"Saved timing log: {log_path}")
+
 
 def create_summary_report(all_results, stats_dict, output_dir, weight_mode):
     """Plain-text summary report."""
@@ -475,12 +510,12 @@ def plot_replicates_comparison(all_results, all_histories, output_dir):
 # ENTRY POINT
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="NNE")
-    parser.add_argument('--input',type=str,default=DATA_DIR /'epidemic_data_age_adaptive_sobol_split.pkl')
+    parser.add_argument('--input',type=str,default=DATA_DIR /'abm-data_split.pkl')
     parser.add_argument('--output_dir',type=str,default=MODEL_DIR)
     parser.add_argument('--n_replicates',type=int,default=n_replicates)
     parser.add_argument('--seeds',type=str,default=None)
     parser.add_argument('--weight_mode',type=str,default='modest',choices=['equal','modest','balanced'])
-    parser.add_argument('--epochs',type=int,default=100) #50
+    parser.add_argument('--epochs',type=int,default=100) 
     parser.add_argument('--batch_size',type=int,default=35) #30
     parser.add_argument('--lr',type=float,default=0.00005) #1e-3
     parser.add_argument('--weight_decay',type=float,default=1e-3) #-3
@@ -524,7 +559,7 @@ if __name__ == "__main__":
     print(f"Train:{len(dataloaders['train'].dataset)}")
     print(f"Val:{len(dataloaders['val'].dataset)}")
 
-    all_results, all_histories = train_multiple_replicates(
+    all_results, all_histories, overall_time = train_multiple_replicates(
         n_replicates=args.n_replicates,
         seeds=seeds,
         config=config,
@@ -537,6 +572,7 @@ if __name__ == "__main__":
   
     print("SUMMARY STATISTICS")
     stats_dict = compute_replicate_statistics(all_results)
+    write_timing_log(all_results, overall_time, args.output_dir, config)
     with open(Path(args.output_dir)/'replicates_summary.json', 'w') as f:
         json.dump({'results':all_results,'statistics': stats_dict,
                    'config': config,'weight_mode':args.weight_mode},f,indent=2)

@@ -9,6 +9,8 @@ from numpy.random import default_rng
 import csv
 import pandas as pd
 import matplotlib.pyplot as plt
+import time
+from datetime import datetime
 
 
 # GLOBAL SETTINGS
@@ -21,13 +23,13 @@ n_timepoints = 250
 tmax = 250
 n_replicates= 1
 n_samples = 4000
-
+ratio=58
 PARAM_NAMES = ['tau','gamma','rho']
 
 PARAM_RANGES = {
-    'tau':(0.0005,0.024),
-    'gamma':(0.007,0.5),
-    'rho':(0.001,0.01)
+   'tau':(0.0003,0.02),
+    'gamma':(0.03,1),
+    'rho':(0.0001,0.01)
 }
 
 seed = 42
@@ -37,7 +39,7 @@ seed = 42
 _NETWORK_STATS_CACHE = {
     "k_avg": 10.0,
     "k2_avg": 272.6,
-    "ratio": 34.0,
+    "ratio": ratio,
     "k_std": 9.49,
     "k_max": 734
 }
@@ -59,16 +61,7 @@ def random_sampling(n_samples,param_ranges=PARAM_RANGES,seed=None):
 
     return samples
 
-# NETWORK GENERATION
-import networkx as nx
 
-_NETWORK_STATS_CACHE = {
-    'k_avg': 10,
-    'k2_avg': 340,
-    'ratio': 34,
-    'k_std': 9.49,
-    'k_max': 30
-}
 
 def generate_network(N=N, m=m, seed=42):
 
@@ -82,17 +75,15 @@ def generate_network(N=N, m=m, seed=42):
     stats = _NETWORK_STATS_CACHE
 
     print("\nUsing cached network statistics")
-    print(f"<k>       = {stats['k_avg']:.2f}")
-    print(f"<k²>      = {stats['k2_avg']:.2f}")
-    print(f"<k²>/<k>  = {stats['ratio']:.2f}")
-    print(f"k_std     = {stats['k_std']:.2f}")
-    print(f"k_max     = {stats['k_max']}")
+    print(f"first moment = {stats['k_avg']:.2f}")
+    print(f"second moment= {stats['k2_avg']:.2f}")
+    print(f"ratio= {stats['ratio']:.2f}")
 
     return G, stats
 
 
-G, net_stats = generate_network()
-ratio = net_stats["ratio"]
+G, stats = generate_network()
+ratio = stats["ratio"]
 
 # SIR SIMULATION
 
@@ -110,9 +101,12 @@ def run_sir_replicates(G,tau,gamma,rho,
 
     try:
 
+        rep_times = []
         for _ in range(n_replicates):
 
+            t0_sim = time.perf_counter()
             t,S,I,R = EoN.fast_SIR(G,tau,gamma,rho=rho,tmax=tmax)
+            rep_times.append(time.perf_counter() - t0_sim)
 
             S_runs.append(np.interp(t_fixed,t,S))
             I_runs.append(np.interp(t_fixed,t,I))
@@ -125,7 +119,8 @@ def run_sir_replicates(G,tau,gamma,rho,
             'R':np.mean(R_runs,axis=0),
             'S_std':np.std(S_runs,axis=0),
             'I_std':np.std(I_runs,axis=0),
-            'R_std':np.std(R_runs,axis=0)
+            'R_std':np.std(R_runs,axis=0),
+            'sim_time_s': float(np.sum(rep_times)),
         }
 
     except Exception as e:
@@ -141,7 +136,8 @@ def run_sir_replicates(G,tau,gamma,rho,
             'R':zeros,
             'S_std':zeros,
             'I_std':zeros,
-            'R_std':zeros
+            'R_std':zeros,
+            'sim_time_s': 0.0,
         }
 
 
@@ -160,8 +156,13 @@ def run_batch_with_replicates(G, params_array, n_replicates=n_replicates):
                     'rho': float(rho),
                     'replicate': rep
                 },
-                'output': output
+                'output': output,
+                'sim_time_s': output['sim_time_s'],
             })
+
+    sim_times = [r['sim_time_s'] for r in results]
+    print(f"\nPer-simulation time — mean: {np.mean(sim_times):.4f}s  "
+          f"min: {np.min(sim_times):.4f}s  max: {np.max(sim_times):.4f}s")
     return results
 
 
@@ -169,10 +170,16 @@ def run_batch_with_replicates(G, params_array, n_replicates=n_replicates):
 def generate_dataset():
 
     print("\nGenerating dataset")
-    # build network 
+
+    t0_network = time.perf_counter()
     G, net = generate_network()
     params_array = random_sampling(n_samples, seed=seed)
+    data_gen_time = time.perf_counter() - t0_network
+
+    t0_sim = time.perf_counter()
     sims = run_batch_with_replicates(G, params_array)
+    sim_time = time.perf_counter() - t0_sim
+
     tau_arr = np.array([s['params']['tau'] for s in sims])
     gamma_arr = np.array([s['params']['gamma'] for s in sims])
     R0_arr = (tau_arr / gamma_arr) * net['ratio']
@@ -183,9 +190,7 @@ def generate_dataset():
     print("mean:", R0_arr.mean())
 
     dataset = {
-
         'simulations': sims,
-
         'network': {
             'N': N,
             'm': m,
@@ -193,7 +198,6 @@ def generate_dataset():
             'k2_avg': net['k2_avg'],
             'ratio': net['ratio']
         },
-
         'metadata': {
             'n_samples': len(sims),
             'n_replicates': n_replicates,
@@ -201,10 +205,40 @@ def generate_dataset():
             'param_ranges': PARAM_RANGES,
             'tmax': tmax,
             'n_timepoints': n_timepoints
+        },
+        'timing': {
+            'data_gen_seconds': data_gen_time,
+            'simulation_seconds': sim_time,
+            'per_sim_times_s': [s['sim_time_s'] for s in sims],
         }
     }
 
     return dataset
+
+
+def write_timing_log(timing: dict, log_path: Path):
+    run_at = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    total = timing['data_gen_seconds'] + timing['simulation_seconds']
+    per_sim = timing.get('per_sim_times_s', [])
+    lines = [
+        f"Run timestamp          : {run_at}",
+        f"Data generation time   : {timing['data_gen_seconds']:.2f} s",
+        f"Simulation time (total): {timing['simulation_seconds']:.2f} s",
+        f"Total time             : {total:.2f} s",
+    ]
+    if per_sim:
+        lines += [
+            f"Simulations run        : {len(per_sim)}",
+            f"Time / simulation mean : {np.mean(per_sim):.4f} s",
+            f"Time / simulation min  : {np.min(per_sim):.4f} s",
+            f"Time / simulation max  : {np.max(per_sim):.4f} s",
+        ]
+    lines.append("-" * 45)
+    log_path = Path(log_path)
+    log_path.parent.mkdir(parents=True, exist_ok=True)
+    with open(log_path, "a", encoding="utf-8") as f:
+        f.write("\n".join(lines) + "\n\n")
+    print(f"Timing log appended: {log_path}")
 
 # SAVE DATASET
 def save_dataset(dataset,filepath):
@@ -274,15 +308,19 @@ def save_csv(dataset,filepath):
     print("CSV saved:",filepath)
 
 # MAIN
-if __name__=="__main__":
+if __name__ == "__main__":
 
     dataset = generate_dataset()
 
-    save_dataset(dataset,DATA_DIR/"epidemic_data_age_adaptive_sobol.pkl")
+    save_dataset(dataset, DATA_DIR / "abm-data.pkl")
+    save_csv(dataset, DATA_DIR / "abm-data_sobol.csv")
 
-    save_csv(dataset,DATA_DIR/"epidemic_data_age_adaptive_sobol.csv")
+    write_timing_log(
+        dataset["timing"],
+        Path("experiments/random-sampling/out/timing_log.txt"),
+    )
 
-random_sampling_data=pd.read_csv(DATA_DIR / 'epidemic_data_age_adaptive_sobol.csv')
+random_sampling_data=pd.read_csv(DATA_DIR / 'abm-data_sobol.csv')
 
 print(random_sampling_data.columns)
 print(len(random_sampling_data))
@@ -320,7 +358,7 @@ plt.ylabel('tau')
 plt.title('Scatter plot of tau vs gamma')
 plt.legend()
 plt.grid(True)
-plt.show()
+#plt.show()
     
 
 

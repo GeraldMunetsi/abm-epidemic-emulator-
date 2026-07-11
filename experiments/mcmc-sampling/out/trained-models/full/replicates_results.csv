@@ -1,0 +1,5 @@
+replicate_id,seed,best_epoch,best_val_r2,best_val_mae,best_val_mae_i,best_val_mae_s,best_val_mae_r,training_time_minutes,model_filename,output_dir
+1,42,85,0.8889954090118408,732.8734130859375,52.72114944458008,1069.052001953125,1076.84716796875,2.7986039876937867,best_balanced_mlp_model_1.pt,experiments\mcmc-sampling\out\trained-models\full
+2,123,92,0.8602854013442993,872.8701782226562,57.51869201660156,1277.505859375,1283.5859375,3.0237210392951965,best_balanced_mlp_model_2.pt,experiments\mcmc-sampling\out\trained-models\full
+3,456,92,0.8385212421417236,718.2608642578125,60.86290740966797,1042.4891357421875,1051.4305419921875,3.491866091887156,best_balanced_mlp_model_3.pt,experiments\mcmc-sampling\out\trained-models\full
+4,789,85,0.8907982110977173,698.3660278320312,52.53367233276367,1018.0260009765625,1024.5380859375,3.291896911462148,best_balanced_mlp_model_4.pt,experiments\mcmc-sampling\out\trained-models\full

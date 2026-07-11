@@ -10,10 +10,12 @@ from pathlib import Path
 from tqdm import tqdm
 from pathlib import Path
 import csv
-import pymc as pm 
+import pymc as pm
 import arviz as az
 import matplotlib.pyplot as plt
 import pandas as pd
+import time
+from datetime import datetime
 
 import warnings
 warnings.filterwarnings("ignore")
@@ -21,30 +23,30 @@ warnings.filterwarnings("ignore")
 DATA_DIR = Path("experiments/mcmc-sampling/data/raw")
 PLOTS_DIR = Path("experiments/mcmc-sampling/out/plots/mcmc_sampling_plots")
 MCMC_DIR = Path("experiments/mcmc-sampling/data/raw/mcmc_posterior_results")
-OUTPUT_PKL = DATA_DIR /"epidemic_data_age_adaptive_sobol.pkl"
-OUTPUT_CSV = DATA_DIR /"epidemic_data_age_adaptive_sobol.csv"
+OUTPUT_PKL = DATA_DIR /"abm-data.pkl"
+OUTPUT_CSV = DATA_DIR /"abm-data.csv"
 
 # PARAMETERS
 N = 100000              # network size
 m = 10                      # Barabasi–Albert attachment parameter
 
-tmax=200
-n_timepoints=200
+tmax=250
+n_timepoints=250
 initial_samples=10000  # initial Sobol samples #500
 sigma = 1.0      # width of R0 target distribution
 n_replicates=1  # replicates of parameter sets 
 
 PARAM_RANGES = {
-    'tau':(0.0005,0.024),
-    'gamma':(0.007,0.5),
+     'tau':(0.0003,0.17),
+    'gamma':(0.03,1),
     'rho':(0.001,0.01)
 }
 
 PARAM_NAMES = ['tau', 'gamma', 'rho']
-output_path = Path('epidemic_data_age_adaptive_sobol.pkl')
+output_path = Path('abm-data.pkl')
 
 
-ratio=34.0 # calculated for 100000 graphs
+ratio=58 # calculated for 100000 graphs
 
 net_stats = {
     'k_avg': 9.9988,
@@ -61,7 +63,7 @@ def compute_R0(samples,ratio):
     """
     Compute epidemic reproduction number.
 
-    R0 = (tau/gamma) * <k²>/<k>
+    R0 = (tau/gamma) * (<k²> - <k>) / <k>
     """
 
     tau = samples[:, 0]
@@ -73,6 +75,7 @@ def compute_R0(samples,ratio):
 
 # Using MCMC to sample from the target distribution  with Uniform distribution
 
+t0_mcmc = time.perf_counter()
 with pm.Model() as model:
     
     # Priors: Uniform over plausible ranges
@@ -98,6 +101,8 @@ with pm.Model() as model:
         target_accept=0.95,
         random_seed=43
     )
+mcmc_time = time.perf_counter() - t0_mcmc
+
 #Thin after sampling.
 trace_thinned = trace.sel(draw=slice(None, None, 10))
 
@@ -132,7 +137,7 @@ print(posterior_samples.shape) #1000,3
 
 
 def run_batch(G, posterior_samples, n_replicates, tmax, n_timepoints, seed=None):
-    
+
     if seed is not None:
         np.random.seed(seed)
 
@@ -143,7 +148,9 @@ def run_batch(G, posterior_samples, n_replicates, tmax, n_timepoints, seed=None)
 
         for rep in range(n_replicates):
 
+            t0_sim = time.perf_counter()
             t, S, I, R = EoN.fast_SIR(G, tau, gamma, rho=rho, tmax=tmax)
+            sim_time = time.perf_counter() - t0_sim
 
             all_sims.append({
                 'params': {
@@ -158,10 +165,14 @@ def run_batch(G, posterior_samples, n_replicates, tmax, n_timepoints, seed=None)
                     'R': np.interp(t_fixed, t, R),
                 },
                 'replicate_id': rep,
+                'sim_time_s': sim_time,
             })
 
+    sim_times = [s['sim_time_s'] for s in all_sims]
     print(f"Generated {len(all_sims)} simulations "
           f"({len(posterior_samples)} param sets × {n_replicates} replicates)")
+    print(f"Sim time — mean: {np.mean(sim_times):.4f}s  "
+          f"min: {np.min(sim_times):.4f}s  max: {np.max(sim_times):.4f}s")
 
     return all_sims
 
@@ -349,9 +360,30 @@ def save_csv(dataset, filepath):
 
     print(f"CSV saved to {filepath} ({len(sims)} rows)")
 
+def write_timing_log(mcmc_time, sim_times, log_path: Path):
+    run_at = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    total_sim = sum(sim_times)
+    lines = [
+        f"Run timestamp          : {run_at}",
+        f"MCMC sampling time     : {mcmc_time:.2f} s  ({mcmc_time/60:.2f} min)",
+        f"Total simulation time  : {total_sim:.2f} s  ({total_sim/60:.2f} min)",
+        f"Number of simulations  : {len(sim_times)}",
+        f"Mean time / simulation : {np.mean(sim_times):.4f} s",
+        f"Min  time / simulation : {np.min(sim_times):.4f} s",
+        f"Max  time / simulation : {np.max(sim_times):.4f} s",
+        "-" * 50,
+    ]
+    log_path = Path(log_path)
+    log_path.parent.mkdir(parents=True, exist_ok=True)
+    with open(log_path, "a", encoding="utf-8") as f:
+        f.write("\n".join(lines) + "\n\n")
+    print(f"Timing log appended: {log_path}")
+
+
 # Entry point
 G = nx.barabasi_albert_graph(N, m)
 
+t0_batch = time.perf_counter()
 all_sims = run_batch(
     G,
     posterior_samples,
@@ -359,6 +391,7 @@ all_sims = run_batch(
     tmax,
     n_timepoints,
 )
+batch_time = time.perf_counter() - t0_batch
 
 dataset = build_dataset(
     all_sims,
@@ -374,9 +407,16 @@ full_results = summarise_for_plot(dataset)
 # Plots → PLOTS_DIR 
 plot_sir_uncertainty(full_results, N=G.number_of_nodes(), output_dir=PLOTS_DIR)
 
-# Data → DATA_DIR 
-save_dataset(dataset, OUTPUT_PKL)   
-save_csv(dataset, OUTPUT_CSV)       
+# Data → DATA_DIR
+save_dataset(dataset, OUTPUT_PKL)
+save_csv(dataset, OUTPUT_CSV)
+
+sim_times = [s['sim_time_s'] for s in all_sims]
+write_timing_log(
+    mcmc_time,
+    sim_times,
+    DATA_DIR / "timing_log.txt",
+)       
 
 # Exploration 
 data = pd.read_csv(OUTPUT_CSV)      
@@ -421,3 +461,53 @@ plt.savefig(scatter_path, dpi=200, bbox_inches='tight')
 plt.show()
 print(f"Saved: {scatter_path}")
 
+
+
+
+data = data
+
+params = {
+    'R0': ('R0', 'R\u2080', 'steelblue'),
+    'tau': ('tau','\u03C4 (transmission rate)', 'darkorange'),
+    'rho': ('rho', '\u03C1 (initial infected)',  'mediumpurple'),
+    'attack_rate': ('attack_rate', 'Attack Rate', 'firebrick'),
+    'final_R': ('final_R', 'Final Recovered (R)', 'seagreen'),
+    'near_threshold': ('near_threshold', 'Near Threshold (R\u2080\u22481)', 'goldenrod'),
+}
+
+fig, axes = plt.subplots(2, 3, figsize=(16, 9))
+axes = axes.flatten()
+
+for ax, (col, (key, label, color)) in zip(axes, params.items()):
+    values = data[key].dropna()
+
+    if key == 'near_threshold':
+        counts = values.value_counts().sort_index()
+        ax.bar(counts.index.astype(str), counts.values, color=[color, 'lightgray'][:len(counts)],
+               alpha=0.85, edgecolor='white', linewidth=0.5)
+        ax.set_xticks([0, 1])
+        ax.set_xticklabels(['Not near (0)', 'Near (1)'], fontsize=10)
+        pct = values.mean() * 100
+        ax.set_title(f'{label}\n({pct:.1f}% near threshold)', fontsize=11, fontweight='bold')
+    else:
+        counts, bin_edges = np.histogram(values, bins=30)
+        bin_centers = (bin_edges[:-1] + bin_edges[1:]) / 2
+        width = bin_edges[1] - bin_edges[0]
+        ax.bar(bin_centers, counts, width=width * 0.85, color=color, alpha=0.85,
+               edgecolor='white', linewidth=0.4)
+        ax.axvline(values.mean(), color='black', linestyle='--', linewidth=1.5,
+                   label=f'Mean = {values.mean():.4f}')
+        ax.legend(fontsize=9)
+        ax.set_title(f'Distribution of {label}', fontsize=11, fontweight='bold')
+
+    ax.set_xlabel(label, fontsize=10)
+    ax.set_ylabel('Count', fontsize=10)
+    ax.grid(True, alpha=0.3, axis='y')
+
+fig.suptitle('MCMC Posterior — Parameter & Outcome Distributions', fontsize=14, fontweight='bold')
+plt.tight_layout()
+
+out = PLOTS_DIR / "parameter_bar_plots.png"
+plt.savefig(out, dpi=200, bbox_inches='tight')
+plt.show()
+print(f"Saved: {out}")

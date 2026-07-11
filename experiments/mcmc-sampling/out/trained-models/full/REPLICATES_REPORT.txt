@@ -1,0 +1,39 @@
+----------------------------------------------------------------------
+REPLICATES TRAINING SUMMARY 
+
+Replicates: 4
+Weight mode: modest
+Seeds: [42, 123, 456, 789]
+Output dir: experiments\mcmc-sampling\out\trained-models\full
+
+  Model files:
+· best_balanced_mlp_model_1.pt(seed=42)
+· best_balanced_mlp_model_2.pt(seed=123)
+· best_balanced_mlp_model_3.pt(seed=456)
+· best_balanced_mlp_model_4.pt(seed=789)
+
+----------------------------------------------------------------------
+VALIDATION PERFORMANCE
+
+MAE_I (Infected Compartment):
+  Mean : 55.91
+  Std  : 4.03
+  95% CI: [49.50, 62.32]
+
+R²:
+Mean:0.8697
+Std:0.0250
+95% CI:[0.8298, 0.9095]
+
+Per-Compartment MAE:
+MAE_S: 1101.77 ± 119.00  (95% CI: [912.42, 1291.12])
+MAE_I:   55.91 ±  4.03  (95% CI: [49.50, 62.32])
+MAE_R: 1109.10 ± 118.27  (95% CI: [920.91, 1297.29])
+
+----------------------------------------------------------------------
+INDIVIDUAL REPLICATE RESULTS
+ ID   Seed  Epoch     R²_I    MAE_I    MAE_S    MAE_R Model File                         
+  1     42     85   0.8890    52.72  1069.05  1076.85 best_balanced_mlp_model_1.pt       
+  2    123     92   0.8603    57.52  1277.51  1283.59 best_balanced_mlp_model_2.pt       
+  3    456     92   0.8385    60.86  1042.49  1051.43 best_balanced_mlp_model_3.pt       
+  4    789     85   0.8908    52.53  1018.03  1024.54 best_balanced_mlp_model_4.pt       

@@ -1,0 +1,11 @@
+replicate_id,train_strategy,test_strategy,augmentation,in_domain,n_train_simulations,relative_MAE_I,R2_I,MAE_I,R2_S,R2_R,R2_overall,MAE_S,MAE_R,RMSE,MSE,mean_peak_I,n_test_samples,model_path,training_epoch
+1,LHS,MCMC,1,0,8400,5.6246,0.903612,50.1152,0.975955,0.974694,0.999127,851.5769,864.8354,1294.6822,1676202.0,1230.08,600,experiments\lhs-sampling\out\trained-models\best_balanced_mlp_model_1.pt,83
+2,LHS,MCMC,1,0,8400,4.9998,0.918298,46.3368,0.9774,0.976684,0.999188,780.6917,787.5391,1248.4192,1558550.375,1230.08,600,experiments\lhs-sampling\out\trained-models\best_balanced_mlp_model_2.pt,83
+3,LHS,MCMC,1,0,8400,5.3423,0.906247,48.1424,0.978593,0.977672,0.999225,788.2896,797.0633,1219.3398,1486789.5,1230.08,600,experiments\lhs-sampling\out\trained-models\best_balanced_mlp_model_3.pt,98
+4,LHS,MCMC,1,0,8400,5.0616,0.912272,48.0854,0.974117,0.973615,0.999076,841.9175,845.8593,1331.7351,1773518.25,1230.08,600,experiments\lhs-sampling\out\trained-models\best_balanced_mlp_model_4.pt,90
+5,LHS,MCMC,1,0,8400,5.4619,0.918854,47.1191,0.978163,0.977283,0.999212,791.0359,798.4405,1229.8398,1512505.875,1230.08,600,experiments\lhs-sampling\out\trained-models\best_balanced_mlp_model_5.pt,94
+6,LHS,MCMC,1,0,8400,5.1477,0.910596,47.4154,0.974935,0.974146,0.9991,825.9469,832.3074,1314.6136,1728208.875,1230.08,600,experiments\lhs-sampling\out\trained-models\best_balanced_mlp_model_6.pt,98
+7,LHS,MCMC,1,0,8400,5.3209,0.921166,46.2677,0.979309,0.978417,0.999252,731.4681,741.6243,1198.07,1435371.75,1230.08,600,experiments\lhs-sampling\out\trained-models\best_balanced_mlp_model_7.pt,99
+8,LHS,MCMC,1,0,8400,5.3351,0.9138,47.5175,0.977187,0.976514,0.999181,788.4907,795.9964,1253.8465,1572131.125,1230.08,600,experiments\lhs-sampling\out\trained-models\best_balanced_mlp_model_8.pt,98
+9,LHS,MCMC,1,0,8400,5.3411,0.914787,46.5586,0.977298,0.976936,0.99919,742.3932,745.5367,1246.6705,1554187.25,1230.08,600,experiments\lhs-sampling\out\trained-models\best_balanced_mlp_model_9.pt,100
+10,LHS,MCMC,1,0,8400,5.7989,0.917486,47.5125,0.976914,0.975903,0.999166,832.5611,842.5804,1265.389,1601209.375,1230.08,600,experiments\lhs-sampling\out\trained-models\best_balanced_mlp_model_10.pt,81

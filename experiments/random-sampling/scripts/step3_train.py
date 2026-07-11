@@ -18,7 +18,7 @@ DATA_DIR = Path("experiments/random-sampling/data/augmented")
 MODEL_DIR= Path("experiments/random-sampling/out/trained models")
 n_timepoints=250
 N =100000
-knots=7
+knots=8
 n_replicates=10
 
 def set_seed(seed):
@@ -50,8 +50,7 @@ def compute_balanced_loss(predictions, targets, device, weight_mode='balanced'):
 
 
 # TRAIN / VALIDATE ONE EPOCH
-def train_epoch_balanced(model, train_loader, optimizer, device, n_timesteps,
-                         weight_mode='modest'):
+def train_epoch_balanced(model, train_loader, optimizer, device, n_timesteps,weight_mode='modest'):
     """One training epoch"""
     model.train()
 
@@ -182,9 +181,9 @@ def train_single_replicate(
         lr=config['lr'],
         weight_decay=config['weight_decay'],
     )
-    scheduler = optim.lr_scheduler.CosineAnnealingLR(
-        optimizer, T_max=config['epochs'], eta_min=1e-6
-    )
+    # scheduler = optim.lr_scheduler.CosineAnnealingLR(
+    #     optimizer, T_max=config['epochs'], eta_min=1e-6
+    # )
     early_stopping = EarlyStopping(patience=config['patience'],mode='min')
 
     # History buffers 
@@ -211,7 +210,7 @@ def train_single_replicate(
         val_loss, val_metrics = validate_balanced(
             model, val_loader, device, n_timesteps, weight_mode
         )
-        scheduler.step()
+      #  scheduler.step()
 
         # Record history
         history['train_loss'].append(train_loss)
@@ -245,7 +244,7 @@ def train_single_replicate(
                 'model_state_dict'   : model.state_dict(),
                 'optimizer_state_dict': optimizer.state_dict(),
                 'val_loss'           : val_loss,
-                'val_metrics'        : val_metrics,
+                'vl_metrics'        : val_metrics,
                 'config'             : config,
                 'weight_mode'        : weight_mode,
                 'seed'               : seed,
@@ -332,7 +331,7 @@ def train_multiple_replicates(
     print(f"Total time:{overall_time/60:.2f} min")
     print(f"Mean time per replicate:{overall_time/n_replicates/60:.2f} min")
 
-    return all_results, all_histories
+    return all_results, all_histories, overall_time
 
 # STATISTICS & REPORTING
 def compute_replicate_statistics(all_results):
@@ -435,6 +434,52 @@ def create_summary_report(all_results, stats_dict, output_dir, weight_mode):
     print("\n" + report_text)
 
 
+def save_training_time_log(all_results, overall_time_seconds, output_dir, config):
+    """Write a plain-text training-time log to output_dir/training_time_log.txt."""
+    output_dir = Path(output_dir)
+    from datetime import datetime
+    lines = [
+        "=" * 60,
+        "TRAINING TIME LOG",
+        f"Recorded: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}",
+        "=" * 60,
+        "",
+        f"Replicates  : {len(all_results)}",
+        f"Epochs/rep  : {config['epochs']}",
+        f"Batch size  : {config['batch_size']}",
+        "",
+        f"{'Rep':>4}  {'Seed':>6}  {'Best Epoch':>10}  {'Time (s)':>10}  {'Time (min)':>10}",
+        "-" * 50,
+    ]
+    times_s = []
+    for r in all_results:
+        t_s = r['training_time_minutes'] * 60
+        times_s.append(t_s)
+        lines.append(
+            f"{r['replicate_id']:4d}  {r['seed']:6d}  {r['best_epoch']:10d}"
+            f"  {t_s:10.1f}  {r['training_time_minutes']:10.2f}"
+        )
+
+    times_s = np.array(times_s)
+    lines += [
+        "-" * 50,
+        "",
+        "SUMMARY",
+        f"  Total wall time : {overall_time_seconds:.1f} s  ({overall_time_seconds/60:.2f} min)",
+        f"  Mean / replicate: {times_s.mean():.1f} s  ({times_s.mean()/60:.2f} min)",
+        f"  Std  / replicate: {times_s.std(ddof=1):.1f} s" if len(times_s) > 1 else "  Std  / replicate: n/a",
+        f"  Min  / replicate: {times_s.min():.1f} s",
+        f"  Max  / replicate: {times_s.max():.1f} s",
+        "",
+        "=" * 60,
+    ]
+
+    log_path = output_dir / "training_time_log.txt"
+    with open(log_path, "w", encoding="utf-8") as f:
+        f.write("\n".join(lines))
+    print(f"Saved: {log_path}")
+
+
 def plot_replicates_comparison(all_results, all_histories, output_dir):
     """Plot training-curve comparison across all replicates."""
     output_dir=Path(output_dir)
@@ -486,7 +531,7 @@ def plot_replicates_comparison(all_results, all_histories, output_dir):
 # ENTRY POINT
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="NNE")
-    parser.add_argument('--input',type=str,default=DATA_DIR /'epidemic_data_age_adaptive_sobol_split_augmented.pkl')
+    parser.add_argument('--input',type=str,default=DATA_DIR /'abm-data_split_augmented.pkl')
     parser.add_argument('--output_dir',type=str,default=MODEL_DIR)
     parser.add_argument('--n_replicates',type=int,default=n_replicates)
     parser.add_argument('--seeds',type=str,default=None)
@@ -536,7 +581,7 @@ if __name__ == "__main__":
     print(f"Train:{len(dataloaders['train'].dataset)}")
     print(f"Val:{len(dataloaders['val'].dataset)}")
 
-    all_results, all_histories = train_multiple_replicates(
+    all_results, all_histories, overall_time = train_multiple_replicates(
         n_replicates=args.n_replicates,
         seeds=seeds,
         config=config,
@@ -553,6 +598,7 @@ if __name__ == "__main__":
         json.dump({'results':all_results,'statistics': stats_dict,
                    'config': config,'weight_mode':args.weight_mode},f,indent=2)
     create_summary_report(all_results,stats_dict,args.output_dir,args.weight_mode)
+    save_training_time_log(all_results, overall_time, args.output_dir, config)
     plot_replicates_comparison(all_results,all_histories,args.output_dir)
     df = pd.DataFrame(all_results)
     df.to_csv(Path(args.output_dir)/'replicates_results.csv',index=False)

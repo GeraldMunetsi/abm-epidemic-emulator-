@@ -1,3 +1,8 @@
+import sys
+if sys.platform == "win32":
+    sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+    sys.stderr.reconfigure(encoding="utf-8", errors="replace")
+
 
 import torch
 import numpy as np
@@ -13,7 +18,7 @@ from utils import create_dataloaders, compute_metrics, get_device, PARAM_MINS, P
 
 n_timepoints = 250
 N=100000
-knots=7
+knots=8
  
 DATA_DIR=Path("experiments/lhs-sampling/out/trained-models")
 SPLIT_DATA_DIR=Path("experiments/lhs-sampling/data/split")
@@ -578,25 +583,15 @@ def save_results(results_list, stats_dict, output_dir):
 # ENTRY POINT
 if __name__ == "__main__":
     # Default filename 
-    DATA_FILENAME = 'epidemic_data_age_adaptive_sobol_split.pkl'
-    parser = argparse.ArgumentParser(
-        description="Validate replicate models — 3-Parameter SIR (tau, gamma, rho)"
-    )
-    parser.add_argument('--models_dir',
-                        type=str,
-                        default=str(DATA_DIR),
+    DATA_FILENAME = 'abm-data_split.pkl'
+    parser = argparse.ArgumentParser(description="Validate replicate models")
+    parser.add_argument('--models_dir',type=str,default=str(DATA_DIR),
                         help='Directory containing trained replicate models')
-    parser.add_argument('--data',
-                        type=str,
-                        default=str(SPLIT_DATA_DIR / DATA_FILENAME),  
+    parser.add_argument('--data',type=str,default=str(SPLIT_DATA_DIR / DATA_FILENAME),  
                         help='Full path to split dataset .pkl file')
-    parser.add_argument('--output_dir',
-                        type=str,
-                        default=str(MODEL_DIR),
+    parser.add_argument('--output_dir',type=str,default=str(MODEL_DIR),
                         help='Output directory for results (JSON, CSV, report)')
-    parser.add_argument('--plots_dir',
-                        type=str,
-                        default=str(PLOTS_DIR),
+    parser.add_argument('--plots_dir',type=str,default=str(PLOTS_DIR),
                         help='Output directory for plots')
     args = parser.parse_args()
 
@@ -606,13 +601,13 @@ if __name__ == "__main__":
     results_dir=Path(args.output_dir)
     plots_dir=Path(args.plots_dir)
 
-    # Safety check: data file must exist 
-    if not data_path.exists():
-        raise FileNotFoundError(
-            f"\nData file not found: {data_path.resolve()}"
-            f"\nExpected in: {SPLIT_DATA_DIR.resolve()}"
-            f"\nHave you run split_dataset.py Step 2 first"
-        )
+    # # Safety check: data file must exist 
+    # if not data_path.exists():
+    #     raise FileNotFoundError(
+    #         f"\nData file not found: {data_path.resolve()}"
+    #         f"\nExpected in: {SPLIT_DATA_DIR.resolve()}"
+    #         f"\nHave you run split_dataset.py Step 2 first"
+    #     )
 
     print("STEP 4: VALIDATION ")
     print(f"\nModels dir: {models_dir.resolve()}")
@@ -636,7 +631,6 @@ if __name__ == "__main__":
     )
 
     #  Aggregate statistics 
-    print("AGGREGATE STATISTICS")
     stats_dict = compute_aggregate_statistics(results_list)
     print(f"\n Statistics over {len(results_list)} replicate(s)")
     print(f"Mean R²: {stats_dict['R2']['mean']:.4f} ± {stats_dict['R2']['std']:.4f}")

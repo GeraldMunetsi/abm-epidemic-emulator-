@@ -575,7 +575,7 @@ def save_results(results_list, stats_dict, output_dir):
 # ENTRY POINT
 if __name__ == "__main__":
     # Default filename 
-    DATA_FILENAME = 'epidemic_data_age_adaptive_sobol_split.pkl'
+    DATA_FILENAME = 'abm-data_split.pkl'
     parser = argparse.ArgumentParser(description="Validate replicate models")
     parser.add_argument('--models_dir',type=str,default=str(DATA_DIR),help='Directory containing trained replicate models')
     parser.add_argument('--data',type=str,default=str(SPLIT_DATA_DIR / DATA_FILENAME), help='Full path to split dataset .pkl file')

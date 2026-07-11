@@ -1,0 +1,716 @@
+--- 20 code ---
+coef_labels = {
+    "Intercept": "Intercept (LHS→LHS, aug=0)",
+    'C(test_strategy, Treatment("LHS"))[T.MCMC]': "Test = MCMC",
+    'C(test_strategy, Treatment("LHS"))[T.UNIFORM_RANDOM]': "Test = Random",
+    "in_domain": "In-domain training",
+    'in_domain:C(test_strategy, Treatment("LHS"))[T.MCMC]': "In-domain × Test=MCMC",
+    'in_domain:C(test_strategy, Treatment("LHS"))[T.UNIFORM_RANDOM]': "In-domain × Test=Random",
+    "augmentation": "Augmentation",
+    "in_domain:augmentation": "In-domain × Augmentation",
+}
+
+coef_names = model.model.exog_names
+params = pd.Series(model_robust.params, index=coef_names)
+ci = pd.DataFrame(model_robust.conf_int(), index=coef_names, columns=[0, 1])
+
+labels = [coef_labels[k] for k in coef_labels]
+coefs  = [params[k] for k in coef_labels]
+lows   = [ci.loc[k, 0] for k in coef_labels]
+highs  = [ci.loc[k, 1] for k in coef_labels]
+y = np.arange(len(labels))
+
+fig, ax = plt.subplots(figsize=(7, 5), constrained_layout=True)
+ax.axvline(0, color="black", lw=1, ls="--")
+colors_f = ["blue" if c < 0 else "red" for c in coefs]
+
+for i, (lo, hi, coef, col) in enumerate(zip(lows, highs, coefs, colors_f)):
+    ax.plot([lo, hi], [y[i], y[i]], color=col, lw=2)
+    ax.scatter(coef, y[i], color=col, zorder=5, s=50)
+
+ax.set_yticks(y)
+ax.set_yticklabels(labels, fontsize=9)
+ax.set_xlabel("Coefficient (change in log relative MAE_I)")
+fig.savefig("fig_forest.png", dpi=300)
+
+--- 21 markdown ---
+**RESULTS**
+Note : For interpretation 
+n=140, 14 conditions, replicate models=10 per condition
+in_domain = 0          (LHS or Random trained — NOT near threshold)
+test_strategy = LHS    (reference test set)
+augmentation = 0       (no augmentation)
+So the intercept is the predicted relative MAE_I for a non-threshold-trained model, tested on LHS data, without augmentation.
+
+--- 22 markdown ---
+**Intercept = 7.957 (p < 0.001)**\
+The baseline. A model trained far from the threshold (LHS or Random), evaluated on LHS test data, without augmentation predicts 7.96% relative MAE_I on average across replicates. All other coefficients are deviations from this.
+
+**test_strategy[T.MCMC] = +1.131 (p < 0.001)**\
+For non-threshold-trained models (in_domain=0), being tested on MCMC test data — the threshold-concentrated set — increases relative MAE_I by 1.13 percentage points compared to being tested on LHS data. This is a crucial finding: threshold-region test data is harder for models not trained near the threshold. The bimodal extinction dynamics near R₀=1 genuinely challenge every model that has not been specifically prepared for them.
+
+**test_strategy[T.UNIFORM_RANDOM] = −0.809 (p = 0.008)**\
+Non-threshold-trained models perform 0.81 pp better on Random test data than on LHS test data. Random test data, despite spanning R₀ up to 67, contains many large deterministic epidemics that are structurally easier to predict. LHS test data has more uniform coverage including difficult intermediate regimes.
+
+**in_domain = −1.226 (p < 0.001)**\
+The main effect of threshold training. A model trained near the threshold (MCMC, in_domain=1) achieves 1.23 pp lower relative MAE_I than a non-threshold-trained model, when both are tested on LHS data without augmentation. This is your first direct confirmation that proximity of training to the threshold improves accuracy — all else being equal.
+
+**in_domain:test_strategy[T.MCMC] = −2.135 (p < 0.001)**\
+This is your dissertation's central finding, expressed as a regression coefficient.
+When a threshold-trained model is ALSO tested on threshold data — the MCMC→MCMC condition — there is an additional −2.135 pp accuracy gain beyond what the main effects of training and testing near the threshold predict separately. The total effect of MCMC training when evaluated near the threshold combines three terms:
+
+Main effect of threshold training: 
+--- 23 markdown ---
+Condition             Prediction
+──────────────────────────────────────────────────────────────────
+LHS→LHS,     aug=0:  7.957
+LHS→LHS,     aug=1:  7.957 − 2.666 = 5.291
+LHS→MCMC,    aug=0:  7.957 + 1.131 = 9.088
+LHS→MCMC,    aug=1:  7.957 + 1.131 − 2.666 = 6.422
+Random→Random, aug=0: 7.957 − 0.809 = 7.148
+Random→MCMC,  aug=0: 7.957 + 1.131 − 0.809 = 8.279
+MCMC→LHS,    aug=0:  7.957 − 1.226 = 6.731
+MCMC→LHS,    aug=1:  7.957 − 1.226 − 2.666 + 1.546 = 5.611
+MCMC→MCMC,   aug=0:  7.957 + 1.131 − 1.226 − 2.135 = 5.727
+MCMC→MCMC,   aug=1:  7.957 + 1.131 − 1.226 − 2.135 − 2.666 + 1.546 = 4.607
+MCMC→Random, aug=0:  7.957 − 1.226 − 0.809 + 0.937 = 6.859
+--- 24 markdown ---
+**Hypothesis Testing**
+Hypothesis 1 — Threshold training improves accuracy
+H₀: β_in_domain = 0
+H₁: β_in_domain < 0   (one-tailed, direction pre-specified)
+Test: t = −9.195, p < 0.001 Im gonna Reject H₀ 
+
+**Hypothesis 2 — The benefit is specifically amplified in the threshold domain**
+H₀: β_in_domain:MCMC = 0
+H₁: β_in_domain:MCMC < 0   (one-tailed, direction pre-specified)
+Test: t = −11.648, p < 0.001 Im gonna Reject H₀ 
+
+**Hypothesis 3 — Augmentation improves accuracy**
+H₀: β_augmentation = 0
+H₁: β_augmentation < 0
+Test: t = −13.232, p < 0.001 Im gonna Reject H₀ 
+
+**Hypothesis 4 — Augmentation benefit differs by training strategy**
+H₀: β_in_domain:augmentation = 0
+H₁: β_in_domain:augmentation ≠ 0   (two-tailed, direction less certain)
+Test: t = 7.525, p < 0.001 Im gonna Reject H₀ 
+--- 25 code ---
+from statsmodels.stats.anova import anova_lm
+import numpy as np
+
+def scalar(value):
+    """Return a Python float from statsmodels scalars or 1x1 arrays."""
+    return float(np.asarray(value).squeeze())
+
+
+# Joint test 1: Does threshold training matter at all? ─
+# Tests all in_domain terms simultaneously
+# H₀: β_in_domain = β_in_domain:MCMC = β_in_domain:LHS
+#      = β_in_domain:augmentation = 0
+restrictions_threshold = (
+    'in_domain = 0, '
+    'in_domain:C(test_strategy, Treatment("LHS"))[T.MCMC] = 0, '
+    'in_domain:C(test_strategy, Treatment("LHS"))[T.UNIFORM_RANDOM] = 0, '
+    'in_domain:augmentation = 0'
+)
+f_test_threshold = ols_model.f_test(restrictions_threshold)
+print("Joint test — all in_domain terms:")
+print(f"  F = {scalar(f_test_threshold.fvalue):.3f}")
+print(f"  p = {f_test_threshold.pvalue:.4e}")
+
+# Joint test 2: Does augmentation matter at all? 
+# H₀: β_augmentation = β_in_domain:augmentation = 0
+restrictions_aug = (
+    'augmentation = 0, '
+    'in_domain:augmentation = 0'
+)
+f_test_aug = ols_model.f_test(restrictions_aug)
+print("\nJoint test — all augmentation terms:")
+print(f"  F = {scalar(f_test_aug.fvalue):.3f}")
+print(f"  p = {f_test_aug.pvalue:.4e}")
+
+# Joint test 3: Does test strategy matter at all?
+# H₀: β_LHS = β_MCMC = 0
+restrictions_test = (
+    'C(test_strategy, Treatment("LHS"))[T.MCMC] = 0, '
+    'C(test_strategy, Treatment("LHS"))[T.UNIFORM_RANDOM] = 0'
+)
+f_test_strategy = ols_model.f_test(restrictions_test)
+print("\nJoint test — test strategy effects:")
+print(f"  F = {scalar(f_test_strategy.fvalue):.3f}")
+print(f"  p = {f_test_strategy.pvalue:.4e}")
+--- 26 code ---
+#  Contrast 1: MCMC→MCMC vs LHS→LHS (no augmentation) 
+# Total difference = in_domain + in_domain:MCMC + test:MCMC
+# H₀: β_in_domain + β_in_domain:MCMC + β_test:MCMC = 0
+# H₁: sum < 0  (MCMC→MCMC better than LHS→LHS)
+
+contrast_1 = ols_model.f_test(
+    'in_domain '
+    '+ in_domain:C(test_strategy, Treatment("LHS"))[T.MCMC] '
+    '+ C(test_strategy, Treatment("LHS"))[T.MCMC] = 0'
+)
+print("Contrast: MCMC→MCMC vs LHS→LHS (no aug):")
+print(f"  F = {scalar(contrast_1.fvalue):.3f}  p = {contrast_1.pvalue:.4e}")
+
+# Contrast 2: Augmentation effect for MCMC 
+# Net augmentation for MCMC = augmentation + in_domain:augmentation
+# H₀: β_aug + β_in_domain:aug = 0
+contrast_2 = ols_model.f_test(
+    'augmentation + in_domain:augmentation = 0'
+)
+print("\nContrast: Net augmentation benefit for MCMC:")
+print(f"  F = {scalar(contrast_2.fvalue):.3f}  p = {contrast_2.pvalue:.4e}")
+
+# Value of the contrast:
+aug_mcmc = ols_model.params['augmentation'] + \
+           ols_model.params['in_domain:augmentation']
+print(f"  Net effect = {aug_mcmc:.3f} pp")
+
+# Contrast 3: Augmentation effect for LHS 
+# Net augmentation for LHS = augmentation alone
+contrast_3 = ols_model.f_test('augmentation = 0')
+aug_lhs = ols_model.params['augmentation']
+print(f"\nContrast: Net augmentation benefit for LHS:")
+print(f"  Net effect = {aug_lhs:.3f} pp  p = {contrast_3.pvalue:.4e}")
+
+# Contrast 4: Is augmentation differential significant? 
+# Already tested by in_domain:augmentation coefficient directly
+# But confirm the ratio:
+ratio = aug_lhs / aug_mcmc
+print(f"\nAugmentation ratio LHS/MCMC = {ratio:.2f}x")
+print(f"  LHS benefits {ratio:.1f}x more from augmentation than MCMC")
+--- 27 code ---
+import numpy as np
+import pandas as pd
+from scipy import stats as scipy_stats
+import statsmodels.formula.api as smf
+from statsmodels.stats.anova import anova_lm
+
+# ── helpers ────────────────────────────────────────────────────────────────
+def cohen_d(g1, g2):
+    n1, n2 = len(g1), len(g2)
+    pooled_sd = np.sqrt(((n1-1)*g1.var(ddof=1) + (n2-1)*g2.var(ddof=1)) / (n1+n2-2))
+    return (g1.mean() - g2.mean()) / pooled_sd
+
+def d_label(d):
+    ad = abs(d)
+    if ad >= 0.8:  return "large"
+    if ad >= 0.5:  return "medium"
+    if ad >= 0.2:  return "small"
+    return "negligible"
+
+def eta2p_label(v):
+    if v >= 0.14: return "large"
+    if v >= 0.06: return "medium"
+    return "small"
+
+# ══════════════════════════════════════════════════════════════════════════════
+# 1.  Cohen's d — Does threshold training help overall?
+#     MCMC-trained (in_domain=1) vs LHS + Random (in_domain=0)
+# ══════════════════════════════════════════════════════════════════════════════
+mcmc_vals  = master_df.loc[master_df["train_strategy"] == "MCMC",  "relative_MAE_I"].values
+other_vals = master_df.loc[master_df["train_strategy"] != "MCMC",  "relative_MAE_I"].values
+
+d_overall = cohen_d(mcmc_vals, other_vals)
+
+print("1. Cohen's d — Does threshold training help overall?")
+print(f"   MCMC mean  = {mcmc_vals.mean():.3f}%   (n={len(mcmc_vals)})")
+print(f"   Other mean = {other_vals.mean():.3f}%   (n={len(other_vals)})")
+print(f"   d = {d_overall:+.3f}  [{d_label(d_overall)}]  (negative → MCMC has lower error)")
+
+# 2.  Partial η² — Which factors matter most? (Type II ANOVA on log relative target)
+
+anova_model = smf.ols(
+    'log_relative_MAE_I ~ C(train_strategy) + C(test_strategy) + C(augmentation)',
+    data=master_df
+).fit()
+anova_table = anova_lm(anova_model, typ=2)
+
+SS_res = anova_table.loc["Residual", "sum_sq"]
+
+factor_display = {
+    "C(train_strategy)": "train_strategy",
+    "C(test_strategy)":  "test_strategy",
+    "C(augmentation)":   "augmentation",
+}
+
+print("\n2. Partial η² — Which facto
+--- 28 code ---
+
+--- 29 markdown ---
+Standardised regression coefficients indicated that data augmentation had the largest independent effect on emulator accuracy (β* = −0.937), followed by physics-informed threshold training (β* = −0.426). The augmentation effect was 2.2-fold larger in standardised units, reflecting its role as a universal accuracy lever applicable to any sampling strategy. However, the primary scientific contribution of threshold training is captured by the interaction coefficient (β_in_domain:MCMC = −2.135, p < 0.001) rather than the main effect alone — threshold training specifically reduces relative MAE_I in the threshold evaluation domain beyond what augmentation achieves. The overall model achieved Cohen's f² = 24.33, substantially exceeding the conventional large-effect threshold of 0.35, consistent with the controlled experimental design in which sampling strategy and augmentation collectively determine emulator performance with negligible residual variation attributable to training stochasticity.
+--- 30 code ---
+# Step 5 — Nested Model Comparison
+
+# Model A: No in_domain terms 
+formula_A = (
+    'log_relative_MAE_I '
+    '~ C(test_strategy, Treatment("LHS")) '
+    '+ augmentation'
+)
+model_A = smf.ols(formula_A, data=master_df).fit()
+
+# Model B: Add in_domain main effect 
+formula_B = (
+    'log_relative_MAE_I '
+    '~ C(test_strategy, Treatment("LHS")) '
+    '+ in_domain '
+    '+ augmentation'
+)
+model_B = smf.ols(formula_B, data=master_df).fit()
+
+# Model C: Full model with all interactions 
+# (your current model)
+
+print("Nested model comparison:")
+print(f"  Model A (no in_domain):          R² = {model_A.rsquared:.4f}")
+print(f"  Model B (in_domain main only):   R² = {model_B.rsquared:.4f}")
+print(f"  Model C (full, all interactions):R² = {ols_model.rsquared:.4f}")
+print()
+print(f"  change in R² adding in_domain main:       {model_B.rsquared - model_A.rsquared:.4f}")
+print(f"  change in R² adding all in_domain terms:  {ols_model.rsquared - model_A.rsquared:.4f}")
+print(f"  change in R² from interactions alone:     {ols_model.rsquared - model_B.rsquared:.4f}")
+
+from scipy import stats as scipy_stats
+
+def f_test_nested(model_reduced, model_full):
+    df1 = model_full.df_model - model_reduced.df_model
+    df2 = model_full.df_resid
+    F   = ((model_reduced.ssr - model_full.ssr) / df1) / \
+          (model_full.ssr / df2)
+    p   = 1 - scipy_stats.f.cdf(F, df1, df2)
+    return F, df1, df2, p
+
+F_AB, df1_AB, df2_AB, p_AB = f_test_nested(model_A, model_B)
+F_AC, df1_AC, df2_AC, p_AC = f_test_nested(model_A, ols_model)
+F_BC, df1_BC, df2_BC, p_BC = f_test_nested(model_B, ols_model)
+
+print(f"\n  A→B F({int(df1_AB)},{int(df2_AB)}) = {F_AB:.2f}, p = {p_AB:.4e}")
+print(f"  A→C F({int(df1_AC)},{int(df2_AC)}) = {F_AC:.2f}, p = {p_AC:.4e}")
+print(f"  B→C F({int(df1_BC)},{int(df2_BC)}) = {F_BC:.2f}, p = {p_BC:.4e}")
+
+--- 31 code ---
+
+# ══════════════════════════════════════════════════════════════════════════════
+# Cluster Adequacy & Independence Diagnostics
+# ══════════════════════════════════════════════════════════════════════════════
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+import matplotlib.ticker as mticker
+import seaborn as sns
+from scipy import stats as scipy_stats
+from statsmodels.stats.inter_rater import fleiss_kappa  # not used but keep imports clean
+
+# ── 0. Attach residuals to the dataframe ────────────────────────────────────
+master_df["resid"] = ols_model.resid.values
+
+cluster_col = "condition_id"
+G = master_df[cluster_col].nunique()
+cluster_sizes = master_df.groupby(cluster_col).size()
+
+
+# ── 1. Intra-cluster Correlation (ICC) ─────────────────────────────────────
+print("=" * 60)
+print("2. INTRA-CLUSTER CORRELATION (ICC)")
+print("=" * 60)
+# ICC = between-cluster variance / total variance (from one-way ANOVA decomposition)
+grand_mean = master_df["resid"].mean()
+cluster_means = master_df.groupby(cluster_col)["resid"].mean()
+n_per = cluster_sizes.mean()
+
+SS_between = sum(cluster_sizes[g] * (cluster_means[g] - grand_mean) ** 2
+                 for g in cluster_means.index)
+SS_within  = master_df.groupby(cluster_col)["resid"].apply(lambda x: ((x - x.mean()) ** 2).sum()).sum()
+
+MS_between = SS_between / (G - 1)
+MS_within  = SS_within  / (len(master_df) - G)
+
+icc = (MS_between - MS_within) / (MS_between + (n_per - 1) * MS_within)
+print(f"   ICC = {icc:.4f}")
+print(f"   Interpretation:")
+if icc < 0.05:
+    print("     Low ICC — clustering has minimal effect; OLS SEs likely adequate")
+elif icc < 0.20:
+    print("     Moderate ICC — clustering matters; cluster-robust SEs appropriate")
+else:
+    print("     High ICC — strong within-cluster correlation; cluster-robust SEs essential")
+
+# Design effect (DEFF) — how much variance inflation clustering causes
+deff = 1 + (n_per - 1) * icc
+print(f"   Design effect (DEFF = 1 + (n_g-1)*ICC) = {deff:.3f}")
+print(f"   Eff
+--- 32 code ---
+
+--- 33 code ---
+print(master_df.head(5))
+--- 34 code ---
+import pandas as pd
+import matplotlib.pyplot as plt
+import numpy as np
+
+sstrategies = ["LHS", "MCMC", "UNIFORM_RANDOM"]
+fig, axes = plt.subplots(1, 2, figsize=(9, 3.5), constrained_layout=True)
+
+for idx, (ax, aug) in enumerate(zip(axes, [0, 1])):
+    sub = master_df[master_df["augmentation"] == aug]
+    matrix = sub.groupby(["train_strategy", "test_strategy"])["relative_MAE_I"].mean().unstack()
+    matrix = matrix.loc[strategies, strategies]
+
+    r2_matrix = sub.groupby(["train_strategy", "test_strategy"])["R2_I"].mean().unstack()
+    r2_matrix = r2_matrix.loc[strategies, strategies]
+
+    im = ax.imshow(matrix.values, cmap="RdYlGn_r", vmin=4, vmax=10, aspect="auto")
+    ax.set_xticks(range(3)); ax.set_yticks(range(3))
+    ax.set_xticklabels(["LHS", "MCMC", "Random"], fontsize=9)
+    ax.set_yticklabels(["LHS", "MCMC", "Random"], fontsize=9)
+
+    for i in range(3):
+        for j in range(3):
+            ax.text(j, i,
+                    f"{matrix.values[i, j]:.1f}%\n$R^2$={r2_matrix.values[i, j]:.3f}",
+                    ha="center", va="center", fontsize=8, fontweight="bold")
+
+    ax.set_title(f"Augmentation = {aug}", loc="left")
+    ax.text(0.5, -0.18, f"({chr(97 + idx)})", transform=ax.transAxes,
+            fontsize=12, fontweight="bold", ha="center")
+
+axes[0].set_ylabel("Train strategy")
+fig.supxlabel("Test strategy")
+fig.colorbar(im, ax=axes, label="Mean relative MAE_I (%)", shrink=0.8)
+fig.savefig("fig_heatmap.png", dpi=300)
+
+--- 35 code ---
+fig, axes = plt.subplots(1, 3, sharey=True, figsize=(11, 4), constrained_layout=True)
+colors = {0: "lightblue", 1: "blue"}
+test_order = ["LHS", "MCMC", "UNIFORM_RANDOM"]
+x = np.arange(3)
+w = 0.35
+
+for ax, train in zip(axes, ["LHS", "MCMC", "UNIFORM_RANDOM"]):
+    sub = master_df[master_df["train_strategy"] == train]
+    for i, aug in enumerate([0, 1]):
+        means = sub[sub["augmentation"] == aug].groupby("test_strategy")["relative_MAE_I"].mean()
+        sds   = sub[sub["augmentation"] == aug].groupby("test_strategy")["relative_MAE_I"].std()
+        means = means.reindex(test_order)
+        sds   = sds.reindex(test_order)
+        ax.bar(x + i*w, means, w, yerr=sds, capsize=3,
+               color=colors[aug], label=f"aug={aug}", edgecolor="#333")
+    ax.set_xticks(x + w/2)
+    ax.set_xticklabels(["LHS", "MCMC", "Random"], fontsize=8)
+    ax.set_title(train, loc="left")
+
+axes[0].set_ylabel("Relative MAE_I (%)")
+axes[0].legend(fontsize=8)
+fig.supxlabel("Test strategy")
+fig.savefig("fig_bars.png", dpi=300)
+
+--- 36 code ---
+import numpy as np
+coef_labels = {
+    "Intercept": "Intercept",
+    'C(test_strategy, Treatment("LHS"))[T.MCMC]': "Test: MCMC",
+    'C(test_strategy, Treatment("LHS"))[T.UNIFORM_RANDOM]': "Test: Random",
+    "in_domain": "In-domain training",
+    'in_domain:C(test_strategy, Treatment("LHS"))[T.MCMC]': "In-domain: Test=MCMC",
+    'in_domain:C(test_strategy, Treatment("LHS"))[T.UNIFORM_RANDOM]': "In-domain: Test=Random",
+    "augmentation": "Augmentation",
+    "in_domain:augmentation": "In-domain: Augmentation",
+}
+
+coef_names = model.model.exog_names
+params = pd.Series(model_robust.params, index=coef_names)
+ci = pd.DataFrame(model_robust.conf_int(), index=coef_names, columns=[0, 1])
+
+labels = [coef_labels[k] for k in coef_labels]
+coefs  = [params[k] for k in coef_labels]
+lows   = [ci.loc[k, 0] for k in coef_labels]
+highs  = [ci.loc[k, 1] for k in coef_labels]
+y = np.arange(len(labels))
+
+fig, ax = plt.subplots(figsize=(7, 5), constrained_layout=True)
+ax.axvline(0, color="blue", lw=1, ls="--")
+colors_f = ["black" if c < 0 else "red" for c in coefs]
+
+for i, (lo, hi, coef, col) in enumerate(zip(lows, highs, coefs, colors_f)):
+    ax.plot([lo, hi], [y[i], y[i]], color=col, lw=2)
+    ax.scatter(coef, y[i], color=col, zorder=5, s=50)
+
+ax.set_yticks(y)
+ax.set_yticklabels(labels, fontsize=9)
+ax.set_xlabel("Coefficient (change in log relative MAE_I)")
+fig.savefig("fig_forest.png", dpi=300)
+
+--- 37 code ---
+master_df.columns.tolist()
+sub=master_df[master_df["train_strategy"]==train]
+#print(sub.head(5))
+per_rep = sub.groupby(["augmentation", "replicate_id"])["relative_MAE_I"].mean()
+print(per_rep.head(30))
+#print(f"per_rep shape: {per_rep.shape}")
+
+--- 38 code ---
+import scipy.stats as stats
+
+fig, ax = plt.subplots(figsize=(5, 4), constrained_layout=True)
+palette = {"LHS": "green", "MCMC": "orange", "UNIFORM_RANDOM": "purple"}  # tab10 colors, matched lightness so none dominates when lines overlap
+label_map = {"LHS": "LHS", "MCMC": "NTS", "UNIFORM_RANDOM": "Uniform"}  # display names only -- keys must match train_strategy values
+
+for train, color in palette.items():
+    sub = master_df[master_df["train_strategy"] == train]
+    assert not sub.empty, f"no rows found for train_strategy={train!r}"
+    per_rep = sub.groupby(["augmentation", "replicate_id"])["relative_MAE_I"].mean()
+    grouped = per_rep.groupby("augmentation")
+    means = grouped.mean().reindex([0, 1])
+    sems = grouped.sem().reindex([0, 1])
+    n = grouped.size().reindex([0, 1])
+    ci95 = sems * stats.t.ppf(0.975, df=n - 1)  # t-based 95% CI, n=10 replicates -> df=9 because my n is small
+    ax.errorbar([0, 1], means.values, yerr=ci95.values, fmt="o-", color=color,
+                label=label_map[train], lw=1, ms=2, capsize=4, elinewidth=1)
+
+ax.set_xticks([0, 1])
+ax.set_xticklabels(["No augmentation", "Augmentation"])
+ax.set_ylabel("Mean relative MAE_I (%)")
+ax.legend(title="Train strategy", fontsize=9)
+ax.set_title("95% CI across 10 replicates per strategy")
+fig.savefig("fig_interaction_ci95.png", dpi=900)
+
+--- 39 code ---
+
+--- 40 code ---
+
+import matplotlib.pyplot as plt
+import numpy as np
+from scipy import stats as scipy_stats
+from statsmodels.graphics.gofplots import qqplot
+
+fitted  = ols_model.fittedvalues
+resid   = ols_model.resid
+std_resid = resid / resid.std()
+
+fig, axes = plt.subplots(1, 2, figsize=(11, 4.5), constrained_layout=True)
+
+# ── (a) Residuals vs Fitted — linearity check ──────────────────────────────
+ax = axes[0]
+ax.scatter(fitted, resid, alpha=0.5, s=20, color="steelblue", edgecolors="none")
+ax.axhline(0, color="red", lw=1.2, ls="--")
+
+# LOWESS smoother to reveal any systematic curvature
+from statsmodels.nonparametric.smoothers_lowess import lowess
+smooth = lowess(resid, fitted, frac=0.4)
+ax.plot(smooth[:, 0], smooth[:, 1], color="black", lw=1.5, label="LOWESS")
+
+ax.set_xlabel("Fitted values (log relative MAE$_I$)", fontsize=10)
+ax.set_ylabel("Residuals", fontsize=10)
+ax.set_title("(a) Residuals vs Fitted\n(linearity check)", fontsize=10)
+ax.legend(fontsize=9)
+
+# ── (b) Normal Q–Q plot — normality check ─────────────────────────────────
+ax = axes[1]
+(osm, osr), (slope, intercept, r) = scipy_stats.probplot(resid, dist="norm")
+ax.scatter(osm, osr, alpha=0.5, s=20, color="steelblue", edgecolors="none")
+ax.plot(osm, slope * np.array(osm) + intercept, color="red", lw=1.5, ls="--", label="Normal ref.")
+
+# Shapiro–Wilk test (n ≤ 5000)
+sw_stat, sw_p = scipy_stats.shapiro(resid)
+ax.set_xlabel("Theoretical quantiles", fontsize=10)
+ax.set_ylabel("Sample quantiles", fontsize=10)
+ax.set_title(
+    f"(b) Normal Q–Q plot of residuals\n"
+    f"Shapiro–Wilk W = {sw_stat:.4f},  p = {sw_p:.4e}",
+    fontsize=10,
+)
+ax.legend(fontsize=9)
+
+fig.savefig("fig_diagnostics_linearity_normality.png", dpi=300)
+plt.show()
+
+print(f"Shapiro–Wilk: W = {sw_stat:.4f},  p = {sw_p:.4e}")
+print(f"Residual skewness : {scipy_stats.skew(resid):.4f}")
+print(f"Residual kurtosis : {scipy_stats.kurtosis(resid):.4f}  (excess)")
+
+--- 41 code ---
+from scipy import stats as scipy_stats
+import matplotlib.pyplot as plt
+
+raw = master_df["relative_MAE_I"]
+log = master_df["log_relative_MAE_I"]
+
+fig, axes = plt.subplots(1, 2, figsize=(11, 4), constrained_layout=True)
+
+for ax, y, xlabel, title_label, colour in zip(
+    axes,
+    [raw, log],
+    ["Relative MAE$ (%)", "log(Relative MAE$)"],
+    ["(a) Before log transformation", "(b) After log transformation"],
+    ["blue", "green"],
+):
+    skew   = scipy_stats.skew(y)
+    mean   = y.mean()
+    median = y.median()
+
+    ax.hist(y, bins=20, color=colour, edgecolor="white", linewidth=0.6)
+    ax.axvline(mean,   color="red",   lw=1.8, ls="--", label=f"Mean   = {mean:.3f}")
+    ax.axvline(median, color="black", lw=1.8, ls=":",  label=f"Median = {median:.3f}")
+    ax.set_xlabel(xlabel, fontsize=11)
+    ax.set_ylabel("Count", fontsize=11)
+    ax.set_title(f"{title_label}\nskewness = {skew:.3f}", fontsize=10)
+    ax.legend(fontsize=9)
+
+fig.savefig("fig_histogram_distribution_comparison.png", dpi=300)
+plt.show()
+
+for label, y in [("Raw", raw), ("Log", log)]:
+    print(f"{label:4s}  skewness={scipy_stats.skew(y):.4f}  "
+          f"mean={y.mean():.4f}  median={y.median():.4f}  std={y.std():.4f}")
+
+--- 42 code ---
+
+
+# Cluster Adequacy & Independence Diagnostics
+
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+import matplotlib.ticker as mticker
+import seaborn as sns
+from scipy import stats as scipy_stats
+from statsmodels.stats.inter_rater import fleiss_kappa  # not used but keep imports clean
+
+# ── 0. Attach residuals to the dataframe ────────────────────────────────────
+master_df["resid"] = ols_model.resid.values
+
+cluster_col = "condition_id"
+G = master_df[cluster_col].nunique()
+cluster_sizes = master_df.groupby(cluster_col).size()
+
+print("=" * 60)
+print("1. CLUSTER COUNT & SIZE")
+print("=" * 60)
+print(f"   Number of clusters (G)          : {G}")
+print(f"   Observations per cluster (n_g)  : {cluster_sizes.unique().tolist()}")
+print(f"   Total observations (N)          : {len(master_df)}")
+print()
+# Rule-of-thumb thresholds (Cameron & Miller 2015; MacKinnon & Webb 2017)
+if G < 20:
+    verdict = "TOO FEW — cluster-robust SEs may be severely biased; use wild bootstrap"
+elif G < 30:
+    verdict = "BORDERLINE — supplement with wild cluster bootstrap"
+elif G < 50:
+    verdict = "ADEQUATE for most applications"
+else:
+    verdict = "SUFFICIENT"
+print(f"   Rule-of-thumb verdict (G >= 30 preferred): {verdict}")
+print()
+
+# ── 1. Intra-cluster Correlation (ICC) ─────────────────────────────────────
+print("=" * 60)
+print("2. INTRA-CLUSTER CORRELATION (ICC)")
+print("=" * 60)
+# ICC = between-cluster variance / total variance (from one-way ANOVA decomposition)
+grand_mean = master_df["resid"].mean()
+cluster_means = master_df.groupby(cluster_col)["resid"].mean()
+n_per = cluster_sizes.mean()
+
+SS_between = sum(cluster_sizes[g] * (cluster_means[g] - grand_mean) ** 2
+                 for g in cluster_means.index)
+SS_within  = master_df.groupby(cluster_col)["resid"].apply(lambda x: ((x - x.mean()) ** 2).sum()).sum()
+
+MS_between = SS_between / (G - 1)
+MS_within  = SS_within  / (len(master_df) - G)
+
+icc = (MS_between - MS_within) / (MS_between + (n_per - 1) * MS_within)
+print(
+--- 43 code ---
+model_means = (
+    master_df
+    .groupby(["train_strategy", "replicate_id"])["relative_MAE_I"]
+    .mean()
+    .reset_index()
+)
+
+def cohen_d(g1, g2):
+    n1, n2 = len(g1), len(g2)
+    pooled_sd = np.sqrt(((n1-1)*g1.var(ddof=1) + (n2-1)*g2.var(ddof=1)) / (n1+n2-2))
+    return (g1.mean() - g2.mean()) / pooled_sd
+
+lhs  = model_means.loc[model_means["train_strategy"]=="LHS",           "relative_MAE_I"]
+mcmc = model_means.loc[model_means["train_strategy"]=="MCMC",          "relative_MAE_I"]
+rand = model_means.loc[model_means["train_strategy"]=="UNIFORM_RANDOM","relative_MAE_I"]
+
+print(f"LHS  mean = {lhs.mean():.3f}%   (n={len(lhs)})")
+print(f"MCMC mean = {mcmc.mean():.3f}%   (n={len(mcmc)})")
+print(f"Rand mean = {rand.mean():.3f}%   (n={len(rand)})")
+print()
+print(f"LHS  vs MCMC  d = {cohen_d(lhs,  mcmc):.3f}")
+print(f"LHS  vs Rand  d = {cohen_d(lhs,  rand):.3f}")
+print(f"MCMC vs Rand  d = {cohen_d(mcmc, rand):.3f}")
+--- 44 code ---
+import seaborn as sns
+import matplotlib.pyplot as plt
+
+strategy_order  = ["LHS", "MCMC", "UNIFORM_RANDOM"]
+strategy_labels = {"LHS": "LHS", "MCMC": "NTS", "UNIFORM_RANDOM": "Uniform-Random"}
+palette = {strategy_labels[s]: c for s, c in zip(strategy_order, ["tab:blue", "tab:blue", "tab:blue"])}
+
+fig, axes = plt.subplots(1, 3, figsize=(30, 8), constrained_layout=True, sharex=True, sharey=True)
+
+for ax, strategy in zip(axes, strategy_order):
+    vals  = model_means.loc[model_means["train_strategy"] == strategy, "relative_MAE_I"]
+    color = palette[strategy_labels[strategy]]
+
+    sns.histplot(vals, stat="density", color=color, edgecolor="white", ax=ax)
+    ax.axvline(vals.mean(), color="black", lw=3, ls="--", label=f"mean = {vals.mean():.2f}%")
+
+    ax.set_title(strategy_labels[strategy], fontsize=16)
+
+    ax.set_xlabel("Per-replicate mean Relative MAE$_I$ (%)", fontsize=18)
+    ax.legend(fontsize=14)
+
+axes[0].set_ylabel("Density", fontsize=20)
+fig.suptitle("Distribution of Mean Relative MAE$_I$ by Sampling Strategy", fontsize=25)
+
+fig.savefig("fig_mean_relative_mae_by_strategy.png", dpi=900)
+plt.show()
+
+for strategy in strategy_order:
+    vals = model_means.loc[model_means["train_strategy"] == strategy, "relative_MAE_I"]
+    print(f"{strategy:15s} mean={vals.mean():.3f}%  median={vals.median():.3f}%  std={vals.std():.3f}%  n={len(vals)}")
+
+--- 45 code ---
+import matplotlib.pyplot as plt
+
+strategy_order  = ["LHS", "MCMC", "UNIFORM_RANDOM"]
+strategy_labels = {"LHS": "LHS", "MCMC": "NTS", "UNIFORM_RANDOM": "Uniform-Random"}
+palette = {strategy_labels[s]: c for s, c in zip(strategy_order, ["tab:blue", "tab:blue", "tab:blue"])}
+
+variability = (
+    model_means
+    .groupby("train_strategy")["relative_MAE_I"]
+    .agg(mean="mean", std="std", n="count")
+    .reindex(strategy_order)
+)
+variability["cv_pct"] = variability["std"] / variability["mean"] * 100
+
+print("Robustness / consistency across replicates (lower CV = more consistent retrains)")
+print(variability.round(3))
+
+fig, ax = plt.subplots(figsize=(6, 5), constrained_layout=True)
+bars = ax.bar(
+    [strategy_labels[s] for s in strategy_order],
+    variability["cv_pct"],
+    color=[palette[strategy_labels[s]] for s in strategy_order],
+    edgecolor="white",
+)
+for bar, cv in zip(bars, variability["cv_pct"]):
+    ax.text(bar.get_x() + bar.get_width() / 2, bar.get_height(), f"{cv:.1f}%",
+            ha="center", va="bottom", fontsize=12)
+
+ax.set_ylabel("Coefficient of variation", fontsize=12)
+ax.set_title("Consistency of rMAE$_I$ Across Replicates by Sampling Strategy", fontsize=10)
+
+fig.savefig("fig_cv_by_strategy.png", dpi=900)
+plt.show()
+

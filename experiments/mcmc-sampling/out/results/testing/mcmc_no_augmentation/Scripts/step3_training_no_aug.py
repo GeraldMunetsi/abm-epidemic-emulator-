@@ -12,6 +12,7 @@ import json
 from tqdm import tqdm
 import pandas as pd
 from scipy import stats
+from datetime import datetime
 from step0_model import create_hybrid_mlp_model
 from utils import create_dataloaders, compute_metrics, get_device, EarlyStopping
 
@@ -20,7 +21,7 @@ MODEL_DIR = Path("experiments/mcmc-sampling/out/results/testing/mcmc_no_augmenta
 
 n_timepoints=250
 N =100000
-knots=7
+knots=8
 n_replicates=10
 
 
@@ -57,7 +58,7 @@ def compute_balanced_loss(predictions, targets, device, weight_mode='balanced'):
 # TRAIN / VALIDATE ONE EPOCH
 def train_epoch_balanced(model, train_loader, optimizer, device, n_timesteps,
                          weight_mode='modest'):
-    """One training epoch — no graph_stats, no dummy tensors."""
+    """One training epoch"""
     model.train()
 
     total_loss = total_loss_S = total_loss_I = total_loss_R = 0.0
@@ -190,9 +191,7 @@ def train_single_replicate(
         lr=config['lr'],
         weight_decay=config['weight_decay'],
     )
-    scheduler = optim.lr_scheduler.CosineAnnealingLR(
-        optimizer, T_max=config['epochs'], eta_min=1e-6
-    )
+    #scheduler = optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=config['epochs'], eta_min=1e-6)
     early_stopping = EarlyStopping(patience=config['patience'],mode='min')
 
     # History buffers 
@@ -219,7 +218,7 @@ def train_single_replicate(
         val_loss, val_metrics = validate_balanced(
             model, val_loader, device, n_timesteps, weight_mode
         )
-        scheduler.step()
+        #scheduler.step()
 
         # Record history
         history['train_loss'].append(train_loss)
@@ -494,10 +493,38 @@ def plot_replicates_comparison(all_results, all_histories, output_dir):
 
 
 
+def write_training_timing_log(all_results, total_seconds, config, log_path: Path):
+    run_at = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    rep_times = [r['training_time_minutes'] * 60 for r in all_results]
+    lines = [
+        f"Run timestamp          : {run_at}",
+        f"Replicates             : {len(all_results)}",
+        f"Epochs (max)           : {config['epochs']}",
+        f"Batch size             : {config['batch_size']}",
+        f"Total training time    : {total_seconds:.2f} s  ({total_seconds/60:.2f} min)",
+        f"Mean time / replicate  : {np.mean(rep_times):.2f} s  ({np.mean(rep_times)/60:.2f} min)",
+        "",
+        f"  {'Rep':>3}  {'Seed':>6}  {'Best epoch':>10}  {'Time (s)':>10}  {'Time (min)':>10}",
+    ]
+    for r in all_results:
+        t = r['training_time_minutes'] * 60
+        lines.append(
+            f"  {r['replicate_id']:3d}  {r['seed']:6d}  {r['best_epoch']:10d}"
+            f"  {t:10.2f}  {t/60:10.2f}"
+        )
+    lines.append("-" * 60)
+
+    log_path = Path(log_path)
+    log_path.parent.mkdir(parents=True, exist_ok=True)
+    with open(log_path, "a", encoding="utf-8") as f:
+        f.write("\n".join(lines) + "\n\n")
+    print(f"Timing log appended: {log_path}")
+
+
 # ENTRY POINT
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="NNE")
-    parser.add_argument('--input',type=str,default=DATA_DIR /'epidemic_data_age_adaptive_sobol_split.pkl')
+    parser.add_argument('--input',type=str,default=DATA_DIR /'abm-data_split.pkl')
     parser.add_argument('--output_dir',type=str,default=MODEL_DIR)
     parser.add_argument('--n_replicates',type=int,default=n_replicates)
     parser.add_argument('--seeds',type=str,default=None)
@@ -547,6 +574,7 @@ if __name__ == "__main__":
     print(f"Train:{len(dataloaders['train'].dataset)}")
     print(f"Val:{len(dataloaders['val'].dataset)}")
 
+    t0_total = time.time()
     all_results, all_histories = train_multiple_replicates(
         n_replicates=args.n_replicates,
         seeds=seeds,
@@ -555,8 +583,9 @@ if __name__ == "__main__":
         output_dir=args.output_dir,
         weight_mode=args.weight_mode,
     )
+    total_training_seconds = time.time() - t0_total
 
-    #  Summary statistics 
+    #  Summary statistics
   
     print("SUMMARY STATISTICS")
     stats_dict = compute_replicate_statistics(all_results)
@@ -569,6 +598,13 @@ if __name__ == "__main__":
     df.to_csv(Path(args.output_dir)/'replicates_results.csv',index=False)
     print(f"Saved: {Path(args.output_dir)/'replicates_results.csv'}")
     
+    write_training_timing_log(
+        all_results,
+        total_training_seconds,
+        config,
+        Path(args.output_dir) / "training_timing_log.txt",
+    )
+
     print(" TRAINING COMPLETE")
     print(f"\n  Mean R²_I: {stats_dict['best_val_r2']['mean']:.4f}"
           f" ± {stats_dict['best_val_r2']['std']:.4f}")

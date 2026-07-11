@@ -223,7 +223,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(
         description="Split SIR dataset by parameter set"
     )
-    parser.add_argument('--input',type=str,default="epidemic_data_age_adaptive_sobol.pkl",
+    parser.add_argument('--input',type=str,default="abm-data.pkl",
                         help="Filename ")
     parser.add_argument('--output',type=str,default=None,
                         help="Output pickle filename : <input>_split.pkl)")

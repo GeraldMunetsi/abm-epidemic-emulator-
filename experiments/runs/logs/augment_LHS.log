@@ -1,0 +1,47 @@
+============================================================
+SIR DATA AUGMENTATION
+============================================================
+
+  Input   : C:\Users\gmm71\OneDrive - University of Cambridge\Documents\Emulation models\abm-epidemic-emulator\experiments\lhs-sampling\data\split\epidemic_data_age_adaptive_sobol_split.pkl
+  Output  : C:\Users\gmm71\OneDrive - University of Cambridge\Documents\Emulation models\abm-epidemic-emulator\experiments\lhs-sampling\data\augmented\epidemic_data_age_adaptive_sobol_split_augmented.pkl
+  CSV     : C:\Users\gmm71\OneDrive - University of Cambridge\Documents\Emulation models\abm-epidemic-emulator\experiments\lhs-sampling\data\augmented\epidemic_data_age_adaptive_sobol_split_augmented.csv
+  Plots   : C:\Users\gmm71\OneDrive - University of Cambridge\Documents\Emulation models\abm-epidemic-emulator\experiments\lhs-sampling\out\plots\augmentation_plots
+
+  Train simulations (before): 70
+  Train simulations (after) : 210
+
+Saved pickle  experiments\lhs-sampling\data\augmented\epidemic_data_age_adaptive_sobol_split_augmented.pkl
+CSV saved experiments\lhs-sampling\data\augmented\epidemic_data_age_adaptive_sobol_split_augmented.csv  shape=(210, 4)
+
+Columns      : ['tau', 'gamma', 'rho', 'R0']
+Total rows   : 210
+Missing      :
+tau      0
+gamma    0
+rho      0
+R0       0
+dtype: int64
+
+              tau       gamma         rho          R0
+count  210.000000  210.000000  210.000000  210.000000
+mean     0.011611    0.253057    0.005514    3.424210
+std      0.006504    0.144373    0.002698    5.939987
+min      0.000864    0.013851    0.001000    0.062051
+25%      0.006254    0.128362    0.003337    0.831709
+50%      0.011157    0.257275    0.005487    1.602220
+75%      0.016826    0.373667    0.007807    3.011285
+max      0.023441    0.498062    0.010000   40.696562
+
+R₀ > 1.2 :   134  (63.8%)
+0.7 ≤ R₀ ≤ 1.2 :    34  (16.2%)
+R₀ < 0.8 :    52  (24.8%)
+Unique tau values (3dp): 110
+Total simulations: 210
+Unique gamma values (3dp): 138
+Total simulations: 210
+Saved: experiments\lhs-sampling\out\plots\augmentation_plots\tau_gamma_scatter_augmented.png
+
+  Data  → C:\Users\gmm71\OneDrive - University of Cambridge\Documents\Emulation models\abm-epidemic-emulator\experiments\lhs-sampling\data\augmented
+  Plots → C:\Users\gmm71\OneDrive - University of Cambridge\Documents\Emulation models\abm-epidemic-emulator\experiments\lhs-sampling\out\plots\augmentation_plots
+
+Done.

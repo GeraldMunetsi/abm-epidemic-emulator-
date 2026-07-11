@@ -11,16 +11,17 @@ DATA_DIR = Path("experiments/mcmc-sampling/data/split")
 AUGMENTED_DATA_DIR =Path("experiments/mcmc-sampling/data/augmented")
 PLOTS_DIR = Path("experiments/mcmc-sampling/out/plots/augmentation_plots")
 
-INPUT_PKL=DATA_DIR/"epidemic_data_age_adaptive_sobol_split.pkl"
-AUGMENTED_PKL=AUGMENTED_DATA_DIR/"epidemic_data_age_adaptive_sobol_split_augmented.pkl"
-AUGMENTED_CSV=AUGMENTED_DATA_DIR/"epidemic_data_age_adaptive_sobol_split_augmented.csv"
+INPUT_PKL=DATA_DIR/"abm-data_split.pkl"
+AUGMENTED_PKL=AUGMENTED_DATA_DIR/"abm-data_augmented.pkl"
+AUGMENTED_CSV=AUGMENTED_DATA_DIR/"abm-data_split_augmented.csv"
 
-ratio = 34.0 
-PARAM_BOUNDS ={
-    'tau':(0.0005,0.024),
-    'gamma':(0.007,0.5),
+ratio = 58
+PARAM_BOUNDS= {
+  'tau':(0.0003,0.02),
+    'gamma':(0.03,1),
     'rho':(0.001,0.01)
 }
+
 
 param_noise=0.05
 comp_noise=0.001
@@ -163,20 +164,20 @@ if __name__ == "__main__":
     print(f"\n{augmented_data.describe(include='all')}")
 
     total = len(augmented_data)
-    greater = augmented_data[augmented_data['R0'] > 1.2]
-    between = augmented_data[(augmented_data['R0'] >= 0.5) &(augmented_data['R0'] <= 1.5)]
-    less_than = augmented_data[augmented_data['R0'] < 0.8]
+    greater = augmented_data[augmented_data['R0'] > 2]
+    between = augmented_data[(augmented_data['R0'] >= 0.1) &(augmented_data['R0'] <= 2)]
+    less_than = augmented_data[augmented_data['R0'] < 0.1]
 
-    print(f"\nR₀ > 1.2 : {len(greater):5d}  ({len(greater)/total*100:.1f}%)")
-    print(f"0.5 ≤ R₀ ≤ 1.5 : {len(between):5d}  ({len(between)/total*100:.1f}%)")
-    print(f"R₀ < 0.8 : {len(less_than):5d}  ({len(less_than)/total*100:.1f}%)")
+    print(f"\nR0 > 2 : {len(greater):5d}  ({len(greater)/total*100:.1f}%)")
+    print(f"0.1 ≤ R0 ≤ 2 : {len(between):5d}  ({len(between)/total*100:.1f}%)")
+    print(f"R0 < 0.1: {len(less_than):5d}  ({len(less_than)/total*100:.1f}%)")
 
 
     taus = [s['params']['tau'] for s in augmented['train']['simulations']]
     gammas = [s['params']['gamma'] for s in augmented['train']['simulations']]
-    print(f"Unique tau values (3dp): {len(set(round(t,4) for t in taus))}")
+    print(f"Unique tau values to 6dp: {len(set(round(t,6) for t in taus))}")
     print(f"Total simulations: {len(taus)}")
-    print(f"Unique gamma values (3dp): {len(set(round(g,4) for g in gammas))}")
+    print(f"Unique gamma values to 6dp: {len(set(round(g,6) for g in gammas))}")
     print(f"Total simulations: {len(gammas)}")
 
 
@@ -196,19 +197,47 @@ if __name__ == "__main__":
     plt.xlabel('gamma (γ)')
     plt.ylabel('tau (τ)')
     plt.title('Augmented Posterior Samples — τ vs γ\n'
-              '(Points above red line: R₀ > 1)')
+              '(Points above red line: R0 > 1)')
     plt.legend()
     plt.grid(True)
 
-    scatter_path = PLOTS_DIR / "tau_gamma_scatter_augmented.png" 
+    scatter_path = PLOTS_DIR / "tau_gamma_scatter_augmented.png"
     plt.savefig(scatter_path, dpi=200, bbox_inches='tight')
-    plt.show()
+    plt.close()
     print(f"Saved: {scatter_path}")
 
-    print(f"\n  Data  → {AUGMENTED_DATA_DIR.resolve()}")
-    print(f"  Plots → {PLOTS_DIR.resolve()}")
-    print("\nDone.")
-    
+    # Step 7: R₀ distribution plot
+    r0 = augmented_data['R0'].values
+    n_sub  = (r0 < 1).sum()
+    n_sup  = (r0 >= 1).sum()
+
+    fig, ax = plt.subplots(figsize=(10, 6))
+
+    ax.hist(r0, bins=60, color='steelblue', alpha=0.6, edgecolor='white',
+            linewidth=0.4, density=True, label='R₀ distribution (density)')
+
+    ax.axvline(1.0, color='crimson', linewidth=2.0, linestyle='--',
+               label='R₀ = 1  (epidemic threshold)')
+
+    ax.set_xlabel('R₀', fontweight='bold', fontsize=12)
+    ax.set_ylabel('Density', fontweight='bold', fontsize=12)
+    ax.set_title(
+        f'R₀ Distribution: MCMC Augmented Training Set\n'
+        f'Sub-critical (R₀ < 1): {n_sub} ({n_sub/len(r0)*100:.1f}%)   '
+        f'Super-critical (R₀ ≥ 1): {n_sup} ({n_sup/len(r0)*100:.1f}%)',
+        fontsize=12
+    )
+    ax.legend(fontsize=10, framealpha=0.85)
+    ax.grid(True, alpha=0.3)
+
+    r0_dist_path = PLOTS_DIR / "r0_distribution_augmented.png"
+    fig.savefig(r0_dist_path, dpi=200, bbox_inches='tight')
+    plt.close(fig)
+    print(f"Saved: {r0_dist_path}")
+
+    print(f"\n  Data : {AUGMENTED_DATA_DIR.resolve()}")
+    print(f"  Plots : {PLOTS_DIR.resolve()}")
+ 
 
 
 

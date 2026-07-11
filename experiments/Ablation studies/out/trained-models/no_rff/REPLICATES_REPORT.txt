@@ -1,0 +1,51 @@
+----------------------------------------------------------------------
+REPLICATES TRAINING SUMMARY 
+
+Replicates: 10
+Weight mode: modest
+Seeds: [42, 123, 456, 789, 1011, 1213, 1415, 1617, 1819, 2021]
+Output dir: experiments\Ablation studies\out\trained-models\no_rff
+
+  Model files:
+· best_balanced_mlp_model_1.pt(seed=42)
+· best_balanced_mlp_model_2.pt(seed=123)
+· best_balanced_mlp_model_3.pt(seed=456)
+· best_balanced_mlp_model_4.pt(seed=789)
+· best_balanced_mlp_model_5.pt(seed=1011)
+· best_balanced_mlp_model_6.pt(seed=1213)
+· best_balanced_mlp_model_7.pt(seed=1415)
+· best_balanced_mlp_model_8.pt(seed=1617)
+· best_balanced_mlp_model_9.pt(seed=1819)
+· best_balanced_mlp_model_10.pt(seed=2021)
+
+----------------------------------------------------------------------
+VALIDATION PERFORMANCE
+
+MAE_I (Infected Compartment):
+  Mean : 77.87
+  Std  : 10.13
+  95% CI: [70.63, 85.11]
+
+R²:
+Mean:0.7474
+Std:0.0644
+95% CI:[0.7013, 0.7935]
+
+Per-Compartment MAE:
+MAE_S: 1639.22 ± 408.31  (95% CI: [1347.13, 1931.30])
+MAE_I:   77.87 ± 10.13  (95% CI: [70.63, 85.11])
+MAE_R: 1635.43 ± 402.03  (95% CI: [1347.84, 1923.02])
+
+----------------------------------------------------------------------
+INDIVIDUAL REPLICATE RESULTS
+ ID   Seed  Epoch     R²_I    MAE_I    MAE_S    MAE_R Model File                         
+  1     42    100   0.7874    69.42  1585.29  1577.87 best_balanced_mlp_model_1.pt       
+  2    123    100   0.7591    73.23  1339.86  1336.60 best_balanced_mlp_model_2.pt       
+  3    456    100   0.8228    68.09  1257.32  1255.69 best_balanced_mlp_model_3.pt       
+  4    789    100   0.7288    91.96  2462.37  2450.18 best_balanced_mlp_model_4.pt       
+  5   1011    100   0.7609    71.26  1374.37  1374.67 best_balanced_mlp_model_5.pt       
+  6   1213    100   0.5851    98.80  2224.87  2201.68 best_balanced_mlp_model_6.pt       
+  7   1415    100   0.7907    70.81  1272.75  1277.48 best_balanced_mlp_model_7.pt       
+  8   1617    100   0.7193    79.74  1585.07  1585.71 best_balanced_mlp_model_8.pt       
+  9   1819    100   0.7531    77.88  1514.67  1515.95 best_balanced_mlp_model_9.pt       
+ 10   2021    100   0.7672    77.51  1775.62  1778.50 best_balanced_mlp_model_10.pt      

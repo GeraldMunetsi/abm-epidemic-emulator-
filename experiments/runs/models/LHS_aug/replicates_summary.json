@@ -9,7 +9,7 @@
       "best_val_mae_i": 619.1829223632812,
       "best_val_mae_s": 4170.3017578125,
       "best_val_mae_r": 4083.281494140625,
-      "training_time_minutes": 0.44311668078104655,
+      "training_time_minutes": 0.4012465397516886,
       "model_filename": "best_balanced_mlp_model_1.pt",
       "output_dir": "C:\\Users\\gmm71\\OneDrive - University of Cambridge\\Documents\\Emulation models\\abm-epidemic-emulator\\experiments\\runs\\models\\LHS_aug"
     },
@@ -22,7 +22,7 @@
       "best_val_mae_i": 616.3732299804688,
       "best_val_mae_s": 4215.55810546875,
       "best_val_mae_r": 4113.41064453125,
-      "training_time_minutes": 0.44843408664067586,
+      "training_time_minutes": 0.4497682770093282,
       "model_filename": "best_balanced_mlp_model_2.pt",
       "output_dir": "C:\\Users\\gmm71\\OneDrive - University of Cambridge\\Documents\\Emulation models\\abm-epidemic-emulator\\experiments\\runs\\models\\LHS_aug"
     },
@@ -35,7 +35,7 @@
       "best_val_mae_i": 650.3133544921875,
       "best_val_mae_s": 4347.6240234375,
       "best_val_mae_r": 4286.94287109375,
-      "training_time_minutes": 0.45025134881337486,
+      "training_time_minutes": 0.40485627253850304,
       "model_filename": "best_balanced_mlp_model_3.pt",
       "output_dir": "C:\\Users\\gmm71\\OneDrive - University of Cambridge\\Documents\\Emulation models\\abm-epidemic-emulator\\experiments\\runs\\models\\LHS_aug"
     },
@@ -48,7 +48,7 @@
       "best_val_mae_i": 610.7779541015625,
       "best_val_mae_s": 4216.78662109375,
       "best_val_mae_r": 4131.8828125,
-      "training_time_minutes": 0.4297482967376709,
+      "training_time_minutes": 0.3896098852157593,
       "model_filename": "best_balanced_mlp_model_4.pt",
       "output_dir": "C:\\Users\\gmm71\\OneDrive - University of Cambridge\\Documents\\Emulation models\\abm-epidemic-emulator\\experiments\\runs\\models\\LHS_aug"
     },
@@ -61,7 +61,7 @@
       "best_val_mae_i": 649.1776123046875,
       "best_val_mae_s": 4306.82861328125,
       "best_val_mae_r": 4215.9814453125,
-      "training_time_minutes": 0.4305061936378479,
+      "training_time_minutes": 0.3468465884526571,
       "model_filename": "best_balanced_mlp_model_5.pt",
       "output_dir": "C:\\Users\\gmm71\\OneDrive - University of Cambridge\\Documents\\Emulation models\\abm-epidemic-emulator\\experiments\\runs\\models\\LHS_aug"
     },
@@ -74,7 +74,7 @@
       "best_val_mae_i": 666.9758911132812,
       "best_val_mae_s": 4557.2919921875,
       "best_val_mae_r": 4468.70263671875,
-      "training_time_minutes": 0.4377827604611715,
+      "training_time_minutes": 0.360870885848999,
       "model_filename": "best_balanced_mlp_model_6.pt",
       "output_dir": "C:\\Users\\gmm71\\OneDrive - University of Cambridge\\Documents\\Emulation models\\abm-epidemic-emulator\\experiments\\runs\\models\\LHS_aug"
     },
@@ -87,7 +87,7 @@
       "best_val_mae_i": 654.832763671875,
       "best_val_mae_s": 4579.20654296875,
       "best_val_mae_r": 4506.2451171875,
-      "training_time_minutes": 0.5082722067832947,
+      "training_time_minutes": 0.40330344438552856,
       "model_filename": "best_balanced_mlp_model_7.pt",
       "output_dir": "C:\\Users\\gmm71\\OneDrive - University of Cambridge\\Documents\\Emulation models\\abm-epidemic-emulator\\experiments\\runs\\models\\LHS_aug"
     },
@@ -100,7 +100,7 @@
       "best_val_mae_i": 660.1365966796875,
       "best_val_mae_s": 4422.466796875,
       "best_val_mae_r": 4375.416015625,
-      "training_time_minutes": 0.42847855885823566,
+      "training_time_minutes": 0.41407819588979083,
       "model_filename": "best_balanced_mlp_model_8.pt",
       "output_dir": "C:\\Users\\gmm71\\OneDrive - University of Cambridge\\Documents\\Emulation models\\abm-epidemic-emulator\\experiments\\runs\\models\\LHS_aug"
     },
@@ -113,7 +113,7 @@
       "best_val_mae_i": 627.1632080078125,
       "best_val_mae_s": 4105.2939453125,
       "best_val_mae_r": 4031.3134765625,
-      "training_time_minutes": 0.43371806542078656,
+      "training_time_minutes": 0.5186996301015218,
       "model_filename": "best_balanced_mlp_model_9.pt",
       "output_dir": "C:\\Users\\gmm71\\OneDrive - University of Cambridge\\Documents\\Emulation models\\abm-epidemic-emulator\\experiments\\runs\\models\\LHS_aug"
     },
@@ -126,7 +126,7 @@
       "best_val_mae_i": 601.7965698242188,
       "best_val_mae_s": 4246.92626953125,
       "best_val_mae_r": 4132.9111328125,
-      "training_time_minutes": 0.4249956210454305,
+      "training_time_minutes": 0.4707322319348653,
       "model_filename": "best_balanced_mlp_model_10.pt",
       "output_dir": "C:\\Users\\gmm71\\OneDrive - University of Cambridge\\Documents\\Emulation models\\abm-epidemic-emulator\\experiments\\runs\\models\\LHS_aug"
     }
@@ -254,27 +254,27 @@
     },
     "training_time_minutes": {
       "values": [
-        0.44311668078104655,
-        0.44843408664067586,
-        0.45025134881337486,
-        0.4297482967376709,
-        0.4305061936378479,
-        0.4377827604611715,
-        0.5082722067832947,
-        0.42847855885823566,
-        0.43371806542078656,
-        0.4249956210454305
+        0.4012465397516886,
+        0.4497682770093282,
+        0.40485627253850304,
+        0.3896098852157593,
+        0.3468465884526571,
+        0.360870885848999,
+        0.40330344438552856,
+        0.41407819588979083,
+        0.5186996301015218,
+        0.4707322319348653
       ],
       "n": 10,
-      "mean": 0.4435303819179535,
-      "std": 0.02431250146938148,
-      "sem": 0.007688288025943594,
-      "ci_lower": 0.42613826608997984,
-      "ci_upper": 0.4609224977459272,
-      "min": 0.4249956210454305,
-      "max": 0.5082722067832947,
-      "median": 0.43575041294097905,
-      "cv": 5.481586484390809
+      "mean": 0.41600119511286415,
+      "std": 0.051324374298331144,
+      "sem": 0.01623019222657327,
+      "ci_lower": 0.3792859495130225,
+      "ci_upper": 0.4527164407127058,
+      "min": 0.3468465884526571,
+      "max": 0.5186996301015218,
+      "median": 0.4040798584620158,
+      "cv": 12.337554531401398
     }
   },
   "config": {

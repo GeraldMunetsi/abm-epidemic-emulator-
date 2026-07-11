@@ -6,7 +6,7 @@ from scipy.interpolate import BSpline
 
 timepoints=250
 N=100000
-knots=7
+knots=8
 
 class StandardRFF(nn.Module):
     def __init__(self, n_params=3, n_fourier=64, sigma=1.0):
@@ -17,7 +17,7 @@ class StandardRFF(nn.Module):
         self.output_dim = 2 * n_fourier
 
     def forward(self, x):
-        z   = x @ self.W.T
+        z  = x @ self.W.T
         phi = self.scale * torch.cat([torch.cos(z), torch.sin(z)], dim=1)
         return phi  
       

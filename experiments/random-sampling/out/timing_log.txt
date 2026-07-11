@@ -1,0 +1,60 @@
+Run timestamp          : 2026-06-20 16:39:12
+Data generation time   : 2.07 s
+Simulation time (total): 1571.82 s
+Total time             : 1573.89 s
+Simulations run        : 4000
+Time / simulation mean : 0.3923 s
+Time / simulation min  : 0.0014 s
+Time / simulation max  : 10.9763 s
+---------------------------------------------
+
+Run timestamp          : 2026-06-22 21:56:26
+Data generation time   : 2.02 s
+Simulation time (total): 4754.99 s
+Total time             : 4757.01 s
+Simulations run        : 4000
+Time / simulation mean : 1.1872 s
+Time / simulation min  : 0.0016 s
+Time / simulation max  : 4.8621 s
+---------------------------------------------
+
+Run timestamp          : 2026-06-24 15:55:46
+Data generation time   : 1.74 s
+Simulation time (total): 13752.83 s
+Total time             : 13754.58 s
+Simulations run        : 4000
+Time / simulation mean : 3.4357 s
+Time / simulation min  : 0.0021 s
+Time / simulation max  : 578.2869 s
+---------------------------------------------
+
+Run timestamp          : 2026-06-25 07:48:02
+Data generation time   : 1.72 s
+Simulation time (total): 6383.46 s
+Total time             : 6385.18 s
+Simulations run        : 4000
+Time / simulation mean : 1.5940 s
+Time / simulation min  : 0.0015 s
+Time / simulation max  : 4.2110 s
+---------------------------------------------
+
+Run timestamp          : 2026-06-25 11:14:50
+Data generation time   : 1.75 s
+Simulation time (total): 1071.14 s
+Total time             : 1072.88 s
+Simulations run        : 4000
+Time / simulation mean : 0.2673 s
+Time / simulation min  : 0.0005 s
+Time / simulation max  : 3.0243 s
+---------------------------------------------
+
+Run timestamp          : 2026-07-08 19:12:32
+Data generation time   : 3.21 s
+Simulation time (total): 2448.78 s
+Total time             : 2451.99 s
+Simulations run        : 4000
+Time / simulation mean : 0.6111 s
+Time / simulation min  : 0.0006 s
+Time / simulation max  : 8.4678 s
+---------------------------------------------
+

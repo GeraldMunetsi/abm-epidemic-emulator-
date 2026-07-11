@@ -9,7 +9,7 @@
       "best_val_mae_i": 157.30271911621094,
       "best_val_mae_s": 1943.405029296875,
       "best_val_mae_r": 1952.3507080078125,
-      "training_time_minutes": 8.51715491215388,
+      "training_time_minutes": 8.082981952031453,
       "model_filename": "best_balanced_mlp_model_1.pt",
       "output_dir": "C:\\Users\\gmm71\\OneDrive - University of Cambridge\\Documents\\Emulation models\\abm-epidemic-emulator\\experiments\\runs\\models\\MCMC_aug"
     },
@@ -22,7 +22,7 @@
       "best_val_mae_i": 156.77561950683594,
       "best_val_mae_s": 2025.922607421875,
       "best_val_mae_r": 2023.6190185546875,
-      "training_time_minutes": 8.531683190663655,
+      "training_time_minutes": 8.247276910146077,
       "model_filename": "best_balanced_mlp_model_2.pt",
       "output_dir": "C:\\Users\\gmm71\\OneDrive - University of Cambridge\\Documents\\Emulation models\\abm-epidemic-emulator\\experiments\\runs\\models\\MCMC_aug"
     },
@@ -35,7 +35,7 @@
       "best_val_mae_i": 163.5904998779297,
       "best_val_mae_s": 2283.063232421875,
       "best_val_mae_r": 2303.08984375,
-      "training_time_minutes": 8.563627680142721,
+      "training_time_minutes": 8.28006876707077,
       "model_filename": "best_balanced_mlp_model_3.pt",
       "output_dir": "C:\\Users\\gmm71\\OneDrive - University of Cambridge\\Documents\\Emulation models\\abm-epidemic-emulator\\experiments\\runs\\models\\MCMC_aug"
     },
@@ -48,7 +48,7 @@
       "best_val_mae_i": 160.27474975585938,
       "best_val_mae_s": 2102.623046875,
       "best_val_mae_r": 2105.786865234375,
-      "training_time_minutes": 8.281282456715902,
+      "training_time_minutes": 8.165566213925679,
       "model_filename": "best_balanced_mlp_model_4.pt",
       "output_dir": "C:\\Users\\gmm71\\OneDrive - University of Cambridge\\Documents\\Emulation models\\abm-epidemic-emulator\\experiments\\runs\\models\\MCMC_aug"
     },
@@ -61,7 +61,7 @@
       "best_val_mae_i": 178.75717163085938,
       "best_val_mae_s": 2424.40576171875,
       "best_val_mae_r": 2438.919677734375,
-      "training_time_minutes": 8.309025851885478,
+      "training_time_minutes": 8.317614881197612,
       "model_filename": "best_balanced_mlp_model_5.pt",
       "output_dir": "C:\\Users\\gmm71\\OneDrive - University of Cambridge\\Documents\\Emulation models\\abm-epidemic-emulator\\experiments\\runs\\models\\MCMC_aug"
     },
@@ -74,7 +74,7 @@
       "best_val_mae_i": 166.23291015625,
       "best_val_mae_s": 2266.0244140625,
       "best_val_mae_r": 2263.846435546875,
-      "training_time_minutes": 8.405907706419628,
+      "training_time_minutes": 7.83650244474411,
       "model_filename": "best_balanced_mlp_model_6.pt",
       "output_dir": "C:\\Users\\gmm71\\OneDrive - University of Cambridge\\Documents\\Emulation models\\abm-epidemic-emulator\\experiments\\runs\\models\\MCMC_aug"
     },
@@ -87,7 +87,7 @@
       "best_val_mae_i": 163.81072998046875,
       "best_val_mae_s": 2141.060791015625,
       "best_val_mae_r": 2144.991943359375,
-      "training_time_minutes": 8.460291699568431,
+      "training_time_minutes": 8.12810885111491,
       "model_filename": "best_balanced_mlp_model_7.pt",
       "output_dir": "C:\\Users\\gmm71\\OneDrive - University of Cambridge\\Documents\\Emulation models\\abm-epidemic-emulator\\experiments\\runs\\models\\MCMC_aug"
     },
@@ -100,7 +100,7 @@
       "best_val_mae_i": 157.69491577148438,
       "best_val_mae_s": 2071.41748046875,
       "best_val_mae_r": 2079.513916015625,
-      "training_time_minutes": 8.496599654356638,
+      "training_time_minutes": 8.524544775485992,
       "model_filename": "best_balanced_mlp_model_8.pt",
       "output_dir": "C:\\Users\\gmm71\\OneDrive - University of Cambridge\\Documents\\Emulation models\\abm-epidemic-emulator\\experiments\\runs\\models\\MCMC_aug"
     },
@@ -113,7 +113,7 @@
       "best_val_mae_i": 169.43795776367188,
       "best_val_mae_s": 2192.136474609375,
       "best_val_mae_r": 2201.466552734375,
-      "training_time_minutes": 8.545110046863556,
+      "training_time_minutes": 8.684521945317586,
       "model_filename": "best_balanced_mlp_model_9.pt",
       "output_dir": "C:\\Users\\gmm71\\OneDrive - University of Cambridge\\Documents\\Emulation models\\abm-epidemic-emulator\\experiments\\runs\\models\\MCMC_aug"
     },
@@ -126,7 +126,7 @@
       "best_val_mae_i": 165.42657470703125,
       "best_val_mae_s": 2277.734619140625,
       "best_val_mae_r": 2278.4501953125,
-      "training_time_minutes": 8.562964459260305,
+      "training_time_minutes": 8.53089386622111,
       "model_filename": "best_balanced_mlp_model_10.pt",
       "output_dir": "C:\\Users\\gmm71\\OneDrive - University of Cambridge\\Documents\\Emulation models\\abm-epidemic-emulator\\experiments\\runs\\models\\MCMC_aug"
     }
@@ -254,27 +254,27 @@
     },
     "training_time_minutes": {
       "values": [
-        8.51715491215388,
-        8.531683190663655,
-        8.563627680142721,
-        8.281282456715902,
-        8.309025851885478,
-        8.405907706419628,
-        8.460291699568431,
-        8.496599654356638,
-        8.545110046863556,
-        8.562964459260305
+        8.082981952031453,
+        8.247276910146077,
+        8.28006876707077,
+        8.165566213925679,
+        8.317614881197612,
+        7.83650244474411,
+        8.12810885111491,
+        8.524544775485992,
+        8.684521945317586,
+        8.53089386622111
       ],
       "n": 10,
-      "mean": 8.467364765803019,
-      "std": 0.10298091073495678,
-      "sem": 0.032565423344094784,
-      "ci_lower": 8.3936966601238,
-      "ci_upper": 8.541032871482239,
-      "min": 8.281282456715902,
-      "max": 8.563627680142721,
-      "median": 8.506877283255259,
-      "cv": 1.2162096895939074
+      "mean": 8.279808060725529,
+      "std": 0.24956526757894998,
+      "sem": 0.07891946704188574,
+      "ci_lower": 8.101279823068099,
+      "ci_upper": 8.458336298382958,
+      "min": 7.83650244474411,
+      "max": 8.684521945317586,
+      "median": 8.263672838608423,
+      "cv": 3.0141431510077967
     }
   },
   "config": {

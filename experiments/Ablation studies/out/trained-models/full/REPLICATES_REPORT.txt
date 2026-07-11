@@ -1,0 +1,37 @@
+----------------------------------------------------------------------
+REPLICATES TRAINING SUMMARY 
+
+Replicates: 3
+Weight mode: modest
+Seeds: [42, 123, 456]
+Output dir: experiments\Ablation studies\out\trained-models\full
+
+  Model files:
+· best_balanced_mlp_model_1.pt(seed=42)
+· best_balanced_mlp_model_2.pt(seed=123)
+· best_balanced_mlp_model_3.pt(seed=456)
+
+----------------------------------------------------------------------
+VALIDATION PERFORMANCE
+
+MAE_I (Infected Compartment):
+  Mean : 57.03
+  Std  : 4.09
+  95% CI: [46.87, 67.20]
+
+R²:
+Mean:0.8626
+Std:0.0253
+95% CI:[0.7997, 0.9255]
+
+Per-Compartment MAE:
+MAE_S: 1129.68 ± 128.71  (95% CI: [809.96, 1449.41])
+MAE_I:   57.03 ±  4.09  (95% CI: [46.87, 67.20])
+MAE_R: 1137.29 ± 127.33  (95% CI: [820.97, 1453.60])
+
+----------------------------------------------------------------------
+INDIVIDUAL REPLICATE RESULTS
+ ID   Seed  Epoch     R²_I    MAE_I    MAE_S    MAE_R Model File                         
+  1     42     85   0.8890    52.72  1069.05  1076.85 best_balanced_mlp_model_1.pt       
+  2    123     92   0.8603    57.52  1277.51  1283.59 best_balanced_mlp_model_2.pt       
+  3    456     92   0.8385    60.86  1042.49  1051.43 best_balanced_mlp_model_3.pt       

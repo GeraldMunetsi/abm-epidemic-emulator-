@@ -1,0 +1,14 @@
+
+
+Run timestamp       : 2026-06-25 10:54:43
+Data generation time: 4.89 s
+Simulation time     : 1100.57 s
+Total time          : 1105.46 s
+----------------------------------------
+
+Run timestamp       : 2026-07-08 18:28:55
+Data generation time: 7.01 s
+Simulation time     : 2574.82 s
+Total time          : 2581.84 s
+----------------------------------------
+

@@ -1,55 +1,12 @@
-----------------------------------------------------------------------
+══════════════════════════════════════════════════════════════════════
 FINAL TEST RESULTS
-
-  Replicates : 10
-  Test samples : 600
-  Mean peak I  : 12,054.6 counts (ground truth)
-
-----------------------------------------------------------------------
-OVERALL PERFORMANCE
-
-  R²: 0.9516 ± 0.0088
-  95%CI: [0.9456, 0.9576]
-
-  MAE: 3861.90 ± 308.30
-  RMSE: 7986.43 ± 731.57
-
-----------------------------------------------------------------------
-PER-COMPARTMENT MAE (absolute counts)
-
-  MAE_S : 5563.59 ± 486.44
-  MAE_I : 1195.50 ± 21.20 : key metric
-  95% CI: [1181.11, 1209.88]
-  CV   : 1.7%
-  MAE_R : 4826.61 ± 429.88
-
-----------------------------------------------------------------------
-RELATIVE MAE_I  (per-sample MAE_I / peak_I, then averaged)
-
-  Mean peak I  : 12,054.6  (ground truth, test set)
-  Relative MAE : 6.72% ± 0.21%
-  95%CI        : [6.57%, 6.86%]
-  Interpretation : for the average epidemic in the test set,
-  the emulator's I(t) prediction is 6.7% away from
-  the true peak — regardless of epidemic size.
-
-----------------------------------------------------------------------
-PERFORMANCE ASSESSMENT
-
-  Level: EXCELLENT  (based on relative MAE_I = 6.7%)
-  Consistency : EXCELLENT (CV < 5%)
-
-----------------------------------------------------------------------
-REPORT
-
-"The SIR NNE achieved a test set MAE_I of 1195 counts (1181-1210,
-95% CI, n=10 replicates), corresponding to 6.7% of the mean ground-truth peak infected count
-(12,055 individuals)
-The R² of the Susceptibles, Infectious and Recovered is 0.902, 0.401, 0.926 respectively
-There confidence intervals are [0.889 0.916],[0.388 0.413] and [0.915 0.938] respectively.
-0.0088. Replicate consistency was excellent (cv < 5%),
-with coefficient of variation 1.7%
-across random initialisations. The relative MAE_I of 6.7%
-(95% CI [6.6%, 6.9%]) provides a scale-invariant
-measure of accuracy that is directly comparable across epidemic regimes
-with different outbreak sizes."
+  Train: MCMC  →  Test: LHS  aug=0
+  k=10 replicates  |  mean peak I=4,015.4
+──────────────────────────────────────────────────────────────────────
+  R²_I      : 0.6474 ± 0.0209  95%CI [0.6325, 0.6623]
+  MAE_I     : 253.34 ± 5.93
+  Rel-MAE_I : 4.59% ± 0.15%  95%CI [4.49%, 4.70%]
+  95%CI [4.49%, 4.70%]  CV=3.19%
+──────────────────────────────────────────────────────────────────────
+  Performance: EXCEPTIONAL
+══════════════════════════════════════════════════════════════════════

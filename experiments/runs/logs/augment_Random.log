@@ -1,0 +1,41 @@
+------------------------------------------------------------
+Data augmentation
+
+  Input : C:\Users\gmm71\OneDrive - University of Cambridge\Documents\Emulation models\abm-epidemic-emulator\experiments\random-sampling\data\split\epidemic_data_age_adaptive_sobol_split.pkl
+  Output: C:\Users\gmm71\OneDrive - University of Cambridge\Documents\Emulation models\abm-epidemic-emulator\experiments\random-sampling\data\augmented\epidemic_data_age_adaptive_sobol_split_augmented.pkl
+  CSV : C:\Users\gmm71\OneDrive - University of Cambridge\Documents\Emulation models\abm-epidemic-emulator\experiments\random-sampling\data\augmented\epidemic_data_age_adaptive_sobol_split_augmented.csv
+  Plots: C:\Users\gmm71\OneDrive - University of Cambridge\Documents\Emulation models\abm-epidemic-emulator\experiments\random-sampling\out\plots\augmentation_plots
+
+  Train simulations (before): 70
+Train simulations (after: 210
+
+Saved pickle  experiments\random-sampling\data\augmented\epidemic_data_age_adaptive_sobol_split_augmented.pkl
+CSV saved experiments\random-sampling\data\augmented\epidemic_data_age_adaptive_sobol_split_augmented.csv  shape=(210, 4)
+
+Columns : ['tau', 'gamma', 'rho', 'R0']
+Total rows : 210
+Missing:
+tau      0
+gamma    0
+rho      0
+R0       0
+dtype: int64
+
+              tau       gamma         rho          R0
+count  210.000000  210.000000  210.000000  210.000000
+mean     0.011916    0.261881    0.005218    2.971508
+std      0.006188    0.143977    0.002875    4.290483
+min      0.000673    0.025444    0.001125    0.050985
+25%      0.007399    0.139268    0.002184    0.857852
+50%      0.011313    0.248316    0.005420    1.480761
+75%      0.016939    0.390445    0.007997    3.123541
+max      0.023673    0.500000    0.010000   24.690475
+
+R₀ > 1.2 :   128  (61.0%)
+0.5 ≤ R₀ ≤ 1.5 :    76  (36.2%)
+R₀ < 0.8 :    48  (22.9%)
+Unique tau values (3dp): 105
+Total simulations: 210
+Unique gamma values (3dp): 139
+Total simulations: 210
+Saved: experiments\random-sampling\out\plots\augmentation_plots\tau_gamma_scatter_augmented.png

@@ -1,0 +1,12 @@
+==================================================
+MCMC Sampling — Timing Report
+Run date : 2026-07-10 09:53:42
+==================================================
+
+Samples generated : 4000
+Replicates        : 1
+Network size (N)  : 100000
+
+Data generation time (uniform MCMC) : 266.76 s  (4.45 min)
+Simulation time                     : 946.59 s  (15.78 min)
+Total time                          : 1213.35 s  (20.22 min)

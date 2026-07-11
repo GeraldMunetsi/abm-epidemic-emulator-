@@ -217,30 +217,24 @@ if __name__ == "__main__":
         description="Random split by PARAMETER SET (replicates grouped)"
     )
 
-    parser.add_argument('--input',
-                        type=str,
-                        default="epidemic_data_age_adaptive_sobol.pkl")
-    parser.add_argument('--output',      type=str,   default=None)
-    parser.add_argument('--output_csv',  type=str,   default=None)
-    parser.add_argument('--train_ratio', type=float, default=0.70)
-    parser.add_argument('--val_ratio',   type=float, default=0.15)
-    parser.add_argument('--test_ratio',  type=float, default=0.15)
-    parser.add_argument('--seed',        type=int,   default=42)
-
+    parser.add_argument('--input',type=str,default="abm-data.pkl")
+    parser.add_argument('--output',type=str,default=None)
+    parser.add_argument('--output_csv', type=str,default=None)
+    parser.add_argument('--train_ratio',type=float,default=0.70)
+    parser.add_argument('--val_ratio',type=float, default=0.15)
+    parser.add_argument('--test_ratio',type=float,default=0.15)
+    parser.add_argument('--seed',type=int,default=42)
     args, unknown = parser.parse_known_args()
 
-    print("=" * 65)
-    print("STEP 2: RANDOM PARAMETER SPLIT (LEAKAGE-FREE)")
-    print("=" * 65)
 
-    # ── Input: read from raw/ ──────────────────────────────────
+    # Input
     input_path = RAW_DATA_DIR / args.input
-    print(f"\nLoading → {input_path.resolve()}")
+    print(f"\nLoading : {input_path.resolve()}")
 
     with open(input_path, 'rb') as f:
         dataset = pickle.load(f)
 
-    # ── Run split ─────────────────────────────────────────────
+    # Run split 
     split_data = split_dataset(
         dataset,
         train_ratio=args.train_ratio,
@@ -264,4 +258,3 @@ if __name__ == "__main__":
 
     export_training_csv(split_data, csv_path)
 
-    print("\nDone.")

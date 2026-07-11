@@ -9,7 +9,7 @@
       "best_val_mae_i": 1120.3468017578125,
       "best_val_mae_s": 6334.62646484375,
       "best_val_mae_r": 6407.2705078125,
-      "training_time_minutes": 0.13314143419265748,
+      "training_time_minutes": 0.13626118103663126,
       "model_filename": "best_balanced_mlp_model_1.pt",
       "output_dir": "C:\\Users\\gmm71\\OneDrive - University of Cambridge\\Documents\\Emulation models\\abm-epidemic-emulator\\experiments\\runs\\models\\Random_noaug"
     },
@@ -22,7 +22,7 @@
       "best_val_mae_i": 1129.040771484375,
       "best_val_mae_s": 6591.5517578125,
       "best_val_mae_r": 6689.75927734375,
-      "training_time_minutes": 0.14470419486363728,
+      "training_time_minutes": 0.1357176105181376,
       "model_filename": "best_balanced_mlp_model_2.pt",
       "output_dir": "C:\\Users\\gmm71\\OneDrive - University of Cambridge\\Documents\\Emulation models\\abm-epidemic-emulator\\experiments\\runs\\models\\Random_noaug"
     },
@@ -35,7 +35,7 @@
       "best_val_mae_i": 1175.715576171875,
       "best_val_mae_s": 7138.57470703125,
       "best_val_mae_r": 7306.60205078125,
-      "training_time_minutes": 0.14881362120310465,
+      "training_time_minutes": 0.13348593711853027,
       "model_filename": "best_balanced_mlp_model_3.pt",
       "output_dir": "C:\\Users\\gmm71\\OneDrive - University of Cambridge\\Documents\\Emulation models\\abm-epidemic-emulator\\experiments\\runs\\models\\Random_noaug"
     },
@@ -48,7 +48,7 @@
       "best_val_mae_i": 1083.3626708984375,
       "best_val_mae_s": 7593.53173828125,
       "best_val_mae_r": 7687.521484375,
-      "training_time_minutes": 0.16979829867680868,
+      "training_time_minutes": 0.13690232038497924,
       "model_filename": "best_balanced_mlp_model_4.pt",
       "output_dir": "C:\\Users\\gmm71\\OneDrive - University of Cambridge\\Documents\\Emulation models\\abm-epidemic-emulator\\experiments\\runs\\models\\Random_noaug"
     },
@@ -61,7 +61,7 @@
       "best_val_mae_i": 1086.8453369140625,
       "best_val_mae_s": 6129.37158203125,
       "best_val_mae_r": 6219.99560546875,
-      "training_time_minutes": 0.16402491331100463,
+      "training_time_minutes": 0.13673615455627441,
       "model_filename": "best_balanced_mlp_model_5.pt",
       "output_dir": "C:\\Users\\gmm71\\OneDrive - University of Cambridge\\Documents\\Emulation models\\abm-epidemic-emulator\\experiments\\runs\\models\\Random_noaug"
     },
@@ -74,7 +74,7 @@
       "best_val_mae_i": 1131.235107421875,
       "best_val_mae_s": 6522.30712890625,
       "best_val_mae_r": 6578.43310546875,
-      "training_time_minutes": 0.15179869731267293,
+      "training_time_minutes": 0.13725067377090455,
       "model_filename": "best_balanced_mlp_model_6.pt",
       "output_dir": "C:\\Users\\gmm71\\OneDrive - University of Cambridge\\Documents\\Emulation models\\abm-epidemic-emulator\\experiments\\runs\\models\\Random_noaug"
     },
@@ -87,7 +87,7 @@
       "best_val_mae_i": 1122.0517578125,
       "best_val_mae_s": 6486.6220703125,
       "best_val_mae_r": 6573.6630859375,
-      "training_time_minutes": 0.20192883809407552,
+      "training_time_minutes": 0.14035227696100872,
       "model_filename": "best_balanced_mlp_model_7.pt",
       "output_dir": "C:\\Users\\gmm71\\OneDrive - University of Cambridge\\Documents\\Emulation models\\abm-epidemic-emulator\\experiments\\runs\\models\\Random_noaug"
     },
@@ -100,7 +100,7 @@
       "best_val_mae_i": 1077.001220703125,
       "best_val_mae_s": 6975.3955078125,
       "best_val_mae_r": 7067.31298828125,
-      "training_time_minutes": 0.13863782882690429,
+      "training_time_minutes": 0.14749390681584676,
       "model_filename": "best_balanced_mlp_model_8.pt",
       "output_dir": "C:\\Users\\gmm71\\OneDrive - University of Cambridge\\Documents\\Emulation models\\abm-epidemic-emulator\\experiments\\runs\\models\\Random_noaug"
     },
@@ -113,7 +113,7 @@
       "best_val_mae_i": 1150.8663330078125,
       "best_val_mae_s": 6438.3125,
       "best_val_mae_r": 6573.00927734375,
-      "training_time_minutes": 0.1379690686861674,
+      "training_time_minutes": 0.15002248684565225,
       "model_filename": "best_balanced_mlp_model_9.pt",
       "output_dir": "C:\\Users\\gmm71\\OneDrive - University of Cambridge\\Documents\\Emulation models\\abm-epidemic-emulator\\experiments\\runs\\models\\Random_noaug"
     },
@@ -126,7 +126,7 @@
       "best_val_mae_i": 1149.658447265625,
       "best_val_mae_s": 6744.40673828125,
       "best_val_mae_r": 6803.87841796875,
-      "training_time_minutes": 0.13801857630411785,
+      "training_time_minutes": 0.15236143271128336,
       "model_filename": "best_balanced_mlp_model_10.pt",
       "output_dir": "C:\\Users\\gmm71\\OneDrive - University of Cambridge\\Documents\\Emulation models\\abm-epidemic-emulator\\experiments\\runs\\models\\Random_noaug"
     }
@@ -254,27 +254,27 @@
     },
     "training_time_minutes": {
       "values": [
-        0.13314143419265748,
-        0.14470419486363728,
-        0.14881362120310465,
-        0.16979829867680868,
-        0.16402491331100463,
-        0.15179869731267293,
-        0.20192883809407552,
-        0.13863782882690429,
-        0.1379690686861674,
-        0.13801857630411785
+        0.13626118103663126,
+        0.1357176105181376,
+        0.13348593711853027,
+        0.13690232038497924,
+        0.13673615455627441,
+        0.13725067377090455,
+        0.14035227696100872,
+        0.14749390681584676,
+        0.15002248684565225,
+        0.15236143271128336
       ],
       "n": 10,
-      "mean": 0.1528835471471151,
-      "std": 0.02091363979108682,
-      "sem": 0.006613473590416233,
-      "ci_lower": 0.1379228304932086,
-      "ci_upper": 0.1678442638010216,
-      "min": 0.13314143419265748,
-      "max": 0.20192883809407552,
-      "median": 0.14675890803337097,
-      "cv": 13.679457457225446
+      "mean": 0.14065839807192487,
+      "std": 0.006731029823704179,
+      "sem": 0.002128538524142683,
+      "ci_lower": 0.1358433094031246,
+      "ci_upper": 0.14547348674072513,
+      "min": 0.13348593711853027,
+      "max": 0.15236143271128336,
+      "median": 0.1370764970779419,
+      "cv": 4.7853735830706
     }
   },
   "config": {

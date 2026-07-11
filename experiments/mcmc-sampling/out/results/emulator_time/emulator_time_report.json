@@ -1,0 +1,61 @@
+{
+  "device": "cpu",
+  "model_path": "c:\\Users\\gmm71\\OneDrive - University of Cambridge\\Documents\\Emulation models\\abm-epidemic-emulator\\experiments\\mcmc-sampling\\out\\trained-models\\best_balanced_mlp_model_1.pt",
+  "n_reps_per_batch_size": 1000,
+  "n_warmup": 50,
+  "abm_time_per_sim_s": 0.015,
+  "training_time_mean_s": 186.06532657146454,
+  "break_even_n_queries": 12787.672142627513,
+  "timings": [
+    {
+      "batch_size": 1,
+      "mean_batch_time_s": 0.0004496327012311667,
+      "std_s": 0.0004090469898305204,
+      "sem_s": 1.2935201579001769e-05,
+      "ci95_lower_s": 0.0004242494188645727,
+      "ci95_upper_s": 0.0004750159835977607,
+      "mean_per_query_time_s": 0.0004496327012311667,
+      "throughput_queries_per_s": 2224.037524988372
+    },
+    {
+      "batch_size": 35,
+      "mean_batch_time_s": 0.0008258175011724234,
+      "std_s": 0.00034086608314148057,
+      "sem_s": 1.0779131998274015e-05,
+      "ci95_lower_s": 0.0008046651635371801,
+      "ci95_upper_s": 0.0008469698388076667,
+      "mean_per_query_time_s": 2.3594785747783524e-05,
+      "throughput_queries_per_s": 42382.245411740565
+    },
+    {
+      "batch_size": 64,
+      "mean_batch_time_s": 0.0004998747992794961,
+      "std_s": 0.00029714160182800703,
+      "sem_s": 9.396442493673543e-06,
+      "ci95_lower_s": 0.0004814357705870043,
+      "ci95_upper_s": 0.0005183138279719878,
+      "mean_per_query_time_s": 7.810543738742126e-06,
+      "throughput_queries_per_s": 128032.059412172
+    },
+    {
+      "batch_size": 1024,
+      "mean_batch_time_s": 0.0020891936983680353,
+      "std_s": 0.0005907267134897137,
+      "sem_s": 1.8680418893332084e-05,
+      "ci95_lower_s": 0.002052536337862309,
+      "ci95_upper_s": 0.0021258510588737616,
+      "mean_per_query_time_s": 2.0402282210625345e-06,
+      "throughput_queries_per_s": 490141.24482564407
+    },
+    {
+      "batch_size": 8192,
+      "mean_batch_time_s": 0.010467106799595057,
+      "std_s": 0.0011200156078947122,
+      "sem_s": 3.541800335885356e-05,
+      "ci95_lower_s": 0.010397604583133414,
+      "ci95_upper_s": 0.0105366090160567,
+      "mean_per_query_time_s": 1.2777229979974435e-06,
+      "throughput_queries_per_s": 782642.2484116552
+    }
+  ]
+}

@@ -1,0 +1,62 @@
+
+Building BA network (N=100,000, m=10)
+100,000 nodes
+999,900 edges
+
+Using cached network statistics
+<k>       = 10.00
+<k²>      = 340.00
+<k²>/<k>  = 34.00
+k_std     = 9.49
+k_max     = 30
+
+Generating dataset
+
+Building BA network (N=100,000, m=10)
+100,000 nodes
+999,900 edges
+
+Using cached network statistics
+<k>       = 10.00
+<k²>      = 340.00
+<k²>/<k>  = 34.00
+k_std     = 9.49
+k_max     = 30
+Simulating:   0%|          | 0/100 [00:00<?, ?it/s]Simulating:   1%|          | 1/100 [00:00<00:34,  2.87it/s]Simulating:   2%|▏         | 2/100 [00:00<00:23,  4.22it/s]Simulating:   3%|▎         | 3/100 [00:02<01:33,  1.04it/s]Simulating:   4%|▍         | 4/100 [00:02<01:03,  1.51it/s]Simulating:   6%|▌         | 6/100 [00:03<00:50,  1.85it/s]Simulating:   7%|▋         | 7/100 [00:04<01:04,  1.43it/s]Simulating:   8%|▊         | 8/100 [00:06<01:26,  1.06it/s]Simulating:   9%|▉         | 9/100 [00:06<01:23,  1.08it/s]Simulating:  11%|█         | 11/100 [00:07<00:52,  1.69it/s]Simulating:  12%|█▏        | 12/100 [00:09<01:29,  1.02s/it]Simulating:  13%|█▎        | 13/100 [00:10<01:34,  1.09s/it]Simulating:  14%|█▍        | 14/100 [00:11<01:25,  1.01it/s]Simulating:  15%|█▌        | 15/100 [00:13<01:39,  1.17s/it]Simulating:  17%|█▋        | 17/100 [00:13<00:58,  1.41it/s]Simulating:  19%|█▉        | 19/100 [00:14<00:53,  1.51it/s]Simulating:  20%|██        | 20/100 [00:15<00:48,  1.65it/s]Simulating:  21%|██        | 21/100 [00:15<00:51,  1.53it/s]Simulating:  23%|██▎       | 23/100 [00:19<01:21,  1.06s/it]Simulating:  24%|██▍       | 24/100 [00:20<01:25,  1.13s/it]Simulating:  25%|██▌       | 25/100 [00:23<02:01,  1.62s/it]Simulating:  27%|██▋       | 27/100 [00:24<01:24,  1.16s/it]Simulating:  29%|██▉       | 29/100 [00:25<01:05,  1.08it/s]Simulating:  30%|███       | 30/100 [00:26<00:58,  1.19it/s]Simulating:  31%|███       | 31/100 [00:28<01:23,  1.21s/it]Simulating:  32%|███▏      | 32/100 [00:29<01:09,  1.02s/it]Simulating:  33%|███▎      | 33/100 [00:29<00:53,  1.26it/s]Simulating:  34%|███▍      | 34/100 [00:29<00:46,  1.41it/s]Simulating:  35%|███▌      | 35/100 [00:30<00:41,  1.56it/s]Simulating:  36%|███▌      | 36/100 [00:32<01:11,  1.11s/it]Simulating:  38%|███▊      | 38/100 [00:33<00:48,  1.29it/s]Simulating:  40%|████      | 40/100 [00:36<01:00,  1.01s/it]Simulating:  41%|████      | 41/100 [00:36<00:51,  1.14it/s]Simulating:  42%|████▏     | 42/100 [00:37<00:54,  1.07it/s]Simulating:  43%|████▎     | 43/100 [00:37<00:43,  1.32it/s]Simulating:  45%|████▌     | 45/100 [00:39<00:38,  1.44it/s]Simulating:  46%|████▌     | 46/100 [00:40<00:52,  1.04it/s]Simulating:  47%|████▋     | 47/100 [00:41<00:45,  1.16it/s]Simulating:  48%|████▊     | 48/100 [00:41<00:35,  1.48it/s]Simulating:  49%|████▉     | 49/100 [00:42<00:38,  1.31it/s]Simulating:  50%|█████     | 50/100 [00:45<01:01,  1.24s/it]Simulating:  53%|█████▎    | 53/100 [00:47<00:47,  1.01s/it]Simulating:  54%|█████▍    | 54/100 [00:48<00:44,  1.03it/s]Simulating:  55%|█████▌    | 55/100 [00:51<01:02,  1.39s/it]Simulating:  56%|█████▌    | 56/100 [00:51<00:53,  1.22s/it]Simulating:  57%|█████▋    | 57/100 [00:53<00:51,  1.19s/it]Simulating:  58%|█████▊    | 58/100 [00:53<00:40,  1.05it/s]Simulating:  61%|██████    | 61/100 [00:56<00:35,  1.08it/s]Simulating:  63%|██████▎   | 63/100 [00:57<00:32,  1.14it/s]Simulating:  64%|██████▍   | 64/100 [01:00<00:48,  1.35s/it]Simulating:  65%|██████▌   | 65/100 [01:01<00:42,  1.22s/it]Simulating:  66%|██████▌   | 66/100 [01:02<00:39,  1.16s/it]Simulating:  67%|██████▋   | 67/100 [01:02<00:30,  1.09it/s]Simulating:  71%|███████   | 71/100 [01:03<00:11,  2.42it/s]Simulating:  72%|███████▏  | 72/100 [01:03<00:10,  2.59it/s]Simulating:  73%|███████▎  | 73/100 [01:05<00:18,  1.45it/s]Simulating:  76%|███████▌  | 76/100 [01:07<00:18,  1.27it/s]Simulating:  77%|███████▋  | 77/100 [01:08<00:15,  1.47it/s]Simulating:  78%|███████▊  | 78/100 [01:08<00:12,  1.72it/s]Simulating:  79%|███████▉  | 79/100 [01:08<00:10,  2.06it/s]Simulating:  80%|████████  | 80/100 [01:08<00:09,  2.11it/s]Simulating:  81%|████████  | 81/100 [01:09<00:07,  2.42it/s]Simulating:  83%|████████▎ | 83/100 [01:10<00:08,  2.11it/s]Simulating:  84%|████████▍ | 84/100 [01:10<00:06,  2.56it/s]Simulating:  87%|████████▋ | 87/100 [01:11<00:05,  2.49it/s]Simulating:  88%|████████▊ | 88/100 [01:13<00:08,  1.34it/s]Simulating:  90%|█████████ | 90/100 [01:15<00:06,  1.44it/s]Simulating:  92%|█████████▏| 92/100 [01:16<00:06,  1.31it/s]Simulating:  93%|█████████▎| 93/100 [01:18<00:06,  1.00it/s]Simulating:  95%|█████████▌| 95/100 [01:20<00:04,  1.15it/s]Simulating:  96%|█████████▌| 96/100 [01:22<00:04,  1.11s/it]Simulating:  97%|█████████▋| 97/100 [01:22<00:02,  1.12it/s]Simulating:  99%|█████████▉| 99/100 [01:22<00:00,  1.67it/s]Simulating: 100%|██████████| 100/100 [01:24<00:00,  1.14it/s]Simulating: 100%|██████████| 100/100 [01:24<00:00,  1.18it/s]
+
+R0 distribution
+min : 0.05098503420977168
+max : 24.6904752782166
+mean: 3.038560047635564
+
+Dataset saved
+experiments\random-sampling\data\raw\epidemic_data_age_adaptive_sobol.pkl
+1.36 MB
+CSV saved: experiments\random-sampling\data\raw\epidemic_data_age_adaptive_sobol.csv
+Index(['sim_id', 'tau', 'gamma', 'rho', 'R0', 'peak_I', 'peak_time', 'final_R',
+       'attack_rate', 'near_threshold'],
+      dtype='object')
+100
+sim_id            0
+tau               0
+gamma             0
+rho               0
+R0                0
+peak_I            0
+peak_time         0
+final_R           0
+attack_rate       0
+near_threshold    0
+dtype: int64
+   sim_id       tau     gamma  ...  final_R  attack_rate  near_threshold
+0       0  0.018688  0.454930  ...  23033.0      0.23033               0
+1       1  0.010814  0.351956  ...  11060.0      0.11060               1
+2       2  0.020677  0.138074  ...  83314.0      0.83314               0
+3       3  0.016888  0.484804  ...  13394.0      0.13394               1
+4       4  0.002713  0.390924  ...    124.0      0.00124               0
+
+[5 rows x 10 columns]
+100
+greater than 1.2: (62, 62.0)
+between 0.7 and 1.2: (19, 19.0)
+less than 0.8: (23, 23.0)

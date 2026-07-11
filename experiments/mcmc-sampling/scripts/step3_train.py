@@ -12,6 +12,7 @@ import json
 from tqdm import tqdm
 import pandas as pd
 from scipy import stats
+from datetime import datetime
 from step0_model import create_hybrid_mlp_model
 from utils import create_dataloaders, compute_metrics, get_device, EarlyStopping
 
@@ -22,7 +23,7 @@ MODEL_DIR=Path("experiments/mcmc-sampling/out/trained-models")
 #Global constants
 n_timepoints=250
 N =100000
-knots=7
+knots=8
 n_replicates=10
 
 def set_seed(seed):
@@ -84,14 +85,14 @@ def train_epoch_balanced(model, train_loader, optimizer, device, n_timesteps,
         all_predictions.append(predictions.detach().cpu())
         all_targets.append(targets.detach().cpu())
 
-        predictions= torch.cat(all_predictions,dim=0)
-        targets= torch.cat(all_targets,dim=0)
-        metrics= compute_metrics(predictions, targets)
+    predictions= torch.cat(all_predictions,dim=0)
+    targets= torch.cat(all_targets,dim=0)
+    metrics= compute_metrics(predictions, targets)
 
-        n_batches = len(train_loader)
-        metrics['loss_S'] = total_loss_S / n_batches
-        metrics['loss_I'] = total_loss_I / n_batches
-        metrics['loss_R'] = total_loss_R / n_batches
+    n_batches = len(train_loader)
+    metrics['loss_S'] = total_loss_S / n_batches
+    metrics['loss_I'] = total_loss_I / n_batches
+    metrics['loss_R'] = total_loss_R / n_batches
 
     return total_loss / n_batches, metrics
 
@@ -227,19 +228,21 @@ def train_single_replicate(replicate_id,seed,config,dataloaders,output_dir,weigh
             best_epoch=epoch + 1
 
             torch.save({
-                'epoch'              : epoch + 1,
+                'epoch' : epoch + 1,
                 'model_state_dict'   : model.state_dict(),
                 'optimizer_state_dict': optimizer.state_dict(),
-                'val_loss'           : val_loss,
-                'val_metrics'        : val_metrics,
-                'config'             : config,
-                'weight_mode'        : weight_mode,
-                'seed'               : seed,
-                'replicate_id'       : replicate_id,
+                'val_loss': val_loss,
+                'val_metrics': val_metrics,
+                'config': config,
+                'weight_mode': weight_mode,
+                'seed': seed,
+                'replicate_id': replicate_id,
                 'training_time_minutes': (time.time() - start_time)/60,
-                'model_filename'     : model_filename,
-                'param_names'        : ['tau', 'gamma', 'rho'],  
+                'model_filename': model_filename,
+                'param_names': ['tau', 'gamma', 'rho'],  
             }, model_path)
+
+
 
         if early_stopping(val_loss):
             if verbose:
@@ -321,7 +324,7 @@ def train_multiple_replicates(
     print(f"Total time:{overall_time/60:.2f} min")
     print(f"Mean time per replicate:{overall_time/n_replicates/60:.2f} min")
 
-    return all_results, all_histories
+    return all_results, all_histories, overall_time
 
 # STATISTICS & REPORTING
 def compute_replicate_statistics(all_results):
@@ -470,10 +473,38 @@ def plot_replicates_comparison(all_results, all_histories, output_dir):
     plt.close()
     print(f"Saved: {out}")
 
+def write_training_timing_log(all_results, total_seconds, config, log_path: Path):
+    run_at = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    rep_times = [r['training_time_minutes'] * 60 for r in all_results]
+    lines = [
+        f"Run timestamp          : {run_at}",
+        f"Replicates             : {len(all_results)}",
+        f"Epochs (max)           : {config['epochs']}",
+        f"Batch size             : {config['batch_size']}",
+        f"Total training time    : {total_seconds:.2f} s  ({total_seconds/60:.2f} min)",
+        f"Mean time / replicate  : {np.mean(rep_times):.2f} s  ({np.mean(rep_times)/60:.2f} min)",
+        "",
+        f"  {'Rep':>3}  {'Seed':>6}  {'Best epoch':>10}  {'Time (s)':>10}  {'Time (min)':>10}",
+    ]
+    for r in all_results:
+        t = r['training_time_minutes'] * 60
+        lines.append(
+            f"  {r['replicate_id']:3d}  {r['seed']:6d}  {r['best_epoch']:10d}"
+            f"  {t:10.2f}  {t/60:10.2f}"
+        )
+    lines.append("-" * 60)
+
+    log_path = Path(log_path)
+    log_path.parent.mkdir(parents=True, exist_ok=True)
+    with open(log_path, "a", encoding="utf-8") as f:
+        f.write("\n".join(lines) + "\n\n")
+    print(f"Timing log appended: {log_path}")
+
+
 # ENTRY POINT
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="NNE")
-    parser.add_argument('--input',type=str,default=DATA_DIR /'epidemic_data_age_adaptive_sobol_split_augmented.pkl')
+    parser.add_argument('--input',type=str,default=DATA_DIR /'abm-data_augmented.pkl')
     parser.add_argument('--output_dir',type=str,default=MODEL_DIR)
     parser.add_argument('--n_replicates',type=int,default=n_replicates)
     parser.add_argument('--seeds',type=str,default=None)
@@ -492,21 +523,21 @@ if __name__ == "__main__":
 
     # Model configurations
     config = {
-        'n_params'        : 3,           
-        'n_fourier'       : 64,
-       'sigma'           : 1.0,
-        'fusion_hidden'   :128,
-        'latent_dim'      : 64,
+        'n_params' : 3,           
+        'n_fourier' : 64,
+       'sigma' : 1.0,
+        'fusion_hidden' :128,
+        'latent_dim'  : 64,
         'decoder_hidden'  :  64,
-        'dropout'         : 0.3,
-        'n_knots'         : knots,
-        'n_timepoints'    : n_timepoints,
+        'dropout': 0.4,
+        'n_knots' : knots,
+        'n_timepoints' : n_timepoints,
         'total_population': N,
-        'epochs'          : args.epochs,
-        'batch_size'      : args.batch_size,
-        'lr'              : args.lr,
-        'weight_decay'    : args.weight_decay, # L2 regularization, applied through adam-optimizer, so it pernalize large weights (large weights more flexible model, risk of overfitting), This pushes weights toward zero during training, preventing a single parameter from dominating, 
-        'patience'        : args.patience,
+        'epochs': args.epochs,
+        'batch_size': args.batch_size,
+        'lr' : args.lr,
+        'weight_decay': args.weight_decay, # L2 regularization, applied through adam-optimizer, so it pernalize large weights (large weights more flexible model, risk of overfitting), This pushes weights toward zero during training, preventing a single parameter from dominating, 
+        'patience' : args.patience,
     }
 
     
@@ -523,7 +554,7 @@ if __name__ == "__main__":
     print(f"Train:{len(dataloaders['train'].dataset)}")
     print(f"Val:{len(dataloaders['val'].dataset)}")
 
-    all_results, all_histories = train_multiple_replicates(
+    all_results, all_histories, overall_time = train_multiple_replicates(
         n_replicates=args.n_replicates,
         seeds=seeds,
         config=config,
@@ -532,8 +563,15 @@ if __name__ == "__main__":
         weight_mode=args.weight_mode,
     )
 
-    #  Summary statistics 
-  
+    write_training_timing_log(
+        all_results,
+        overall_time,
+        config,
+        Path(args.output_dir) / "training_timing_log.txt",
+    )
+
+    #  Summary statistics
+
     print("SUMMARY STATISTICS")
     stats_dict = compute_replicate_statistics(all_results)
     with open(Path(args.output_dir)/'replicates_summary.json', 'w') as f:

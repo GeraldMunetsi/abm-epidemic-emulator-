@@ -8,7 +8,7 @@ from scipy.interpolate import BSpline
 
 timepoints=250
 N=100000
-knots=7
+knots=8
 class StandardRFF(nn.Module):
     def __init__(self, n_params=3, n_fourier=64, sigma=1.0):
         super().__init__()
@@ -93,7 +93,7 @@ class TemporalDecoder(nn.Module):
 
     I(t) = (N - S(t)) × g(t)≥ 0 always (both factors ≥ 0)
     R(t) = (N - S(t)) × (1 - g(t))≥ 0 always (g < 1)
-    S + I + R = S + (N-S)·[g+(1-g)] = N, exact conservation
+    S + I + R = S + (N-S)[g+(1-g)] = N, exact conservation
 
     Args:
         latent_dim : dimension of input z from fusion MLP
@@ -235,10 +235,10 @@ class HybridSIREmulator(nn.Module):
 
         # 3. Temporal decoder 
         self.temporal_decoder = TemporalDecoder(
-            latent_dim      = latent_dim,
-            n_knots         = n_knots,
+            latent_dim = latent_dim,
+            n_knots = n_knots,
             total_population= total_population,
-            hidden_dim      = decoder_hidden,
+            hidden_dim = decoder_hidden,
         )
 
         self.n_timepoints = timepoints

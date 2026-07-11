@@ -1,0 +1,166 @@
+{
+  "results": [
+    {
+      "replicate_id": 1,
+      "seed": 42,
+      "best_epoch": 85,
+      "best_val_r2": 0.8889954090118408,
+      "best_val_mae": 732.8734130859375,
+      "best_val_mae_i": 52.72114944458008,
+      "best_val_mae_s": 1069.052001953125,
+      "best_val_mae_r": 1076.84716796875,
+      "training_time_minutes": 2.9397329727808637,
+      "model_filename": "best_balanced_mlp_model_1.pt",
+      "output_dir": "experiments\\Ablation studies\\out\\trained-models\\full"
+    },
+    {
+      "replicate_id": 2,
+      "seed": 123,
+      "best_epoch": 92,
+      "best_val_r2": 0.8602854013442993,
+      "best_val_mae": 872.8701782226562,
+      "best_val_mae_i": 57.51869201660156,
+      "best_val_mae_s": 1277.505859375,
+      "best_val_mae_r": 1283.5859375,
+      "training_time_minutes": 3.2436880588531496,
+      "model_filename": "best_balanced_mlp_model_2.pt",
+      "output_dir": "experiments\\Ablation studies\\out\\trained-models\\full"
+    },
+    {
+      "replicate_id": 3,
+      "seed": 456,
+      "best_epoch": 92,
+      "best_val_r2": 0.8385212421417236,
+      "best_val_mae": 718.2608642578125,
+      "best_val_mae_i": 60.86290740966797,
+      "best_val_mae_s": 1042.4891357421875,
+      "best_val_mae_r": 1051.4305419921875,
+      "training_time_minutes": 3.223894794782003,
+      "model_filename": "best_balanced_mlp_model_3.pt",
+      "output_dir": "experiments\\Ablation studies\\out\\trained-models\\full"
+    }
+  ],
+  "statistics": {
+    "best_val_r2": {
+      "values": [
+        0.8889954090118408,
+        0.8602854013442993,
+        0.8385212421417236
+      ],
+      "n": 3,
+      "mean": 0.8626006841659546,
+      "std": 0.025316610776648162,
+      "sem": 0.014616552046866798,
+      "ci_lower": 0.7997107366027574,
+      "ci_upper": 0.9254906317291518,
+      "min": 0.8385212421417236,
+      "max": 0.8889954090118408,
+      "median": 0.8602854013442993,
+      "cv": 2.9349166122128336
+    },
+    "best_val_mae": {
+      "values": [
+        732.8734130859375,
+        872.8701782226562,
+        718.2608642578125
+      ],
+      "n": 3,
+      "mean": 774.6681518554688,
+      "std": 85.35871445130793,
+      "sem": 49.281876766143036,
+      "ci_lower": 562.6253502630746,
+      "ci_upper": 986.710953447863,
+      "min": 718.2608642578125,
+      "max": 872.8701782226562,
+      "median": 732.8734130859375,
+      "cv": 11.018745800619085
+    },
+    "best_val_mae_i": {
+      "values": [
+        52.72114944458008,
+        57.51869201660156,
+        60.86290740966797
+      ],
+      "n": 3,
+      "mean": 57.03424962361654,
+      "std": 4.0924404717245215,
+      "sem": 2.3627716079926717,
+      "ci_lower": 46.86806391483833,
+      "ci_upper": 67.20043533239475,
+      "min": 52.72114944458008,
+      "max": 60.86290740966797,
+      "median": 57.51869201660156,
+      "cv": 7.1754086338148975
+    },
+    "best_val_mae_s": {
+      "values": [
+        1069.052001953125,
+        1277.505859375,
+        1042.4891357421875
+      ],
+      "n": 3,
+      "mean": 1129.6823323567708,
+      "std": 128.70603257196956,
+      "sem": 74.30846255175537,
+      "ci_lower": 809.9588231189371,
+      "ci_upper": 1449.4058415946045,
+      "min": 1042.4891357421875,
+      "max": 1277.505859375,
+      "median": 1069.052001953125,
+      "cv": 11.393117240619308
+    },
+    "best_val_mae_r": {
+      "values": [
+        1076.84716796875,
+        1283.5859375,
+        1051.4305419921875
+      ],
+      "n": 3,
+      "mean": 1137.2878824869792,
+      "std": 127.33358510013284,
+      "sem": 73.51607963444182,
+      "ci_lower": 820.9737217712892,
+      "ci_upper": 1453.6020432026694,
+      "min": 1051.4305419921875,
+      "max": 1283.5859375,
+      "median": 1076.84716796875,
+      "cv": 11.196249169707537
+    },
+    "training_time_minutes": {
+      "values": [
+        2.9397329727808637,
+        3.2436880588531496,
+        3.223894794782003
+      ],
+      "n": 3,
+      "mean": 3.1357719421386725,
+      "std": 0.17006293380922646,
+      "sem": 0.0981858806139344,
+      "ci_lower": 2.713312194897508,
+      "ci_upper": 3.558231689379837,
+      "min": 2.9397329727808637,
+      "max": 3.2436880588531496,
+      "median": 3.223894794782003,
+      "cv": 5.423319582776783
+    }
+  },
+  "config": {
+    "n_params": 3,
+    "n_fourier": 64,
+    "sigma": 1.0,
+    "fusion_hidden": 128,
+    "latent_dim": 64,
+    "decoder_hidden": 64,
+    "dropout": 0.4,
+    "n_knots": 8,
+    "n_timepoints": 250,
+    "total_population": 100000,
+    "epochs": 100,
+    "batch_size": 35,
+    "lr": 5e-05,
+    "weight_decay": 0.001,
+    "patience": 35
+  },
+  "condition": "full",
+  "weight_mode": "modest"
+}

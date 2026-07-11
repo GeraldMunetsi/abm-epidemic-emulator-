@@ -1,0 +1,2 @@
+model,train_strategy,test_strategy,n_train_simulations,n_test_samples,relative_MAE_I,relative_MAE_I_std,absolute_MAE_I,MAE_S,MAE_R,RMSE,R2_S,R2_I,R2_R,mean_peak_I,conservation_error_mean,conservation_error_max,n_negative_before_clip,gp_fit_time_s,gp_inference_time_ms_per_sample
+GP (PCA + Matern-5/2),MCMC,MCMC,600,600,3.2471,29.5616,24.813,434.7752,416.1419,825.6519,0.989457,0.907161,0.99063,1232.99,19.4746,3875.723,72342,250.6,0.9601

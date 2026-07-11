@@ -1,0 +1,11 @@
+replicate_id,train_strategy,test_strategy,augmentation,in_domain,n_train_simulations,relative_MAE_I,R2_I,MAE_I,R2_S,R2_R,R2_overall,MAE_S,MAE_R,RMSE,MSE,mean_peak_I,n_test_samples,model_path,training_epoch
+1,LHS,UNIFORM_RANDOM,1,0,8400,4.5919,0.958724,144.1572,0.990366,0.989786,0.997838,1304.1213,1299.2362,1939.9932,3763573.5,4476.45,600,experiments\lhs-sampling\out\trained-models\best_balanced_mlp_model_1.pt,83
+2,LHS,UNIFORM_RANDOM,1,0,8400,4.3116,0.959741,138.6574,0.990281,0.990055,0.997858,1230.9581,1212.9878,1930.9847,3728702.0,4476.45,600,experiments\lhs-sampling\out\trained-models\best_balanced_mlp_model_2.pt,83
+3,LHS,UNIFORM_RANDOM,1,0,8400,4.4009,0.960349,135.4791,0.991182,0.991026,0.998056,1200.6613,1183.9191,1839.825,3384956.0,4476.45,600,experiments\lhs-sampling\out\trained-models\best_balanced_mlp_model_3.pt,98
+4,LHS,UNIFORM_RANDOM,1,0,8400,4.3177,0.960136,138.4475,0.990385,0.990282,0.997893,1239.3501,1216.1985,1915.0968,3667595.75,4476.45,600,experiments\lhs-sampling\out\trained-models\best_balanced_mlp_model_4.pt,90
+5,LHS,UNIFORM_RANDOM,1,0,8400,4.5083,0.959837,138.3791,0.990813,0.990451,0.997956,1233.9041,1220.2965,1886.3023,3558136.25,4476.45,600,experiments\lhs-sampling\out\trained-models\best_balanced_mlp_model_5.pt,94
+6,LHS,UNIFORM_RANDOM,1,0,8400,4.3695,0.9603,138.763,0.990271,0.990092,0.997862,1228.3511,1207.3662,1929.2498,3722004.75,4476.45,600,experiments\lhs-sampling\out\trained-models\best_balanced_mlp_model_6.pt,98
+7,LHS,UNIFORM_RANDOM,1,0,8400,4.4255,0.960872,136.0662,0.991657,0.991588,0.998165,1102.0049,1083.5046,1787.2287,3194186.25,4476.45,600,experiments\lhs-sampling\out\trained-models\best_balanced_mlp_model_7.pt,99
+8,LHS,UNIFORM_RANDOM,1,0,8400,4.4811,0.960029,138.5253,0.991081,0.991028,0.998044,1188.8303,1169.1047,1845.1728,3404662.75,4476.45,600,experiments\lhs-sampling\out\trained-models\best_balanced_mlp_model_8.pt,98
+9,LHS,UNIFORM_RANDOM,1,0,8400,4.4813,0.960652,136.5961,0.990423,0.990094,0.997879,1197.7997,1181.9984,1921.4165,3691841.5,4476.45,600,experiments\lhs-sampling\out\trained-models\best_balanced_mlp_model_9.pt,100
+10,LHS,UNIFORM_RANDOM,1,0,8400,4.6935,0.959104,141.8312,0.990744,0.990449,0.997947,1266.9712,1255.7429,1890.4753,3573896.75,4476.45,600,experiments\lhs-sampling\out\trained-models\best_balanced_mlp_model_10.pt,81

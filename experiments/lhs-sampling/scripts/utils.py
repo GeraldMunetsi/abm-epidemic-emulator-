@@ -12,8 +12,8 @@ from torch.utils.data import Dataset, DataLoader
 
 
 # NORMALISATION CONSTANTS  
-PARAM_MINS = np.array([0.0005, 0.007,  0.001], dtype=np.float32)   # [tau, gamma, rho]
-PARAM_MAXS = np.array([0.024,  0.5,  0.010], dtype=np.float32)
+PARAM_MINS = np.array([0.0003, 0.03,  0.001], dtype=np.float32)   # [tau, gamma, rho]
+PARAM_MAXS = np.array([0.02,  1.0,  0.01], dtype=np.float32)
 
 
 def normalise_params(params_raw: np.ndarray) -> np.ndarray:
@@ -181,8 +181,17 @@ def create_dataloaders(dataset_path: str, batch_size: int = 32,
 
 
 # METRICS
-def compute_metrics(predictions, targets, prefix: str = '') -> dict:
-   
+def compute_metrics(predictions, targets, prefix: str = '', peak_threshold: float = None) -> dict:
+    """
+    peak_threshold : if set, MAE_I/R2_I are computed only on samples whose
+                      true peak I >= peak_threshold — the same exclusion
+                      compute_relative_mae_i() already applies, so R2_I and
+                      relative_MAE_I are directly comparable. Default None
+                      preserves the original unfiltered behaviour (all
+                      samples), so existing callers — including training-time
+                      checkpoint selection — are unaffected unless they opt
+                      in explicitly.
+    """
     if torch.is_tensor(predictions):
         predictions = predictions.detach().cpu().numpy()
     if torch.is_tensor(targets):
@@ -199,12 +208,21 @@ def compute_metrics(predictions, targets, prefix: str = '') -> dict:
     r2   = _r2(predictions, targets)
 
     mae_s = float(np.abs(predictions[:, :, 0] - targets[:, :, 0]).mean())
-    mae_i = float(np.abs(predictions[:, :, 1] - targets[:, :, 1]).mean())
     mae_r = float(np.abs(predictions[:, :, 2] - targets[:, :, 2]).mean())
 
     r2_s = _r2(predictions[:, :, 0], targets[:, :, 0])
-    r2_i = _r2(predictions[:, :, 1], targets[:, :, 1])
     r2_r = _r2(predictions[:, :, 2], targets[:, :, 2])
+
+    # MAE_I / R2_I: optionally filtered to the same samples relative_MAE_I
+    # uses (peak I >= peak_threshold), so the two metrics are computed on an
+    # identical sample set and are directly comparable.
+    I_pred, I_true = predictions[:, :, 1], targets[:, :, 1]
+    if peak_threshold is not None:
+        valid = I_true.max(axis=1) >= peak_threshold
+    else:
+        valid = np.ones(len(I_true), dtype=bool)
+    mae_i = float(np.abs(I_pred[valid] - I_true[valid]).mean())
+    r2_i  = _r2(I_pred[valid], I_true[valid])
 
     p = prefix
     return {
