@@ -152,27 +152,18 @@ def compute_relative_mae_i(predictions, targets):
 
     Formula
     -------
-    Rel-MAE_I_i = (1/T  Σ_t |Î_i(t) − I_i(t)|) / max_t I_i(t)  × 100%
-    Rel-MAE_I   = (1/n) Σ_i  Rel-MAE_I_i
+    rMAE_I_i = (1/T  Σ_t |Î_i(t) − I_i(t)|) / max_t I_i(t)  × 100%
+    rMAE_I   = (1/n) Σ_i  Rel-MAE_I_i
 
-    With rho ∈ [0.001, 0.01] and N = 100,000:
-      I(0) = N × rho ∈ [100, 1000]  →  peak I ≥ 100 always.
-    The denominator is therefore numerically stable for every sample.
-    Near-extinction trajectories (peak ≈ I(0)) contribute higher
-    relative errors due to the B-spline decoder's I(t) > 0 guarantee;
-    this is reported transparently rather than masked by exclusion.
 
     Returns
     -------
-    mean_rel      : float  — mean Rel-MAE_I (%) across all n samples
-    std_rel       : float  — sample SD (ddof=1) across samples
-    per_sample    : array  — (n,) per-sample values
-    mean_peak     : float  — mean of true I_max across samples
+    mean_rel,std_rel, per_sample, mean_peak
     """
     mae_per_sample  = (predictions[:, :, 1] - targets[:, :, 1]).abs().mean(dim=1)
     peak_per_sample = targets[:, :, 1].max(dim=1)[0]
 
-    rel       = (mae_per_sample / peak_per_sample * 100).numpy()  # (n,)
+    rel = (mae_per_sample / peak_per_sample * 100).numpy()  # (n,)
     mean_peak = float(peak_per_sample.mean().item())
 
     return (float(rel.mean()),
@@ -188,9 +179,6 @@ def build_replicate_dataframe(results_list, targets,
                                augmentation, n_train_simulations):
     """
     Build one-row-per-replicate DataFrame for the master regression CSV.
-
-    All metrics are computed on the complete test set (no exclusion).
-    in_domain is derived from strategy strings, never hardcoded.
     """
     rows = []
     for r in results_list:
@@ -376,7 +364,7 @@ def plot_uncertainty_band(results_list, targets, plots_dir,
     fig.suptitle(
         f'Prediction uncertainty — mean ± 2σ  '
         f'(σ = sample SD, ddof=1, k={k} replicates)\n'
-        f'Train: {TRAIN_STRATEGY}  →  Test: {TEST_STRATEGY}  '
+        f'Train: {TRAIN_STRATEGY} : Test: {TEST_STRATEGY}  '
         f'aug={AUGMENTATION}',
         fontsize=12, fontweight='bold'
     )
@@ -516,6 +504,66 @@ def plot_infected_predictions(results_list, targets, params, plots_dir,
     plt.close()
     print(f"  Saved: {out}")
 
+
+
+
+def plot_infected_uncertainty_grid(results_list, targets, plots_dir,
+                                    params=None, n_samples=4):
+    """
+    Single-row grid of Infected I(t) panels — mean ± 2σ band across
+    replicates, mean prediction, and ground truth. One panel per selected
+    test sample, each titled with that sample's (tau, gamma, rho, R0).
+    """
+    plots_dir  = Path(plots_dir)
+    targets_np = targets.detach().cpu().numpy()
+    n_total    = len(targets_np)
+    indices    = np.unique(np.linspace(0, n_total - 1, n_samples, dtype=int))
+
+    all_preds = np.stack(
+        [r['predictions'].detach().cpu().numpy() for r in results_list],
+        axis=0
+    )                                          # (k, n_test, T, 3)
+    mean_pred = all_preds.mean(axis=0)         # (n_test, T, 3)
+    std_pred  = all_preds.std(axis=0, ddof=1)  # sample SD — ddof=1
+
+    n_panels = len(indices)
+    fig, axes = plt.subplots(1, n_panels, figsize=(5 * n_panels, 4.2))
+    if n_panels == 1:
+        axes = [axes]
+
+    fig.suptitle(
+        f'{TRAIN_STRATEGY} MODEL ON {TEST_STRATEGY} TEST SET — INFECTED (I)',
+        fontsize=15, fontweight='bold'
+    )
+
+    for panel_idx, idx in enumerate(indices):
+        ax     = axes[panel_idx]
+        t      = np.arange(mean_pred.shape[1])
+        mu     = mean_pred[idx, :, 1]
+        sigma  = std_pred[idx, :, 1]
+        lo, hi = mu - 2 * sigma, mu + 2 * sigma
+
+        ax.fill_between(t, lo, hi, color='salmon', alpha=0.35,
+                        label='Mean ± 2σ')
+        ax.plot(t, mu, '-', color='firebrick', lw=1.8, label='Mean pred')
+        ax.plot(t, targets_np[idx, :, 1], 'o', color='steelblue',
+                alpha=0.6, ms=3, mew=0, label='Ground truth')
+
+        ax.text(0.02, 0.97, f"({chr(ord('a') + panel_idx)})",
+                transform=ax.transAxes, fontsize=10, fontweight='bold',
+                va='top', ha='left')
+        ax.set_title(_r0_label(params, idx), fontsize=10)
+        ax.set_xlabel('Time step')
+        ax.set_ylabel('Infected count')
+        ax.grid(True, alpha=0.3, linestyle='--')
+        if panel_idx == 0:
+            ax.legend(loc='best', fontsize=8)
+
+    plt.tight_layout(rect=[0, 0, 1, 0.92])
+    out = plots_dir / 'infected_uncertainty_grid.png'
+    plt.savefig(out, dpi=200, bbox_inches='tight')
+    plt.close()
+    print(f"  Saved: {out}")
 
 
 #  7. SAVE RESULTS
@@ -658,5 +706,7 @@ if __name__ == '__main__':
                                n_samples=min(16, len(targets)))
     plot_relative_mae_vs_peak(results_list, targets, params, plots_dir)
 
+    plot_infected_uncertainty_grid(results_list, targets, plots_dir,
+                                    params=params, n_samples=4)
     # Save JSON + text report
     save_results(results_list, stats_dict, results_dir)

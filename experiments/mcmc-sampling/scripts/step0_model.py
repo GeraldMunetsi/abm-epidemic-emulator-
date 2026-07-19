@@ -84,16 +84,16 @@ class TemporalDecoder(nn.Module):
         S_coeffs[k] = S₀ × r₁ × r₂ × ... × rₖ,   each rᵢ ∈ (0,1)
     Guarantees: S(t) ≤ S(0) = N(1-ρ) for all t.
 
-    y(t) function
-    y(t) = I(t) / (N - S(t)) = fraction of ever-infected still infectious.
-    Predicted as a FREE B-spline , then we sigmoid it such that y ∈ (0,1).
+    f(t) function
+    f(t) = I(t) / (N - S(t)) = fraction of ever-infected still infectious.
+    Predicted as a FREE B-spline , then we sigmoid it such that f ∈ (0,1).
     
 
     I and R
 
-    I(t) = (N - S(t)) × y(t)≥ 0 always (both factors ≥ 0)
-    R(t) = (N - S(t)) × (1 - y(t))≥ 0 always (y < 1)
-    S + I + R = S + (N-S)·[y+(1-y)] = N, exact conservation
+    I(t) = (N - S(t)) × f(t)≥ 0 always (both factors ≥ 0)
+    R(t) = (N - S(t)) × (1 - f(t))≥ 0 always (f < 1)
+    S + I + R = S + (N-S)·[f+(1-f)] = N, exact conservation
 
     Args:
         latent_dim : dimension of input z from fusion MLP
@@ -104,10 +104,10 @@ class TemporalDecoder(nn.Module):
     """
     def __init__(
         self,
-        latent_dim      : int,
-        n_knots         : int = knots,
+        latent_dim: int,
+        n_knots : int = knots,
         total_population: int = N,
-        hidden_dim      : int = 64,
+        hidden_dim : int = 64,
     ):
         super().__init__()
         self.N = float(total_population)
@@ -135,7 +135,7 @@ class TemporalDecoder(nn.Module):
 
     def forward(self, z: torch.Tensor, rho_raw: torch.Tensor) -> tuple:
         batch_size = z.size(0)
-        device     = z.device
+        device = z.device
 
         #  S(t): monotone decreasing 
         S_0 = ((1.0 - rho_raw) * self.N).unsqueeze(1)       
@@ -143,31 +143,31 @@ class TemporalDecoder(nn.Module):
         retention_raw   = self.predict_S_retention(z)        
         retention_rates = torch.sigmoid(retention_raw)       # ∈ (0, 1)
 
-        ones_S    = torch.ones(batch_size, 1, device=device)
+        ones_S = torch.ones(batch_size, 1, device=device)
         all_rates = torch.cat([ones_S, retention_rates], dim=1)  
 
         cum_product = torch.cumprod(all_rates, dim=1)        # (batch, K), decreasing
         S_coeffs = S_0 * cum_product                      # (batch, K)
         S_pred = self.spline_S(S_coeffs)                # (batch, T)
 
-        #  y(t) = R(t)/(N−S(t)): monotone increasing 
+        #  f(t) = R(t)/(N−S(t)): monotone increasing 
         r_raw = self.predict_R_rates(z)                 
         r = torch.sigmoid(r_raw) # ∈ (0, 1)
 
         ones_R = torch.ones(batch_size, 1, device=device)
-        all_r  = torch.cat([ones_R, r], dim=1)               # (batch, K)
+        all_r = torch.cat([ones_R, r], dim=1)               # (batch, K)
 
         cum_r = torch.cumprod(all_r, dim=1)               # (batch, K), decreasing ∈ (0,1]
-        y_coeffs = 1.0 - cum_r                               # (batch, K), increasing ∈ [0,1)
-        y_t = self.spline_R(y_coeffs)                   # (batch, T), monotone increasing
+        f_coeffs = 1.0 - cum_r                               # (batch, K), increasing ∈ [0,1)
+        f_t = self.spline_R(f_coeffs)                   # (batch, T), monotone increasing
 
         # I and R from conservation 
         ever_infected = self.N - S_pred          # ≥ 0 always
 
-        R_pred = ever_infected * y_t                         # (batch, T) ≥ 0, monotone incresing
-        I_pred = ever_infected * (1.0 - y_t)                 # (batch, T) ≥ 0, bell-shaped
+        R_pred = ever_infected * f_t                         # (batch, T) ≥ 0, monotone incresing
+        I_pred = ever_infected * (1.0 - f_t)                 # (batch, T) ≥ 0, bell-shaped
 
-        #  S + I + R = S + (N-S)·y + (N-S)·(1-y) = S + (N-S) = N  
+        #  S + I + R = S + (N-S)f + (N-S)·(1-f) = S + (N-S) = N  
         return S_pred, I_pred, R_pred
     
 
@@ -215,7 +215,7 @@ class HybridSIREmulator(nn.Module):
 
         # 1. Standard RFF 
         self.rff = StandardRFF(
-            n_params  = n_params,
+            n_params = n_params,
             n_fourier = n_fourier,
             sigma = sigma,
         )
@@ -256,7 +256,7 @@ class HybridSIREmulator(nn.Module):
         phi = self.rff(params_norm)       # (batch, 128)
 
         # Latent vector
-        z   = self.fusion(phi)            # (batch, 64)
+        z = self.fusion(phi)            # (batch, 64)
 
         # SIR trajectories
         S_pred, I_pred, R_pred = self.temporal_decoder(z, rho_raw)
@@ -265,7 +265,7 @@ class HybridSIREmulator(nn.Module):
         return torch.stack([S_pred, I_pred, R_pred], dim=2)
 
     def get_component_params(self) -> dict:
-        """Return parameter counts per component (useful for logging)."""
+        """Return parameter counts per component ."""
         def count(module):
             return sum(p.numel() for p in module.parameters() if p.requires_grad)
 
@@ -302,82 +302,4 @@ def create_hybrid_mlp_model(config: dict) -> HybridSIREmulator:
     """
     model = HybridSIREmulator(config)
     return model
-
-
-# # 6. Check conservation and non-negativity of a fake batch
-# if __name__ == '__main__':
-#     import types
-#     config = {
-#         'n_params': 3,
-#         'n_fourier' : 64,
-#         'sigma' : 1.0,
-#         'fusion_hidden': 128,
-#         'latent_dim' : 64,
-#         'n_knots' : knots,
-#         'total_population': 10000,
-#         'decoder_hidden'  : 64,
-#         'dropout'         : 0.1,
-#     }
-
-#     model = create_hybrid_mlp_model(config)
-#     model.eval()
-
-#     # Fake batch of size 4
-#     batch_size = 4
-#     batch = types.SimpleNamespace(
-#         params_norm = torch.rand(batch_size, 3),     
-#         rho_raw     = torch.FloatTensor(batch_size).uniform_(0.001, 0.010),
-#     )
-
-#     with torch.no_grad():
-#         out = model(batch)
-
-#     print(f"\n  Input  params_norm : {batch.params_norm.shape}")
-#     print(f"  Input  rho_raw : {batch.rho_raw.shape}")
-#     print(f"  Output predictions : {out.shape}  (batch, T, 3)")
-#     print()
-
-#     S = out[:, :, 0]
-#     I = out[:, :, 1]
-#     R = out[:, :, 2]
-
-#     # Conservation check
-#     total = S + I + R
-#     print(f"  Conservation  S+I+R = N ?")
-#     print(f"    mean = {total.mean().item():.4f}  (should be 10000)")
-#     print(f"    max deviation from N: {(total - 10000).abs().max().item():.6f}")
-
-#     # Non-negativity
-#     print(f"\n Non-negativity:")
-#     print(f"I min = {I.min().item():.4f}  (should be ≥ 0)")
-#     print(f"R min = {R.min().item():.4f}  (should be ≥ 0)")
-
-#     # Initial conditions
-#     print(f"\n  Initial conditions (t=0):")
-#     for i in range(batch_size):
-#         rho = batch.rho_raw[i].item()
-#         I0_exp = rho * 10000
-#         I0_got = I[i, 0].item()
-#         R0_got = R[i, 0].item()
-#         print(f"    sample {i}: ρ={rho:.4f}  I(0) expected≈{I0_exp:.1f}  "
-#               f"got={I0_got:.1f}  R(0)={R0_got:.4f}")
-
-#     # S monotone check
-#     S_diffs = S[:, 1:] - S[:, :-1]
-#     n_violations = (S_diffs > 1e-4).sum().item()
-#     print(f"\n  S monotone decreasing: {n_violations} violations (should be 0)")
-
-#     # Parameter counts
-#     comp = model.get_component_params()
-#     print(f"\n  Parameter counts:")
-#     print(f"    RFF trainable  : {comp['rff_trainable']:>8,}  (zero — fully frozen)")
-#     print(f"    RFF frozen     : {comp['rff_frozen']:>8,}  (W matrix)")
-#     print(f"    Fusion MLP     : {comp['fusion']:>8,}")
-#     print(f"    Temporal decoder: {comp['temporal_decoder']:>8,}")
-#     print(f"    TOTAL trainable: {comp['total']:>8,}")
-
-#     print("\n  All checks passed")
-
-
-
 

@@ -1,0 +1,8 @@
+                                            predictor   VIF Result
+                                         augmentation 3.750    low
+                  train_strategy[T.MCMC]:augmentation 3.250    low
+        train_strategy[T.UNIFORM_RANDOM]:augmentation 3.250    low
+          C(train_strategy, Treatment("LHS"))[T.MCMC] 2.500    low
+C(train_strategy, Treatment("LHS"))[T.UNIFORM_RANDOM] 2.500    low
+           C(test_strategy, Treatment("LHS"))[T.MCMC] 1.625    low
+ C(test_strategy, Treatment("LHS"))[T.UNIFORM_RANDOM] 1.625    low

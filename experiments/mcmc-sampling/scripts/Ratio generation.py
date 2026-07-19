@@ -1,3 +1,6 @@
+# Estimates the degree-moment ratio <k^2>/<k> for Barabasi-Albert (BA) networks,
+# which (together with tau/gamma) determines R0 on a configuration-model-like network.
+# Repeats network generation many times to get a mean and 95% CI for the ratio.
 import networkx as nx
 import numpy as np
 
@@ -20,12 +23,13 @@ results_k_avg = []
 results_k2_avg = []
 results_ratio = []
 
+# 100 independent BA graph draws to estimate sampling variability of the degree moments
 for i in range(100):
-    
+
     G = nx.barabasi_albert_graph(N, m)
-    
+
     degrees = np.array([d for _, d in G.degree()])
-    
+
     k_avg = degrees.mean()
     k2_avg = (degrees**2).mean()
     ratio = (k2_avg-k_avg)/ k_avg   # R0 = (tau/gamma) * (<k²> - <k>) / <k> that is our BA network ratio for R0 computation 

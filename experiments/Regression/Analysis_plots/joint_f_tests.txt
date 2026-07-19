@@ -1,0 +1,11 @@
+Joint test — train strategy effects :
+  F = 399.837
+  p = 2.1316e-65
+
+Joint test — test strategy effects:
+  F = 119.354
+  p = 3.1014e-33
+
+Joint test — augmentation effect:
+  F = 632.070
+  p = 1.7191e-59

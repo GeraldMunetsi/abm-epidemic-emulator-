@@ -9,7 +9,7 @@
       "best_val_mae_i": 135.14537048339844,
       "best_val_mae_s": 1161.4205322265625,
       "best_val_mae_r": 1114.07470703125,
-      "training_time_minutes": 2.0702952980995177,
+      "training_time_minutes": 37.80857573350271,
       "model_filename": "best_balanced_mlp_model_1.pt",
       "output_dir": "experiments\\random-sampling\\out\\trained models"
     },
@@ -22,7 +22,7 @@
       "best_val_mae_i": 138.02114868164062,
       "best_val_mae_s": 1167.35546875,
       "best_val_mae_r": 1141.8958740234375,
-      "training_time_minutes": 2.661750642458598,
+      "training_time_minutes": 4.416460017363231,
       "model_filename": "best_balanced_mlp_model_2.pt",
       "output_dir": "experiments\\random-sampling\\out\\trained models"
     },
@@ -35,7 +35,7 @@
       "best_val_mae_i": 137.36106872558594,
       "best_val_mae_s": 1299.847412109375,
       "best_val_mae_r": 1273.7103271484375,
-      "training_time_minutes": 2.2731692870457967,
+      "training_time_minutes": 4.527447307109833,
       "model_filename": "best_balanced_mlp_model_3.pt",
       "output_dir": "experiments\\random-sampling\\out\\trained models"
     },
@@ -48,7 +48,7 @@
       "best_val_mae_i": 143.55157470703125,
       "best_val_mae_s": 1116.4129638671875,
       "best_val_mae_r": 1112.6380615234375,
-      "training_time_minutes": 2.4481456796328227,
+      "training_time_minutes": 4.333341515064239,
       "model_filename": "best_balanced_mlp_model_4.pt",
       "output_dir": "experiments\\random-sampling\\out\\trained models"
     },
@@ -61,7 +61,7 @@
       "best_val_mae_i": 156.40838623046875,
       "best_val_mae_s": 1280.4461669921875,
       "best_val_mae_r": 1275.20263671875,
-      "training_time_minutes": 2.1787713289260866,
+      "training_time_minutes": 4.489887579282125,
       "model_filename": "best_balanced_mlp_model_5.pt",
       "output_dir": "experiments\\random-sampling\\out\\trained models"
     },
@@ -74,7 +74,7 @@
       "best_val_mae_i": 137.47381591796875,
       "best_val_mae_s": 1227.2135009765625,
       "best_val_mae_r": 1196.5859375,
-      "training_time_minutes": 2.517014241218567,
+      "training_time_minutes": 4.371414836247762,
       "model_filename": "best_balanced_mlp_model_6.pt",
       "output_dir": "experiments\\random-sampling\\out\\trained models"
     },
@@ -87,7 +87,7 @@
       "best_val_mae_i": 133.53976440429688,
       "best_val_mae_s": 1054.42578125,
       "best_val_mae_r": 1030.389404296875,
-      "training_time_minutes": 2.50584264198939,
+      "training_time_minutes": 4.382124233245849,
       "model_filename": "best_balanced_mlp_model_7.pt",
       "output_dir": "experiments\\random-sampling\\out\\trained models"
     },
@@ -100,7 +100,7 @@
       "best_val_mae_i": 138.38339233398438,
       "best_val_mae_s": 1319.5401611328125,
       "best_val_mae_r": 1285.4031982421875,
-      "training_time_minutes": 2.466915794213613,
+      "training_time_minutes": 4.4456866184870405,
       "model_filename": "best_balanced_mlp_model_8.pt",
       "output_dir": "experiments\\random-sampling\\out\\trained models"
     },
@@ -113,7 +113,7 @@
       "best_val_mae_i": 137.5424346923828,
       "best_val_mae_s": 1086.6419677734375,
       "best_val_mae_r": 1073.7344970703125,
-      "training_time_minutes": 2.397208209832509,
+      "training_time_minutes": 4.613990787665049,
       "model_filename": "best_balanced_mlp_model_9.pt",
       "output_dir": "experiments\\random-sampling\\out\\trained models"
     },
@@ -126,7 +126,7 @@
       "best_val_mae_i": 139.70970153808594,
       "best_val_mae_s": 1182.1153564453125,
       "best_val_mae_r": 1170.963623046875,
-      "training_time_minutes": 2.4235721588134767,
+      "training_time_minutes": 4.411311995983124,
       "model_filename": "best_balanced_mlp_model_10.pt",
       "output_dir": "experiments\\random-sampling\\out\\trained models"
     }
@@ -254,27 +254,27 @@
     },
     "training_time_minutes": {
       "values": [
-        2.0702952980995177,
-        2.661750642458598,
-        2.2731692870457967,
-        2.4481456796328227,
-        2.1787713289260866,
-        2.517014241218567,
-        2.50584264198939,
-        2.466915794213613,
-        2.397208209832509,
-        2.4235721588134767
+        37.80857573350271,
+        4.416460017363231,
+        4.527447307109833,
+        4.333341515064239,
+        4.489887579282125,
+        4.371414836247762,
+        4.382124233245849,
+        4.4456866184870405,
+        4.613990787665049,
+        4.411311995983124
       ],
       "n": 10,
-      "mean": 2.394268528223038,
-      "std": 0.17453825257465863,
-      "sem": 0.05519384169616691,
-      "ci_lower": 2.2694113838846186,
-      "ci_upper": 2.5191256725614575,
-      "min": 2.0702952980995177,
-      "max": 2.661750642458598,
-      "median": 2.4358589192231497,
-      "cv": 7.289836144828595
+      "mean": 7.780024062395095,
+      "std": 10.551279473422817,
+      "sem": 3.336607536499815,
+      "ci_lower": 0.23209342406906774,
+      "ci_upper": 15.327954700721122,
+      "min": 4.333341515064239,
+      "max": 37.80857573350271,
+      "median": 4.431073317925136,
+      "cv": 135.62013933122188
     }
   },
   "config": {

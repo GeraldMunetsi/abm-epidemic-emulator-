@@ -316,6 +316,10 @@ def plot_conformal_uncertainty(all_preds_test: np.ndarray,
 # TIME-ADAPTIVE CONFORMAL PREDICTION
 
 def _time_adaptive_quantiles(all_preds_cal, targets_cal, alpha=0.10):
+    """
+    Per-timestep split-conformal quantile q_hat(t) (rather than a single sup-norm
+    q_hat), so band width can vary over time instead of being constant.
+    """
     mean_pred_cal = all_preds_cal.mean(axis=0)           # (n_cal, T, 3)
     residuals_I   = np.abs(mean_pred_cal[:, :, 1]
                            - targets_cal[:, :, 1])       # (n_cal, T)
@@ -327,6 +331,11 @@ def _time_adaptive_quantiles(all_preds_cal, targets_cal, alpha=0.10):
 def plot_adaptive_conformal_uncertainty(all_preds_test, targets_test,
                                         all_preds_cal, targets_cal,
                                         out_dir, alpha=0.10, n_display=15):
+    """
+    Three-panel time-adaptive conformal prediction plot: prediction bands using
+    q_hat(t) instead of a single global q_hat, per-timestep coverage, and a
+    comparison of adaptive vs constant (sup-norm) band width over time.
+    """
     q_hat_t   = _time_adaptive_quantiles(all_preds_cal, targets_cal, alpha)
     q_hat_sup = _conformal_quantile(all_preds_cal, targets_cal, alpha)
 

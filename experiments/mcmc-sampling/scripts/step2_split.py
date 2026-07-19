@@ -1,12 +1,3 @@
-"""
-Script
-1. Group all simulations by (tau, gamma, rho)
-2. Randomly shuffle parameter-set groups
-3. Assign groups to train / val / test  (70 / 15 / 15 default)
-4. All replicates of a param set go to the SAME split
-5. Verify zero parameter leakage across splits
-6. Save split pickle + training CSV
-"""
 
 import pickle
 import numpy as np
@@ -14,18 +5,15 @@ import pandas as pd
 import argparse
 from pathlib import Path
 
+#I/O
 RAW_DATA_DIR  = Path("experiments/mcmc-sampling/data/raw")
 SPLIT_DATA_DIR = Path("experiments/mcmc-sampling/data/split")
 
 # BA network ratio 
-RATIO = 34.0
+RATIO = 58
 
 # SPLIT
-def split_dataset(dataset,
-                  train_ratio: float = 0.70,
-                  val_ratio:float = 0.15,
-                  test_ratio:float = 0.15,
-                  seed:int= 42) -> dict:
+def split_dataset(dataset,train_ratio: float = 0.70,val_ratio:float = 0.15,test_ratio:float = 0.15,seed:int= 42) -> dict:
     """
     Split by PARAMETER SET so no (tau, gamma, rho) tuple appears in
     more than one of train / val / test.
@@ -81,8 +69,9 @@ def split_dataset(dataset,
     val_param_idx   = perm[n_train : n_train + n_val]
     test_param_idx  = perm[n_train + n_val:]
 
-    #  Collect simulation indices for each split 
+    #  Collect simulation indices for each split
     def collect(param_indices):
+        """Expanding  a list of param-set indices into the flat simulation indices (all replicates) that belong to them."""
         sim_idx = []
         for pi in param_indices:
             sim_idx.extend(param_to_indices[param_keys[pi]])

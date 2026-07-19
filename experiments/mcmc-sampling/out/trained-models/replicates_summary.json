@@ -9,7 +9,7 @@
       "best_val_mae_i": 53.98762893676758,
       "best_val_mae_s": 938.1298217773438,
       "best_val_mae_r": 942.6630249023438,
-      "training_time_minutes": 1.8126143932342529,
+      "training_time_minutes": 1.1715089003245036,
       "model_filename": "best_balanced_mlp_model_1.pt",
       "output_dir": "experiments\\mcmc-sampling\\out\\trained-models"
     },
@@ -22,7 +22,7 @@
       "best_val_mae_i": 53.525630950927734,
       "best_val_mae_s": 928.6361694335938,
       "best_val_mae_r": 932.154541015625,
-      "training_time_minutes": 2.0980569243431093,
+      "training_time_minutes": 1.3993962327639262,
       "model_filename": "best_balanced_mlp_model_2.pt",
       "output_dir": "experiments\\mcmc-sampling\\out\\trained-models"
     },
@@ -35,7 +35,7 @@
       "best_val_mae_i": 56.83767318725586,
       "best_val_mae_s": 913.936767578125,
       "best_val_mae_r": 917.2523803710938,
-      "training_time_minutes": 2.182529310385386,
+      "training_time_minutes": 1.4823085864384968,
       "model_filename": "best_balanced_mlp_model_3.pt",
       "output_dir": "experiments\\mcmc-sampling\\out\\trained-models"
     },
@@ -48,7 +48,7 @@
       "best_val_mae_i": 54.04774856567383,
       "best_val_mae_s": 889.87255859375,
       "best_val_mae_r": 892.4617309570312,
-      "training_time_minutes": 2.8176228761672975,
+      "training_time_minutes": 1.532032597064972,
       "model_filename": "best_balanced_mlp_model_4.pt",
       "output_dir": "experiments\\mcmc-sampling\\out\\trained-models"
     },
@@ -61,7 +61,7 @@
       "best_val_mae_i": 57.40190124511719,
       "best_val_mae_s": 981.8676147460938,
       "best_val_mae_r": 989.3171997070312,
-      "training_time_minutes": 3.447325817743937,
+      "training_time_minutes": 1.9433561484018962,
       "model_filename": "best_balanced_mlp_model_5.pt",
       "output_dir": "experiments\\mcmc-sampling\\out\\trained-models"
     },
@@ -74,7 +74,7 @@
       "best_val_mae_i": 53.04118347167969,
       "best_val_mae_s": 919.8299560546875,
       "best_val_mae_r": 924.612060546875,
-      "training_time_minutes": 2.7740504145622253,
+      "training_time_minutes": 1.4623395085334778,
       "model_filename": "best_balanced_mlp_model_6.pt",
       "output_dir": "experiments\\mcmc-sampling\\out\\trained-models"
     },
@@ -87,7 +87,7 @@
       "best_val_mae_i": 52.478755950927734,
       "best_val_mae_s": 897.4276123046875,
       "best_val_mae_r": 898.7724609375,
-      "training_time_minutes": 2.5994604428609214,
+      "training_time_minutes": 1.9041853864987692,
       "model_filename": "best_balanced_mlp_model_7.pt",
       "output_dir": "experiments\\mcmc-sampling\\out\\trained-models"
     },
@@ -100,7 +100,7 @@
       "best_val_mae_i": 54.652626037597656,
       "best_val_mae_s": 1059.09716796875,
       "best_val_mae_r": 1063.3326416015625,
-      "training_time_minutes": 3.4462783495585123,
+      "training_time_minutes": 2.1788204391797383,
       "model_filename": "best_balanced_mlp_model_8.pt",
       "output_dir": "experiments\\mcmc-sampling\\out\\trained-models"
     },
@@ -113,7 +113,7 @@
       "best_val_mae_i": 52.695159912109375,
       "best_val_mae_s": 885.94921875,
       "best_val_mae_r": 888.7738647460938,
-      "training_time_minutes": 3.2738198161125185,
+      "training_time_minutes": 2.406416114171346,
       "model_filename": "best_balanced_mlp_model_9.pt",
       "output_dir": "experiments\\mcmc-sampling\\out\\trained-models"
     },
@@ -126,7 +126,7 @@
       "best_val_mae_i": 53.17918014526367,
       "best_val_mae_s": 892.6393432617188,
       "best_val_mae_r": 895.4401245117188,
-      "training_time_minutes": 3.4974783738454183,
+      "training_time_minutes": 1.8787801225980123,
       "model_filename": "best_balanced_mlp_model_10.pt",
       "output_dir": "experiments\\mcmc-sampling\\out\\trained-models"
     }
@@ -254,27 +254,27 @@
     },
     "training_time_minutes": {
       "values": [
-        1.8126143932342529,
-        2.0980569243431093,
-        2.182529310385386,
-        2.8176228761672975,
-        3.447325817743937,
-        2.7740504145622253,
-        2.5994604428609214,
-        3.4462783495585123,
-        3.2738198161125185,
-        3.4974783738454183
+        1.1715089003245036,
+        1.3993962327639262,
+        1.4823085864384968,
+        1.532032597064972,
+        1.9433561484018962,
+        1.4623395085334778,
+        1.9041853864987692,
+        2.1788204391797383,
+        2.406416114171346,
+        1.8787801225980123
       ],
       "n": 10,
-      "mean": 2.7949236718813575,
-      "std": 0.6180214451194234,
-      "sem": 0.19543554094061305,
-      "ci_lower": 2.352817763066284,
-      "ci_upper": 3.237029580696431,
-      "min": 1.8126143932342529,
-      "max": 3.4974783738454183,
-      "median": 2.795836645364761,
-      "cv": 22.112283470818802
+      "mean": 1.7359144035975138,
+      "std": 0.387301360017748,
+      "sem": 0.12247544385369552,
+      "ci_lower": 1.4588557010101413,
+      "ci_upper": 2.0129731061848863,
+      "min": 1.1715089003245036,
+      "max": 2.406416114171346,
+      "median": 1.7054063598314921,
+      "cv": 22.311086261805514
     }
   },
   "config": {

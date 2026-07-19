@@ -32,6 +32,12 @@ def set_seed(seed):
     np.random.seed(seed)
 
 def compute_balanced_loss(predictions, targets, device, weight_mode='balanced'):
+    """
+    MSE loss on S and I compartments (each normalised by N), with I weighted 100x
+    relative to S so the optimiser prioritises fitting the epidemic peak rather than
+    the numerically larger but less informative S trajectory. R is excluded since it
+    is fully determined by conservation (R = N - S - I) in the model architecture.
+    """
     S_pred = predictions[:, :, 0]
     I_pred = predictions[:, :, 1]
     R_pred = predictions[:, :, 2]
@@ -55,7 +61,6 @@ def compute_balanced_loss(predictions, targets, device, weight_mode='balanced'):
 # TRAIN / VALIDATE ONE EPOCH
 def train_epoch_balanced(model, train_loader, optimizer, device, n_timesteps,
                          weight_mode='modest'):
-    """One training epoch — no graph_stats, no dummy tensors."""
     model.train()
 
     total_loss = total_loss_S = total_loss_I = total_loss_R = 0.0
@@ -283,7 +288,6 @@ def train_multiple_replicates(
 
     All checkpoints are saved in output_dir as:
         best_balanced_mlp_model_1.pt
-        best_balanced_mlp_model_2.pt
         ...
     """
     output_dir = Path(output_dir)
@@ -440,7 +444,7 @@ def plot_replicates_comparison(all_results, all_histories, output_dir):
         fontsize=16, fontweight='bold'
     )
 
-    # Val R²
+    # Val R^2
     ax = fig.add_subplot(gs[0, 0])
     for i, (result, history) in enumerate(zip(all_results, all_histories)):
         ax.plot(range(1, len(history['val_r2']) + 1), history['val_r2'],
@@ -459,7 +463,7 @@ def plot_replicates_comparison(all_results, all_histories, output_dir):
     ax.set_xlabel('Epoch'); ax.set_ylabel('Validation MAE_I')
     ax.set_title('MAE_I Across Replicates'); ax.grid(True, alpha=0.3)
 
-    # R² distribution
+    # R^2 distribution
     ax = fig.add_subplot(gs[0, 2])
     final_r2 = [r['best_val_r2'] for r in all_results]
     ax.hist(final_r2, bins=min(10, n_replicates), color='skyblue', edgecolor='black', alpha=0.7)
@@ -473,15 +477,18 @@ def plot_replicates_comparison(all_results, all_histories, output_dir):
     plt.close()
     print(f"Saved: {out}")
 
+#Monitoring training time
+
 def write_training_timing_log(all_results, total_seconds, config, log_path: Path):
+    """Append a per-run timing summary (total + per-replicate) to a persistent text log."""
     run_at = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     rep_times = [r['training_time_minutes'] * 60 for r in all_results]
     lines = [
-        f"Run timestamp          : {run_at}",
-        f"Replicates             : {len(all_results)}",
-        f"Epochs (max)           : {config['epochs']}",
-        f"Batch size             : {config['batch_size']}",
-        f"Total training time    : {total_seconds:.2f} s  ({total_seconds/60:.2f} min)",
+        f"Run timestamp: {run_at}",
+        f"Replicates   : {len(all_results)}",
+        f"Epochs (max) : {config['epochs']}",
+        f"Batch size   : {config['batch_size']}",
+        f"Total training time : {total_seconds:.2f} s  ({total_seconds/60:.2f} min)",
         f"Mean time / replicate  : {np.mean(rep_times):.2f} s  ({np.mean(rep_times)/60:.2f} min)",
         "",
         f"  {'Rep':>3}  {'Seed':>6}  {'Best epoch':>10}  {'Time (s)':>10}  {'Time (min)':>10}",
@@ -509,10 +516,10 @@ if __name__ == "__main__":
     parser.add_argument('--n_replicates',type=int,default=n_replicates)
     parser.add_argument('--seeds',type=str,default=None)
     parser.add_argument('--weight_mode',type=str,default='modest',choices=['equal','modest','balanced'])
-    parser.add_argument('--epochs',type=int,default=100) #50
-    parser.add_argument('--batch_size',type=int,default=35) #30
-    parser.add_argument('--lr',type=float,default=0.00005) #1e-3
-    parser.add_argument('--weight_decay',type=float,default=1e-3) #-3
+    parser.add_argument('--epochs',type=int,default=100) 
+    parser.add_argument('--batch_size',type=int,default=35) 
+    parser.add_argument('--lr',type=float,default=0.00005) 
+    parser.add_argument('--weight_decay',type=float,default=1e-3) 
     parser.add_argument('--patience',type=int,default=35) #35 early stopping parameter , help to know when to stop training, 
     args = parser.parse_args()
 
@@ -536,8 +543,8 @@ if __name__ == "__main__":
         'epochs': args.epochs,
         'batch_size': args.batch_size,
         'lr' : args.lr,
-        'weight_decay': args.weight_decay, # L2 regularization, applied through adam-optimizer, so it pernalize large weights (large weights more flexible model, risk of overfitting), This pushes weights toward zero during training, preventing a single parameter from dominating, 
-        'patience' : args.patience,
+        'weight_decay': args.weight_decay, # L2 regularization, applied through adam-optimizer
+        'patience': args.patience,
     }
 
     
@@ -588,5 +595,4 @@ if __name__ == "__main__":
     print(f"  Mean MAE_I : {stats_dict['best_val_mae_i']['mean']:.2f}"
           f" ± {stats_dict['best_val_mae_i']['std']:.2f}")
     print(f"CV:{stats_dict['best_val_mae_i']['cv']:.2f}%")
-    print(f"\n Validate: python step4_validate_SIR3param.py --models_dir {args.output_dir}")
-    print(f"Test:python step5_test_SIR3param.py --models_dir {args.output_dir}")
+   

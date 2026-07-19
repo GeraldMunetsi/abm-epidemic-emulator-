@@ -1,0 +1,12 @@
+Simple ranking: raw per-emulator mean
++/- 95% CI, pooled across the 3 test strategies (no model adjustment).
+
+train_strategy  augmentation  n  mean_rel_MAE_I_%  MAE_CI_lo  MAE_CI_hi  rank_MAE_I  mean_R2_I  R2_CI_lo  R2_CI_hi  rank_R2_I
+          MCMC             1 30             4.394      4.351      4.436           1      0.750     0.719     0.780          5
+           LHS             1 30             4.704      4.521      4.888           2      0.943     0.935     0.951          1
+UNIFORM_RANDOM             1 30             4.704      4.476      4.933           3      0.943     0.935     0.951          2
+          MCMC             0 30             4.740      4.658      4.823           4      0.722     0.686     0.759          6
+           LHS             0 30             6.933      6.680      7.185           5      0.916     0.905     0.927          4
+UNIFORM_RANDOM             0 30             6.970      6.657      7.283           6      0.921     0.911     0.932          3
+
+0 / 6 emulators get the same rank from relative_MAE_I and R2_I.

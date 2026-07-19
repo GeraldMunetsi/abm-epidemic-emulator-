@@ -29,15 +29,22 @@ n_param_aug=1
 n_comp_aug=1
 
 class SIRAugmenter:
-    def __init__(self, param_noise=param_noise, comp_noise=comp_noise,  #0.001
-                 n_param_aug=n_param_aug, n_comp_aug=n_comp_aug): #was 10, 1
+    """
+    Generates extra synthetic training simulations from an existing one by
+    perturbing either the (tau, gamma, rho) parameters or the S/I/R compartment
+    trajectories with small multiplicative Gaussian noise, so the emulator sees
+    a denser/noisier training set without running new ABM simulations.
+    """
+    def __init__(self, param_noise=param_noise, comp_noise=comp_noise,  
+                 n_param_aug=n_param_aug, n_comp_aug=n_comp_aug): 
         self.param_noise = param_noise
         self.comp_noise  = comp_noise
         self.n_param_aug = n_param_aug
         self.n_comp_aug  = n_comp_aug
 
-    # This is the method your code expects
+    
     def augment_simulation(self, sim):
+        """Return the original sim plus n_param_aug parameter-perturbed and n_comp_aug compartment-perturbed copies."""
         sims = [sim]
         for _ in range(self.n_param_aug):
             sims.append(self.augment_params(sim))
@@ -45,9 +52,10 @@ class SIRAugmenter:
             sims.append(self.augment_compartments(sim))
         return sims
 
-        
+
 
     def augment_params(self, sim):
+        """Multiplying  tau/gamma/rho by (1 + Gaussian noise) and clip to their physical bounds; output trajectory is left unchanged."""
         sim_new = deepcopy(sim)
         for k in ['tau', 'gamma', 'rho']:
             lo, hi = PARAM_BOUNDS[k]
@@ -56,6 +64,7 @@ class SIRAugmenter:
         return sim_new
 
     def augment_compartments(self, sim):
+        """Add multiplicative noise to S and I trajectories, then recompute R = N - S - I so S+I+R=N stays exact."""
         sim_new = deepcopy(sim)
         out = sim_new['output']
         S = np.array(out['S'])
@@ -81,8 +90,9 @@ class SIRAugmenter:
 
 
 # Apply augmentation
-    
+
 def augment_train_split(split_data, augmenter):
+    """Apply augmenter to every simulation in the train split only (val/test are left untouched to avoid leakage)."""
 
     augmented = deepcopy(split_data)
 
@@ -116,9 +126,6 @@ def export_params_with_R0(split_data, csv_path, split_name="train", ratio=ratio)
 
 if __name__ == "__main__":
     #  Step 1: Load split data from DATA_DIR 
-    print("=" * 60)
-    print("SIR DATA AUGMENTATION")
-    print("=" * 60)
     print(f"\n  Input   : {INPUT_PKL.resolve()}")
     print(f"  Output  : {AUGMENTED_PKL.resolve()}")
     print(f"  CSV     : {AUGMENTED_CSV.resolve()}")
@@ -192,7 +199,7 @@ if __name__ == "__main__":
                          augmented_data['gamma'].max(), 100)
     y_vals = slope * x_vals
     plt.plot(x_vals, y_vals, color='red', linestyle='--',
-             label=f'R₀=1 boundary  (slope={slope:.5f})')
+             label=f'R0=1 boundary  (slope={slope:.5f})')
 
     plt.xlabel('gamma (γ)')
     plt.ylabel('tau (τ)')
@@ -202,11 +209,11 @@ if __name__ == "__main__":
     plt.grid(True)
 
     scatter_path = PLOTS_DIR / "tau_gamma_scatter_augmented.png"
-    plt.savefig(scatter_path, dpi=200, bbox_inches='tight')
+    plt.savefig(scatter_path, dpi=900, bbox_inches='tight')
     plt.close()
     print(f"Saved: {scatter_path}")
 
-    # Step 7: R₀ distribution plot
+    # Step 7: R0 distribution plot
     r0 = augmented_data['R0'].values
     n_sub  = (r0 < 1).sum()
     n_sup  = (r0 >= 1).sum()
@@ -214,24 +221,24 @@ if __name__ == "__main__":
     fig, ax = plt.subplots(figsize=(10, 6))
 
     ax.hist(r0, bins=60, color='steelblue', alpha=0.6, edgecolor='white',
-            linewidth=0.4, density=True, label='R₀ distribution (density)')
+            linewidth=0.4, density=True, label='R0 distribution (density)')
 
     ax.axvline(1.0, color='crimson', linewidth=2.0, linestyle='--',
-               label='R₀ = 1  (epidemic threshold)')
+               label='R0 = 1  (epidemic threshold)')
 
-    ax.set_xlabel('R₀', fontweight='bold', fontsize=12)
+    ax.set_xlabel('R0', fontweight='bold', fontsize=12)
     ax.set_ylabel('Density', fontweight='bold', fontsize=12)
     ax.set_title(
-        f'R₀ Distribution: MCMC Augmented Training Set\n'
-        f'Sub-critical (R₀ < 1): {n_sub} ({n_sub/len(r0)*100:.1f}%)   '
-        f'Super-critical (R₀ ≥ 1): {n_sup} ({n_sup/len(r0)*100:.1f}%)',
+        f'R0 Distribution: MCMC Augmented Training Set\n'
+        f'Sub-critical (R0 < 1): {n_sub} ({n_sub/len(r0)*100:.1f}%)   '
+        f'Super-critical (R0 ≥ 1): {n_sup} ({n_sup/len(r0)*100:.1f}%)',
         fontsize=12
     )
     ax.legend(fontsize=10, framealpha=0.85)
     ax.grid(True, alpha=0.3)
 
     r0_dist_path = PLOTS_DIR / "r0_distribution_augmented.png"
-    fig.savefig(r0_dist_path, dpi=200, bbox_inches='tight')
+    fig.savefig(r0_dist_path, dpi=700, bbox_inches='tight')
     plt.close(fig)
     print(f"Saved: {r0_dist_path}")
 

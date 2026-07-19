@@ -29,6 +29,7 @@ OUT_DIR    = Path("experiments/mcmc-sampling/out/plots/conservation_plot")
 
 # ── MODEL LOADING ──────────────────────────────────────────────────────────────
 def load_replicate_model(model_path: Path, device: torch.device):
+    """Load a single replicate checkpoint (falling back to a default config if none was saved) and return it in eval mode."""
     checkpoint = torch.load(model_path, map_location=device, weights_only=False)
     config     = checkpoint.get('config', {
         'n_params'        : 3,

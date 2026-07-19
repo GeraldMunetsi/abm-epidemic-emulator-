@@ -30,7 +30,7 @@ TIMING_FILE = RESULTS_DIR / "timing.txt"
 
 # PARAMETERS
 N=100000              # network size
-m=10                      # Barabasi–Albert attachment parameter
+m=10                   # Barabasi–Albert attachment parameter
 
 tmax=250
 n_timepoints=250
@@ -46,58 +46,10 @@ PARAM_RANGES = {
 }
 
 
-
 PARAM_NAMES = ['tau', 'gamma', 'rho']
 output_path = Path('abm-data.pkl')
 
-# results_k_avg = []
-# results_k2_avg = []
-# results_ratio = []
-
-# for i in range(1000):
-    
-#     G = nx.barabasi_albert_graph(N, m)
-    
-#     degrees = np.array([d for _, d in G.degree()])
-    
-#     k_avg = degrees.mean()
-#     k2_avg = (degrees**2).mean()
-#     ratio = (k2_avg-k_avg)/ k_avg   # R0 = (tau/gamma) * (<k²> - <k>) / <k> that is our BA network ratio for R0 computation 
-    
-#     results_k_avg.append(k_avg)
-#     results_k2_avg.append(k2_avg)
-#     results_ratio.append(ratio)
-
-# # converting to arrays
-# results_k_avg = np.array(results_k_avg)
-# results_k2_avg = np.array(results_k2_avg)
-# results_ratio = np.array(results_ratio)
-
-# # means
-# mean_k_avg = results_k_avg.mean()
-# mean_k2_avg = results_k2_avg.mean()
-# mean_ratio = results_ratio.mean()
-
-# # standard errors 
-# se_k_avg = results_k_avg.std(ddof=1)/np.sqrt(len(results_k_avg))
-# se_k2_avg = results_k2_avg.std(ddof=1)/np.sqrt(len(results_k2_avg))
-# se_ratio = results_ratio.std(ddof=1)/np.sqrt(len(results_ratio))
-
-# # 95% CI  (mean ± 1.96 * standard error)
-# ci_k_avg = (mean_k_avg - 1.96*se_k_avg, mean_k_avg + 1.96*se_k_avg)
-# ci_k2_avg = (mean_k2_avg - 1.96*se_k2_avg, mean_k2_avg + 1.96*se_k2_avg)
-# ci_ratio = (mean_ratio - 1.96*se_ratio, mean_ratio + 1.96*se_ratio)
-
-# print("Mean <k>:", mean_k_avg, "CI:", ci_k_avg)
-# print("Mean <k^2>:", mean_k2_avg, "CI:", ci_k2_avg)
-# print("Mean <k^2>/<k>:", mean_ratio, "CI:", ci_ratio)
-
-
-
-
-
-
-#ratio=58.979# calculated for 1000 graphs
+#The ratio=58 calculated for 1000 graphs from Ratio generated.py 
 ratio = 58# calculated for 1000 graphs
 net_stats = {
     'k_avg': 19.99,
@@ -124,10 +76,13 @@ def compute_R0(samples,ratio):
     return R0
 
 #PRIOR SPECIFICATION
-# Using MCMC-NUTS to sample from the target distribution  with Uniform distribution
+# Using MCMC-NUTS to sample from the target distribution  with Uniform distribution. 
+#This sampling method has been termed Near threshold Sampling (NTS) in the dissertation
 
 t0_data_gen = time.perf_counter()
 
+# NUTS sampler draws (tau, gamma, rho) from uniform priors, weighted (via the R0_target
+# potential) toward the near-critical R0=1 regime rather than the full prior support.
 with pm.Model() as model:
 
     # Priors: Uniform over plausible ranges
@@ -152,6 +107,7 @@ with pm.Model() as model:
         target_accept=0.95,
         random_seed=43
     )
+
 #Thinning after sampling.
 trace_thinned = trace.sel(draw=slice(None, None, 10))
 
@@ -195,7 +151,13 @@ print(posterior_samples.shape) #4000,3
 
 # Function to run batch simulations
 def run_batch(G, posterior_samples, n_replicates, tmax, n_timepoints, seed=None):
-    
+    """
+    Running EoN.fast_SIR on network G for every (tau, gamma, rho) posterior sample,
+    n_replicates times each, interpolating each stochastic trajectory onto a
+    common fixed time grid so all simulations are directly comparable/stackable.
+    Returns a list of dicts with 'params' and 'output' (t, S, I, R arrays).
+    """
+
     if seed is not None:
         np.random.seed(seed)
 
@@ -232,6 +194,7 @@ def run_batch(G, posterior_samples, n_replicates, tmax, n_timepoints, seed=None)
 
 # Building dataset structure
 def build_dataset(all_sims, G, net_stats, m, n_replicates, param_ranges):
+    """Bundle simulations, network info, and metadata into a single dict for pickling."""
 
     n_timepoints = len(all_sims[0]['output']['t'])
 
@@ -253,7 +216,7 @@ def build_dataset(all_sims, G, net_stats, m, n_replicates, param_ranges):
             'n_timepoints': n_timepoints,
             'param_ranges': param_ranges,
             'R0_formula': 'R0 = (tau/gamma) * <k²>/<k>',
-            'sampling_strategy': 'MCMC',
+            'sampling_strategy': 'MCMC or NTS',
         }
     }
 
@@ -261,6 +224,7 @@ def build_dataset(all_sims, G, net_stats, m, n_replicates, param_ranges):
 
 # Aggregating simulations for plotting
 def summarise_for_plot(dataset):
+    """Stack all I/S/R trajectories into arrays and compute R0 + percentile bands for plotting."""
 
     sims = dataset['simulations']
     ratio = dataset['network']['ratio']
@@ -288,6 +252,7 @@ def summarise_for_plot(dataset):
 
 # Plot for epidemic uncertainty — three R0 regimes
 def plot_sir_uncertainty(full_results, output_dir=PLOTS_DIR):
+    """Split trajectories into sub-threshold/near-threshold/outbreak R0 bins and plot mean + percentile bands for each."""
 
     t = full_results['t']
     all_I = full_results['all_I']
@@ -307,9 +272,9 @@ def plot_sir_uncertainty(full_results, output_dir=PLOTS_DIR):
     )
 
     for ax, mask, label, color in [
-        (axes[0], sub_mask,  "Sub-threshold (R₀ < 0.1)",          "steelblue"),
-        (axes[1], near_mask, "Near-threshold (0.1 ≤ R₀ ≤ 2)", "goldenrod"),
-        (axes[2], out_mask,  "Outbreak (R₀ > 2)",                  "firebrick"),
+        (axes[0], sub_mask,  "Sub-threshold (R0 < 0.1)","steelblue"),
+        (axes[1], near_mask, "Near-threshold (0.1 ≤ R0 ≤ 2)", "goldenrod"),
+        (axes[2], out_mask,  "Outbreak (R0 > 2)", "firebrick"),
     ]:
         subset = all_I[mask]
         n = mask.sum()
@@ -347,6 +312,7 @@ def plot_sir_uncertainty(full_results, output_dir=PLOTS_DIR):
 
 # Save dataset (pickle)
 def save_dataset(dataset, filepath):
+    """Pickle the full dataset dict (includes the graph object) to disk."""
 
     with open(filepath, 'wb') as f:
         pickle.dump(dataset, f, protocol=pickle.HIGHEST_PROTOCOL)
@@ -357,6 +323,7 @@ def save_dataset(dataset, filepath):
 
 # Save summary CSV
 def save_csv(dataset, filepath):
+    """Write one row per simulation with derived summary stats (R0, peak I, attack rate, etc.) to CSV."""
     sims = dataset['simulations']
     ratio = dataset['network']['ratio']
     N = dataset['network']['N']
@@ -411,7 +378,8 @@ def save_csv(dataset, filepath):
 
     print(f"CSV saved to {filepath} ({len(sims)} rows)")
 
-# Entry point
+# Entry point: build one BA network, simulate the ABM at every posterior sample, then
+# save the dataset and produce diagnostic plots for the resulting parameter/output distributions.
 G = nx.barabasi_albert_graph(N, m)
 
 t0_sim = time.perf_counter()
@@ -469,7 +437,7 @@ print(f"R0 < 0.1    : {len(less_than)}  ({len(less_than)/total_samples*100:.1f}%
 print(f"\nData : {DATA_DIR}")
 print(f"Plots : {PLOTS_DIR}")
 
-# Write timing report
+# timing report
 n_samples = len(posterior_samples)
 RESULTS_DIR.mkdir(parents=True, exist_ok=True)
 with open(TIMING_FILE, "w") as f:
@@ -487,7 +455,8 @@ print(f"Timing saved: {TIMING_FILE}")
 
 
 #Saves to PLOTS_DIR
-# R0 = (tau/gamma) * ratio  =>  tau = R0 * gamma / ratio
+# Scatter of sampled (gamma, tau) pairs with the R0=1 threshold line and the
+
 slope = 1 / ratio  # R0=1 line slope
 plt.figure(figsize=(10, 10))
 plt.scatter(data['gamma'], data['tau'], alpha=0.3, s=10, color='steelblue', label='MCMC samples')
@@ -498,13 +467,13 @@ x_vals = np.linspace(data['gamma'].min(), data['gamma'].max(), 300)
 y_lo = (0.1 / ratio) * x_vals
 y_hi = (2.0 / ratio) * x_vals
 plt.fill_between(x_vals, y_lo, y_hi,
-                 alpha=0.20, color='gold', label='Near threshold (0.1 ≤ R₀ ≤ 2.0)')
-plt.plot(x_vals, y_lo, color='goldenrod', linestyle=':', linewidth=1.5, label='R₀ = 0.1')
-plt.plot(x_vals, y_hi, color='darkorange', linestyle=':', linewidth=1.5, label='R₀ = 2.0')
+                 alpha=0.20, color='gold', label='Near threshold (0.1 ≤ R0 ≤ 2.0)')
+plt.plot(x_vals, y_lo, color='goldenrod', linestyle=':', linewidth=1.5, label='Ro = 0.1')
+plt.plot(x_vals, y_hi, color='darkorange', linestyle=':', linewidth=1.5, label='R0 = 2.0')
 
 # Epidemic threshold: R0 = 1
 y_r0_1 = slope * x_vals
-plt.plot(x_vals, y_r0_1, color='red', linestyle='--', linewidth=2, label='R₀ = 1 (epidemic threshold)')
+plt.plot(x_vals, y_r0_1, color='red', linestyle='--', linewidth=2, label='R0 = 1 (epidemic threshold)')
 
 tau_max = data['tau'].max() * 1.1
 plt.ylim(0, tau_max)
@@ -525,6 +494,8 @@ print(f"Saved: {scatter_path}")
 
 data = data
 
+# Grid of histograms (bar chart for the binary near_threshold flag) summarising
+# the marginal distribution of each parameter/outcome column across all posterior samples.
 params = {
     'R0':('R0', 'R\u2080','steelblue'),
     'tau':('tau','\u03C4 (transmission rate)', 'darkorange'),

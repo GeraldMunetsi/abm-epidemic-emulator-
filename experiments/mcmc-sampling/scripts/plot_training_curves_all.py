@@ -1,17 +1,3 @@
-"""
-Training curves for all 6 sampling-strategy conditions.
-
-Produces per-condition 4-panel figures (matching the ablation-study style):
-    a) Train (--) vs Validation (—) Loss  [log scale]
-    b) R²_I of I Compartment Evolution
-    c) Relative MAE_I (% of N)
-    d) Convergence — last 20 epochs validation loss  [dot markers]
-
-Also produces a combined 6-row × 4-col overview figure.
-
-Run from repo root:
-    python "experiments/mcmc-sampling/scripts/plot_training_curves_all.py"
-"""
 
 import numpy as np
 import matplotlib.pyplot as plt
@@ -35,6 +21,7 @@ CONDITIONS = {
 
 # ── DATA HELPERS ───────────────────────────────────────────────────────────────
 def load_histories(condition_dir: Path) -> list:
+    """Load every replicate's training_history_*.npy dict from a condition directory, in replicate order."""
     files = sorted(
         condition_dir.glob("training_history_*.npy"),
         key=lambda p: int(p.stem.split("_")[-1]),
@@ -60,6 +47,7 @@ def _legend(ax, n_reps: int, fontsize: int = 7) -> None:
 
 # ── SINGLE-CONDITION 4-PANEL FIGURE ───────────────────────────────────────────
 def plot_condition(condition_key: str, histories: list, out_path: Path) -> None:
+    """Render the 4-panel (loss/R2_I/relative MAE_I/convergence) training summary for one sampling-strategy condition, one line per replicate."""
     label    = CONDITIONS[condition_key]
     n_reps   = len(histories)
     rep_cols = plt.cm.tab10(np.linspace(0, 0.9, n_reps))
@@ -273,5 +261,3 @@ if __name__ == "__main__":
             all_histories,
             OUT_DIR / "fig_training_curves_all_conditions.png",
         )
-
-    print("\nDone.")

@@ -22,30 +22,30 @@ Output dir: experiments\Ablation studies\out\trained-models\no_spline
 VALIDATION PERFORMANCE
 
 MAE_I (Infected Compartment):
-  Mean : 34.13
-  Std  : 2.96
-  95% CI: [32.02, 36.25]
+  Mean : 34.14
+  Std  : 2.87
+  95% CI: [32.09, 36.19]
 
 R²:
-Mean:0.7274
-Std:0.1370
-95% CI:[0.6294, 0.8254]
+Mean:0.6982
+Std:0.1002
+95% CI:[0.6265, 0.7699]
 
 Per-Compartment MAE:
-MAE_S:  782.01 ± 111.42  (95% CI: [702.30, 861.71])
-MAE_I:   34.13 ±  2.96  (95% CI: [32.02, 36.25])
-MAE_R: 43645.76 ± 796.16  (95% CI: [43076.22, 44215.30])
+MAE_S:  821.84 ± 169.34  (95% CI: [700.71, 942.98])
+MAE_I:   34.14 ±  2.87  (95% CI: [32.09, 36.19])
+MAE_R: 43680.57 ± 794.79  (95% CI: [43112.01, 44249.13])
 
 ----------------------------------------------------------------------
 INDIVIDUAL REPLICATE RESULTS
  ID   Seed  Epoch     R²_I    MAE_I    MAE_S    MAE_R Model File                         
-  1     42     23   0.6230    41.45   674.64 43154.03 best_balanced_mlp_model_1.pt       
-  2    123     26   0.6200    33.17   942.87 44328.54 best_balanced_mlp_model_2.pt       
-  3    456     24   0.6570    33.56   775.32 42477.77 best_balanced_mlp_model_3.pt       
-  4    789     27   0.6429    32.03   958.54 43289.95 best_balanced_mlp_model_4.pt       
-  5   1011     65   0.9109    33.45   811.99 44400.02 best_balanced_mlp_model_5.pt       
-  6   1213     83   0.9378    33.79   653.44 43197.55 best_balanced_mlp_model_6.pt       
-  7   1415     23   0.6326    31.55   863.06 43246.54 best_balanced_mlp_model_7.pt       
-  8   1617     28   0.6484    35.55   770.22 43426.85 best_balanced_mlp_model_8.pt       
-  9   1819     28   0.6774    35.56   693.93 43701.24 best_balanced_mlp_model_9.pt       
- 10   2021     67   0.9240    31.23   676.04 45235.07 best_balanced_mlp_model_10.pt      
+  1     42     24   0.6466    33.70   694.39 43084.78 best_balanced_mlp_model_1.pt       
+  2    123     27   0.6754    30.88   854.76 44372.06 best_balanced_mlp_model_2.pt       
+  3    456     24   0.6439    34.84   975.51 42512.95 best_balanced_mlp_model_3.pt       
+  4    789     28   0.6706    33.87  1084.14 43369.41 best_balanced_mlp_model_4.pt       
+  5   1011     27   0.6210    32.73  1045.72 44406.57 best_balanced_mlp_model_5.pt       
+  6   1213     81   0.9318    36.92   847.90 43192.66 best_balanced_mlp_model_6.pt       
+  7   1415     34   0.7110    32.54   673.00 43383.38 best_balanced_mlp_model_7.pt       
+  8   1617     29   0.6633    33.77   612.39 43432.43 best_balanced_mlp_model_8.pt       
+  9   1819     44   0.8122    40.69   781.67 43801.72 best_balanced_mlp_model_9.pt       
+ 10   2021     23   0.6060    31.45   648.95 45249.72 best_balanced_mlp_model_10.pt      

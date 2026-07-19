@@ -42,9 +42,11 @@ class EpidemicDatasetSIR(Dataset):
         self.n_timepoints = n_timepoints
 
     def __len__(self) -> int:
+        """Number of simulations in this split."""
         return len(self.simulations)
 
     def __getitem__(self, idx: int) -> dict:
+        """Build one training sample: normalised params, raw rho, and the (T,3) SIR target."""
         sim = self.simulations[idx]
 
         # Raw parameters
@@ -90,6 +92,7 @@ class BatchWrapper:
         self.y           = y
 
     def to(self, device):
+        """Move all batched tensors to the given device in place, return self for chaining."""
         self.params_norm = self.params_norm.to(device)
         self.rho_raw     = self.rho_raw.to(device)
         self.y           = self.y.to(device)
@@ -118,28 +121,13 @@ def collate_sir(batch_list: list) -> BatchWrapper:
     return BatchWrapper(params_norm, rho_raw, y)
 
 
-# ── DATA LOADERS ──────────────────────────────────────────────────────────────
+# DATA LOADERS 
 def create_dataloaders(dataset_path: str, batch_size: int = 32,
                        num_workers: int = 0) -> dict:
     """
     Load the SIR dataset pickle and return train/val/test DataLoaders.
-
-    Expected pickle structure:
-        {
-          'train'   : {'simulations': [...]},
-          'val'     : {'simulations': [...]},
-          'test'    : {'simulations': [...]},
-          'metadata': {'n_timepoints': int, ...}
-        }
-
-    Each simulation dict must contain:
-        sim['params']  → {'tau': float, 'gamma': float, 'rho': float}
-        sim['output']  → {'t': array, 'S': array, 'I': array, 'R': array}
-
     Args:
-        dataset_path : path to .pkl file
-        batch_size   : samples per batch
-        num_workers  : DataLoader worker processes
+        dataset_path,batch_size, num_workers  
 
     Returns:
         dict with keys: 'train', 'val', 'test', 'metadata', 'n_timepoints'
@@ -150,13 +138,13 @@ def create_dataloaders(dataset_path: str, batch_size: int = 32,
         data = pickle.load(f)
 
     # Infer number of time points from first simulation
-    first_sim    = data['train']['simulations'][0]
+    first_sim = data['train']['simulations'][0]
     n_timepoints = len(first_sim['output']['t'])
     print(f"  n_timepoints : {n_timepoints}")
 
     # Build datasets
     train_dataset = EpidemicDatasetSIR(data['train']['simulations'], n_timepoints)
-    val_dataset   = EpidemicDatasetSIR(data['val']['simulations'],   n_timepoints)
+    val_dataset = EpidemicDatasetSIR(data['val']['simulations'],   n_timepoints)
     test_dataset  = EpidemicDatasetSIR(data['test']['simulations'],  n_timepoints)
     print(f"  Train={len(train_dataset)}, Val={len(val_dataset)}, "
           f"Test={len(test_dataset)}")
@@ -164,7 +152,7 @@ def create_dataloaders(dataset_path: str, batch_size: int = 32,
     train_loader = DataLoader(
         train_dataset,
         batch_size  = batch_size,
-        shuffle     = True,
+        shuffle  = True,
         drop_last   = True,       # prevents BatchNorm crash on 1-sample tail batch
         num_workers = num_workers,
         collate_fn  = collate_sir,
@@ -190,39 +178,21 @@ def create_dataloaders(dataset_path: str, batch_size: int = 32,
     metadata['n_timepoints'] = n_timepoints
 
     return {
-        'train'       : train_loader,
-        'val'         : val_loader,
-        'test'        : test_loader,
-        'metadata'    : metadata,
+        'train' : train_loader,
+        'val' : val_loader,
+        'test' : test_loader,
+        'metadata': metadata,
         'n_timepoints': n_timepoints,
     }
 
 
-# ── METRICS ───────────────────────────────────────────────────────────────────
+# ── METRICS ─
 def compute_metrics(predictions, targets, prefix: str = '') -> dict:
     """
     Compute regression metrics for SIR trajectory predictions.
 
-    All samples are included — no peak threshold exclusion.
-
-    Rationale: with rho ∈ [0.001, 0.01] and N = 100,000,
-    the initial seeding I(0) = N × rho ∈ [100, 1,000] for every
-    parameter combination, so the true peak I_max ≥ I(0) ≥ 100.
-    The denominator of Rel-MAE_I is therefore always numerically
-    stable; near-extinction trajectories where I_max ≈ I(0) are
-    included and their elevated relative errors are reported
-    transparently as a known consequence of the B-spline decoder's
-    architectural guarantee I(t) > 0.
-
-    Removing the peak_threshold parameter also ensures that training,
-    validation, and test metrics are computed identically on the same
-    sample set, preventing any discrepancy between checkpoint selection
-    and final reported accuracy.
-
     Args:
-        predictions : (N, T, 3) tensor or array — predicted [S, I, R]
-        targets     : (N, T, 3) tensor or array — ground truth [S, I, R]
-        prefix      : optional string prefix for metric keys (default '')
+        predictions ,targets,prefix   
 
     Returns:
         dict of scalar floats
@@ -238,22 +208,18 @@ def compute_metrics(predictions, targets, prefix: str = '') -> dict:
         ss_tot = np.sum((true - true.mean()) ** 2)
         return float(1.0 - ss_res / (ss_tot + 1e-8))
 
-    # ── Global metrics — all compartments, all samples ────────────────────────
-    # Measures total emulator quality across the full trajectory tensor
+    # Global metrics — all compartments, all samples 
     mae  = float(np.abs(predictions - targets).mean())
     mse  = float(((predictions - targets) ** 2).mean())
     rmse = float(np.sqrt(mse))
     r2   = _r2(predictions, targets)
 
-    # ── Per-compartment MAE ───────────────────────────────────────────────────
+    #  Per-compartment MAE
     mae_s = float(np.abs(predictions[:, :, 0] - targets[:, :, 0]).mean())
     mae_i = float(np.abs(predictions[:, :, 1] - targets[:, :, 1]).mean())
     mae_r = float(np.abs(predictions[:, :, 2] - targets[:, :, 2]).mean())
 
-    # ── Per-compartment R² ────────────────────────────────────────────────────
-    # R²_S: does the model capture susceptible depletion?
-    # R²_I: does the model capture infected peak magnitude and timing?
-    # R²_R: does the model capture recovery accumulation?
+    # Per-compartment R^2
     r2_s = _r2(predictions[:, :, 0], targets[:, :, 0])
     r2_i = _r2(predictions[:, :, 1], targets[:, :, 1])
     r2_r = _r2(predictions[:, :, 2], targets[:, :, 2])
@@ -273,45 +239,21 @@ def compute_metrics(predictions, targets, prefix: str = '') -> dict:
     }
 
 
-# ── DEVICE HELPER ─────────────────────────────────────────────────────────────
+# DEVICE HELPER 
 def get_device() -> torch.device:
-    """Return CUDA GPU if available, otherwise CPU."""
-    if torch.cuda.is_available():
-        device = torch.device('cuda')
-        print(f"\nUsing GPU : {torch.cuda.get_device_name(0)}")
-    else:
-        device = torch.device('cpu')
-        print("\nUsing CPU")
+    """Return CPU device."""
+    device = torch.device("cpu")
+    print("\nUsing CPU")
     return device
 
 
-# ── EARLY STOPPING ────────────────────────────────────────────────────────────
+# EARLY STOPPING ─
 class EarlyStopping:
     """
     Stop training when a monitored metric stops improving.
 
-    Correct usage — monitor val R², stop when it plateaus:
-
-        stopper = EarlyStopping(patience=35, min_delta=1e-4, mode='min')
-
-        for epoch in range(max_epochs):
-            train_loss, train_metrics = train_epoch(...)
-            val_loss,   val_metrics   = validate(...)
-
-            if val_metrics['R2'] > best_r2:
-                best_r2 = val_metrics['R2']
-                torch.save(model.state_dict(), 'best_model.pt')
-
-            if stopper(val_loss):
-                print(f"Early stopping at epoch {epoch}")
-                break
-
     Args:
-        patience  : epochs to wait after last improvement before stopping
-        min_delta : minimum absolute improvement to reset the patience counter
-                    1e-4 prevents stopping on numerical noise in R²
-        mode      : 'max' for R² (higher is better)
-                    'min' for loss (lower is better)
+        patience, min_delta, mode   
     """
 
     def __init__(self, patience: int = 35, min_delta: float = 1e-4,
@@ -352,6 +294,6 @@ class EarlyStopping:
 
     def reset(self):
         """Reset state — use when resuming training from a checkpoint."""
-        self.counter    = 0
+        self.counter = 0
         self.best_score = None
         self.early_stop = False

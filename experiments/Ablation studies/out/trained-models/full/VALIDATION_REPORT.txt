@@ -11,41 +11,41 @@ AGGREGATE STATISTICS
 PRIMARY METRICS:
 
 R2:
- Mean:0.9981
-Std: 0.0007
-95% CI: [0.9976,  0.9986]
- CV: 0.07%
-Range : [0.9969,  0.9987]
+ Mean:0.9986
+Std: 0.0003
+95% CI: [0.9983,  0.9988]
+ CV: 0.03%
+Range : [0.9979,  0.9990]
 
 MAE_I:
- Mean:56.93
-Std: 4.39
-95% CI: [53.78,  60.07]
- CV: 7.72%
-Range : [51.04,  65.22]
+ Mean:54.61
+Std: 3.21
+95% CI: [52.32,  56.90]
+ CV: 5.87%
+Range : [50.66,  59.61]
 
 
 PER-COMPARTMENT MAE:
 ----------------------------------------------------------------------
-  MAE_S: 1218.94 ± 202.65  (95% CI: [1073.97, 1363.91])
-  MAE_I:   56.93 ±  4.39  (95% CI: [53.78, 60.07])
-  MAE_R: 1225.42 ± 202.41  (95% CI: [1080.62, 1370.21])
+  MAE_S: 1059.03 ± 110.43  (95% CI: [980.03, 1138.03])
+  MAE_I:   54.61 ±  3.21  (95% CI: [52.32, 56.90])
+  MAE_R: 1065.20 ± 110.00  (95% CI: [986.51, 1143.89])
 
 
 INDIVIDUAL REPLICATE RESULTS:
 ----------------------------------------------------------------------
  ID   Seed       R²    MAE_I  Model File                              
 ----------------------------------------------------------------------
-  1     42   0.9987    52.72  best_balanced_mlp_model_1.pt            
-  2    123   0.9979    57.52  best_balanced_mlp_model_2.pt            
-  3    456   0.9985    60.86  best_balanced_mlp_model_3.pt            
-  4    789   0.9987    52.53  best_balanced_mlp_model_4.pt            
-  5   1011   0.9980    54.71  best_balanced_mlp_model_5.pt            
-  6   1213   0.9973    60.25  best_balanced_mlp_model_6.pt            
-  7   1415   0.9986    58.01  best_balanced_mlp_model_7.pt            
-  8   1617   0.9969    65.22  best_balanced_mlp_model_8.pt            
-  9   1819   0.9975    56.39  best_balanced_mlp_model_9.pt            
- 10   2021   0.9987    51.04  best_balanced_mlp_model_10.pt           
+  1     42   0.9988    51.90  best_balanced_mlp_model_1.pt            
+  2    123   0.9981    58.93  best_balanced_mlp_model_2.pt            
+  3    456   0.9988    57.21  best_balanced_mlp_model_3.pt            
+  4    789   0.9986    52.35  best_balanced_mlp_model_4.pt            
+  5   1011   0.9984    53.72  best_balanced_mlp_model_5.pt            
+  6   1213   0.9986    52.42  best_balanced_mlp_model_6.pt            
+  7   1415   0.9986    56.69  best_balanced_mlp_model_7.pt            
+  8   1617   0.9988    52.60  best_balanced_mlp_model_8.pt            
+  9   1819   0.9979    59.61  best_balanced_mlp_model_9.pt            
+ 10   2021   0.9990    50.66  best_balanced_mlp_model_10.pt           
 
 INTERPRETATION
 

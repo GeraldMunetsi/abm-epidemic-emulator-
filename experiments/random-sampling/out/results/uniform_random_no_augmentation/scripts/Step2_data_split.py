@@ -57,7 +57,6 @@ def split_dataset(dataset,
     n_param_sets = len(param_keys)
 
     print("\nDataset summary")
-    print("----------------------")
     print(f"Total simulations: {len(sims)}")
     print(f"Unique parameter sets: {n_param_sets}")
     print(f"Average replicates per set: {len(sims)/n_param_sets:.2f}")
@@ -78,7 +77,6 @@ def split_dataset(dataset,
   
     # Step 3: Collect simulations for each split
   
-
     def collect_simulations(param_indices):
 
         sim_indices = []

@@ -1,0 +1,31 @@
+                            OLS Regression Results                            
+==============================================================================
+Dep. Variable:     log_relative_MAE_I   R-squared:                       0.924
+Model:                            OLS   Adj. R-squared:                  0.921
+Method:                 Least Squares   F-statistic:                     298.3
+Date:                Thu, 16 Jul 2026   Prob (F-statistic):           1.14e-92
+Time:                        09:00:21   Log-Likelihood:                 255.62
+No. Observations:                 180   AIC:                            -495.2
+Df Residuals:                     172   BIC:                            -469.7
+Df Model:                           7                                         
+Covariance Type:            nonrobust                                         
+=========================================================================================================================
+                                                            coef    std err          t      P>|t|      [0.025      0.975]
+-------------------------------------------------------------------------------------------------------------------------
+Intercept                                                 1.8731      0.013    148.518      0.000       1.848       1.898
+C(train_strategy, Treatment("LHS"))[T.MCMC]              -0.3767      0.015    -24.386      0.000      -0.407      -0.346
+C(train_strategy, Treatment("LHS"))[T.UNIFORM_RANDOM]     0.0032      0.015      0.207      0.836      -0.027       0.034
+C(test_strategy, Treatment("LHS"))[T.MCMC]                0.1554      0.011     14.225      0.000       0.134       0.177
+C(test_strategy, Treatment("LHS"))[T.UNIFORM_RANDOM]      0.0206      0.011      1.890      0.060      -0.001       0.042
+augmentation                                             -0.3883      0.015    -25.141      0.000      -0.419      -0.358
+train_strategy[T.MCMC]:augmentation                       0.3131      0.022     14.332      0.000       0.270       0.356
+train_strategy[T.UNIFORM_RANDOM]:augmentation            -0.0058      0.022     -0.264      0.792      -0.049       0.037
+==============================================================================
+Omnibus:                        5.979   Durbin-Watson:                   1.487
+Prob(Omnibus):                  0.050   Jarque-Bera (JB):                5.754
+Skew:                           0.352   Prob(JB):                       0.0563
+Kurtosis:                       3.521   Cond. No.                         10.4
+==============================================================================
+
+Notes:
+[1] Standard Errors assume that the covariance matrix of the errors is correctly specified.

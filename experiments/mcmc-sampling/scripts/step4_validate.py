@@ -118,7 +118,7 @@ def evaluate_model(model, val_loader, device, n_timesteps):
             targets = batch.y
             all_predictions.append(predictions.cpu())
             all_targets.append(targets.cpu())
-            params_norm_cpu = batch.params_norm.cpu() #batch.params_norm is expected to be normalized between 0 and 1 #So the model does not need raw tau, gamma, rho — it expects normalized values.
+            params_norm_cpu = batch.params_norm.cpu() 
             param_mins_t= torch.tensor(PARAM_MINS)
             param_maxs_t= torch.tensor(PARAM_MAXS)
             params_raw= params_norm_cpu * (param_maxs_t - param_mins_t) + param_mins_t
@@ -235,19 +235,19 @@ def load_training_histories(models_dir):
     return histories
 
 def plot_training_summary(results_list, models_dir, output_dir):
-    """4-panel training summary: loss curves, R²_I, relative MAE_I, convergence."""
+    """4-panel training summary: loss curves, R^2_I, relative MAE_I, convergence."""
     output_dir = Path(output_dir)
     histories = load_training_histories(models_dir)
     if histories is None or all(h is None for h in histories):
-        print("No training histories found — skipping summary plot.")
+        print("No training histories found.")
         return
 
     n_replicates = len(results_list)
     colors = plt.cm.tab10(np.linspace(0, 1, n_replicates))
 
-    fig, axes = plt.subplots(2, 2, figsize=(14, 10))
-    fig.suptitle('Training Summary', fontsize=16, fontweight='bold')
-    ax_loss, ax_r2, ax_mae, ax_conv = axes[0, 0], axes[0, 1], axes[1, 0], axes[1, 1]
+    fig, axes = plt.subplots(4, 1, figsize=(8, 15))
+    fig.suptitle('Training Summary', fontsize=20, fontweight='bold')
+    ax_loss, ax_r2, ax_mae, ax_conv = axes[0], axes[1], axes[2], axes[3]
 
     for i, (result, history) in enumerate(zip(results_list, histories)):
         if history is None:
@@ -283,25 +283,25 @@ def plot_training_summary(results_list, models_dir, output_dir):
     ax_loss.set_ylabel('Loss (log scale)', fontweight='bold')
     ax_loss.set_title('Training (- -) vs Validation (—) Loss')
     ax_loss.set_yscale('log')
-    ax_loss.legend(fontsize=7, ncol=2, loc='upper right')
+    ax_loss.legend(fontsize=9, ncol=2, loc='upper right')
     ax_loss.grid(True, alpha=0.3)
 
     ax_r2.set_xlabel('Epoch', fontweight='bold')
     ax_r2.set_ylabel('R²', fontweight='bold')
     ax_r2.set_title('R² of I Compartment Evolution')
-    ax_r2.legend(fontsize=7, ncol=2, loc='lower right')
+    # ax_r2.legend(fontsize=9, ncol=2, loc='lower right')
     ax_r2.grid(True, alpha=0.3)
 
     ax_mae.set_xlabel('Epoch', fontweight='bold')
     ax_mae.set_ylabel('Relative MAE_I (% of N)', fontweight='bold')
     ax_mae.set_title('Relative MAE_I Evolution')
-    ax_mae.legend(fontsize=7, ncol=2, loc='upper right')
+    # ax_mae.legend(fontsize=9, ncol=2, loc='upper right')
     ax_mae.grid(True, alpha=0.3)
 
     ax_conv.set_xlabel('Epoch', fontweight='bold')
     ax_conv.set_ylabel('Validation Loss', fontweight='bold')
     ax_conv.set_title('Convergence (Last 20 Epochs)')
-    ax_conv.legend(fontsize=7, ncol=2, loc='upper right')
+    # ax_conv.legend(fontsize=7, ncol=2, loc='upper right')
     ax_conv.grid(True, alpha=0.3)
 
     for ax, label in zip([ax_loss, ax_r2, ax_mae, ax_conv],
@@ -309,9 +309,9 @@ def plot_training_summary(results_list, models_dir, output_dir):
         ax.text(0.02, 0.98, label, transform=ax.transAxes,
                 fontsize=13, fontweight='bold', va='top', ha='left')
 
-    plt.tight_layout()
+    plt.tight_layout(rect=[0, 0, 1, 0.97])
     out_path = output_dir / 'training_summary.png'
-    plt.savefig(out_path, dpi=200, bbox_inches='tight')
+    plt.savefig(out_path, dpi=600, bbox_inches='tight')
     plt.close()
     print(f"Saved: {out_path}")
     
@@ -330,7 +330,7 @@ def plot_prediction_samples(results_list, targets, params, output_dir, n_samples
     indices = np.linspace(0, n_total - 1, n_samples, dtype=int)
     fig = plt.figure(figsize=(18, 3 * n_samples))
     gs=GridSpec(n_samples, 3, figure=fig, hspace=0.35, wspace=0.3)
-    fig.suptitle('VALIDATION: PREDICTED VS GROUND TRUTH',fontsize=16, fontweight='bold')
+    fig.suptitle('VALIDATION: PREDICTED VS GROUND TRUTH',fontsize=16, fontweight='bold', y=0.95)
     n_replicates= len(results_list)
     pred_colors= plt.cm.tab10(np.linspace(0, 1, n_replicates))
 
@@ -516,7 +516,7 @@ def save_results(results_list, stats_dict, output_dir):
             f"{r['model_filename']:<40}"
         )
 
-    # Interpretation
+    # Interpretation -helping me to understanding performance of model
     cv = stats_dict['MAE_I']['cv']
     consistency = (
         "EXCELLENT" if cv and cv < 5  else
@@ -570,14 +570,6 @@ if __name__ == "__main__":
     results_dir=Path(args.output_dir)
     plots_dir=Path(args.plots_dir)
 
-    # # Safety check: data file must exist 
-    # if not data_path.exists():
-    #     raise FileNotFoundError(
-    #         f"\nData file not found: {data_path.resolve()}"
-    #         f"\nExpected in: {SPLIT_DATA_DIR.resolve()}"
-    #         f"\nHave you run split_dataset.py Step 2 first"
-    #     )
-
     print("STEP 4: VALIDATION ")
     print(f"\nModels dir: {models_dir.resolve()}")
     print(f"Data file: {data_path.resolve()}")        #  prints full path
@@ -601,7 +593,7 @@ if __name__ == "__main__":
     # Aggregate statistics 
     stats_dict = compute_aggregate_statistics(results_list)
     print(f"\n Statistics over {len(results_list)} replicate(s)")
-    print(f"Mean R²: {stats_dict['R2']['mean']:.4f} ± {stats_dict['R2']['std']:.4f}")
+    print(f"Mean R^2: {stats_dict['R2']['mean']:.4f} ± {stats_dict['R2']['std']:.4f}")
     print(f"Mean MAE_I: {stats_dict['MAE_I']['mean']:.2f} ± {stats_dict['MAE_I']['std']:.2f}")
     print(f"CV (MAE_I): {stats_dict['MAE_I']['cv']:.2f}%")
 

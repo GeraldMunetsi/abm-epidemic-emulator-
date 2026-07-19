@@ -515,6 +515,66 @@ def plot_infected_predictions(results_list, targets, params, plots_dir,
 
 
 
+
+def plot_infected_uncertainty_grid(results_list, targets, plots_dir,
+                                    params=None, n_samples=4):
+    """
+    Single-row grid of Infected I(t) panels — mean ± 2σ band across
+    replicates, mean prediction, and ground truth. One panel per selected
+    test sample, each titled with that sample's (tau, gamma, rho, R0).
+    """
+    plots_dir  = Path(plots_dir)
+    targets_np = targets.detach().cpu().numpy()
+    n_total    = len(targets_np)
+    indices    = np.unique(np.linspace(0, n_total - 1, n_samples, dtype=int))
+
+    all_preds = np.stack(
+        [r['predictions'].detach().cpu().numpy() for r in results_list],
+        axis=0
+    )                                          # (k, n_test, T, 3)
+    mean_pred = all_preds.mean(axis=0)         # (n_test, T, 3)
+    std_pred  = all_preds.std(axis=0, ddof=1)  # sample SD — ddof=1
+
+    n_panels = len(indices)
+    fig, axes = plt.subplots(1, n_panels, figsize=(5 * n_panels, 4.2))
+    if n_panels == 1:
+        axes = [axes]
+
+    fig.suptitle(
+        f'{TRAIN_STRATEGY} MODEL ON {TEST_STRATEGY} TEST SET — INFECTED (I)',
+        fontsize=15, fontweight='bold'
+    )
+
+    for panel_idx, idx in enumerate(indices):
+        ax     = axes[panel_idx]
+        t      = np.arange(mean_pred.shape[1])
+        mu     = mean_pred[idx, :, 1]
+        sigma  = std_pred[idx, :, 1]
+        lo, hi = mu - 2 * sigma, mu + 2 * sigma
+
+        ax.fill_between(t, lo, hi, color='salmon', alpha=0.35,
+                        label='Mean ± 2σ')
+        ax.plot(t, mu, '-', color='firebrick', lw=1.8, label='Mean pred')
+        ax.plot(t, targets_np[idx, :, 1], 'o', color='steelblue',
+                alpha=0.6, ms=3, mew=0, label='Ground truth')
+
+        ax.text(0.02, 0.97, f"({chr(ord('a') + panel_idx)})",
+                transform=ax.transAxes, fontsize=10, fontweight='bold',
+                va='top', ha='left')
+        ax.set_title(_r0_label(params, idx), fontsize=10)
+        ax.set_xlabel('Time step')
+        ax.set_ylabel('Infected count')
+        ax.grid(True, alpha=0.3, linestyle='--')
+        if panel_idx == 0:
+            ax.legend(loc='best', fontsize=8)
+
+    plt.tight_layout(rect=[0, 0, 1, 0.92])
+    out = plots_dir / 'infected_uncertainty_grid.png'
+    plt.savefig(out, dpi=200, bbox_inches='tight')
+    plt.close()
+    print(f"  Saved: {out}")
+
+
 #  7. SAVE RESULTS
 def save_results(results_list, stats_dict, output_dir):
     """Save JSON stats, per-replicate CSV, and plain-text report."""
@@ -655,5 +715,7 @@ if __name__ == '__main__':
                                n_samples=min(16, len(targets)))
     plot_relative_mae_vs_peak(results_list, targets, params, plots_dir)
 
+    plot_infected_uncertainty_grid(results_list, targets, plots_dir,
+                                    params=params, n_samples=4)
     # Save JSON + text report
     save_results(results_list, stats_dict, results_dir)

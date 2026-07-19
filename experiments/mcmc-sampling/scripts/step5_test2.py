@@ -1,7 +1,7 @@
-import sys
-if sys.platform == "win32":
-    sys.stdout.reconfigure(encoding="utf-8", errors="replace")
-    sys.stderr.reconfigure(encoding="utf-8", errors="replace")
+# import sys
+# if sys.platform == "win32":
+#     sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+#     sys.stderr.reconfigure(encoding="utf-8", errors="replace")
 
 
 
@@ -27,7 +27,7 @@ ratio = 58        # (⟨k²⟩ − ⟨k⟩)/⟨k⟩ for the BA network
 MODELS_DIR = Path("experiments/mcmc-sampling/out/trained-models")
 TEST_DATA_DIR= Path("experiments/mcmc-sampling/data/split/abm-data_split.pkl")
 RESULTS_DIR = Path("experiments/mcmc-sampling/out/results/testing")
-PLOTS_DIR = Path("experiments/mcmc-sampling/out/plots/testing_plots")
+PLOTS_DIR = Path("experiments/mcmc-sampling/out/plots/testing_plots/mcmc_test_data")
 REGRESSION_DATA_DIR = Path("experiments/Regression/data")
 
 TRAIN_STRATEGY= 'MCMC'
@@ -96,8 +96,8 @@ def evaluate_model(model, test_loader, device):
             all_params.append(raw)
 
     predictions = torch.cat(all_preds,   dim=0)   # (n_test, T, 3)
-    targets     = torch.cat(all_targets, dim=0)
-    params      = torch.cat(all_params,  dim=0)   # (n_test, 3)
+    targets = torch.cat(all_targets, dim=0)
+    params = torch.cat(all_params,  dim=0)   # (n_test, 3)
 
     
     metrics = compute_metrics(predictions, targets)
@@ -155,15 +155,15 @@ def compute_relative_mae_i(predictions, targets):
 
     Formula
     -------
-    Rel-MAE_I_i = (1/T  Σ_t |Î_i(t) − I_i(t)|) / max_t I_i(t)  × 100%
-    Rel-MAE_I   = (1/n) Σ_i  Rel-MAE_I_i
+    rMAE_I_i = (1/T  Σ_t |Î_i(t) − I_i(t)|) / max_t I_i(t)  × 100%
+    rMAE_I   = (1/n) Σ_i  Rel-MAE_I_i
 
     Returns
     -------
-    mean_rel      : float  — mean Rel-MAE_I (%) across all n samples
-    std_rel       : float  — sample SD (ddof=1) across samples
-    per_sample    : array  — (n,) per-sample values
-    mean_peak     : float  — mean of true I_max across samples
+    mean_rel :mean rMAE_I (%) across all n samples
+    std_rel  : sample SD a
+    per_sample : (n,) per-sample values
+    mean_peak  : mean of true I_max across samples
     """
     mae_per_sample  = (predictions[:, :, 1] - targets[:, :, 1]).abs().mean(dim=1)
     peak_per_sample = targets[:, :, 1].max(dim=1)[0]
@@ -256,15 +256,15 @@ def compute_aggregate_statistics(results_list, targets):
         std = float(arr.std(ddof=1)) if k > 1 else 0.
         sem = std / np.sqrt(k)       if k > 1 else 0.
 
-        # t-distribution: k < 30, so normal approximation is inappropriate
+        # t-distribution: k < 30 (we only have 10 replicate models)
         ci = (stats.t.interval(0.95, df=k-1, loc=arr.mean(), scale=sem)
               if k > 1 else (arr.mean(), arr.mean()))
 
         stats_dict[key] = {
             'mean'  : float(arr.mean()),
             'median': float(np.median(arr)),
-            'std'   : std,                           # sample SD (ddof=1)
-            'sem'   : sem,                           # SEM from sample SD
+            'std'   : std,                        
+            'sem'   : sem,                    
             'ci_95' : [float(ci[0]), float(ci[1])],
             'cv'    : float(std / arr.mean() * 100) if arr.mean() != 0 else 0.,
             'min'   : float(arr.min()),
@@ -324,6 +324,8 @@ def compute_aggregate_statistics(results_list, targets):
 
 #  6. VISUALISATION
 
+#  6. VISUALISATION
+
 def _r0_label(params, idx):
     """Return a parameter string for subplot titles."""
     if params is None:
@@ -374,7 +376,7 @@ def plot_uncertainty_band(results_list, targets, plots_dir,
     fig.suptitle(
         f'Prediction uncertainty — mean ± 2σ  '
         f'(σ = sample SD, ddof=1, k={k} replicates)\n'
-        f'Train: {TRAIN_STRATEGY}  →  Test: {TEST_STRATEGY}  '
+        f'Train: {TRAIN_STRATEGY} : Test: {TEST_STRATEGY}  '
         f'aug={AUGMENTATION}',
         fontsize=12, fontweight='bold'
     )
@@ -515,6 +517,64 @@ def plot_infected_predictions(results_list, targets, params, plots_dir,
     print(f"  Saved: {out}")
 
 
+def plot_infected_uncertainty_grid(results_list, targets, plots_dir,
+                                    params=None, n_samples=4):
+    """
+    Single-row grid of Infected I(t) panels — mean ± 2σ band across
+    replicates, mean prediction, and ground truth. One panel per selected
+    test sample, each titled with that sample's (tau, gamma, rho, R0).
+    """
+    plots_dir  = Path(plots_dir)
+    targets_np = targets.detach().cpu().numpy()
+    n_total    = len(targets_np)
+    indices    = np.unique(np.linspace(0, n_total - 1, n_samples, dtype=int))
+
+    all_preds = np.stack(
+        [r['predictions'].detach().cpu().numpy() for r in results_list],
+        axis=0
+    )                                          # (k, n_test, T, 3)
+    mean_pred = all_preds.mean(axis=0)         # (n_test, T, 3)
+    std_pred  = all_preds.std(axis=0, ddof=1)  # sample SD — ddof=1
+
+    n_panels = len(indices)
+    fig, axes = plt.subplots(1, n_panels, figsize=(5 * n_panels, 4.2))
+    if n_panels == 1:
+        axes = [axes]
+
+    fig.suptitle(
+        f'{TRAIN_STRATEGY} MODEL ON {TEST_STRATEGY} TEST SET — INFECTED (I)',
+        fontsize=15, fontweight='bold'
+    )
+
+    for panel_idx, idx in enumerate(indices):
+        ax     = axes[panel_idx]
+        t      = np.arange(mean_pred.shape[1])
+        mu     = mean_pred[idx, :, 1]
+        sigma  = std_pred[idx, :, 1]
+        lo, hi = mu - 2 * sigma, mu + 2 * sigma
+
+        ax.fill_between(t, lo, hi, color='salmon', alpha=0.35,
+                        label='Mean ± 2σ')
+        ax.plot(t, mu, '-', color='firebrick', lw=1.8, label='Mean pred')
+        ax.plot(t, targets_np[idx, :, 1], 'o', color='steelblue',
+                alpha=0.6, ms=3, mew=0, label='Ground truth')
+
+        ax.text(0.02, 0.97, f"({chr(ord('a') + panel_idx)})",
+                transform=ax.transAxes, fontsize=10, fontweight='bold',
+                va='top', ha='left')
+        ax.set_title(_r0_label(params, idx), fontsize=10)
+        ax.set_xlabel('Time step')
+        ax.set_ylabel('Infected count')
+        ax.grid(True, alpha=0.3, linestyle='--')
+        if panel_idx == 0:
+            ax.legend(loc='best', fontsize=8)
+
+    plt.tight_layout(rect=[0, 0, 1, 0.92])
+    out = plots_dir / 'infected_uncertainty_grid.png'
+    plt.savefig(out, dpi=200, bbox_inches='tight')
+    plt.close()
+    print(f"  Saved: {out}")
+
 
 #  7. SAVE RESULTS
 def save_results(results_list, stats_dict, output_dir):
@@ -600,10 +660,8 @@ if __name__ == '__main__':
     results_dir = Path(args.output_dir)
     plots_dir = Path(args.plots_dir)
    
-
-    print(f"\n{'═'*70}")
     print(f"STEP 5  TEST EVALUATION")
-    print(f"  Train: {TRAIN_STRATEGY}  : Test: {TEST_STRATEGY}  "
+    print(f"Train: {TRAIN_STRATEGY}  : Test: {TEST_STRATEGY}  "
           f"aug={AUGMENTATION}")
 
     device = get_device()
@@ -650,13 +708,14 @@ if __name__ == '__main__':
     )
 
     # Plots
-    print("\nGenerating plots...")
+
     plot_uncertainty_band(results_list, targets, plots_dir,
                           params=params,
                           n_samples=args.n_plot_samples)
     plot_infected_predictions(results_list, targets, params, plots_dir,
                                n_samples=min(16, len(targets)))
-    plot_relative_mae_vs_peak(results_list, targets, params, plots_dir)
+    plot_infected_uncertainty_grid(results_list, targets, plots_dir,
+                                    params=params, n_samples=4)
 
     # Save JSON + text report
     save_results(results_list, stats_dict, results_dir)
